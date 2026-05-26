@@ -1,0 +1,46 @@
+#if os(macOS)
+import SwiftUI
+
+struct MenuBarView: View {
+    @State private var store = TodoStore.shared
+
+    var body: some View {
+        if store.todayTodos.isEmpty {
+            Text("今天没有任务")
+                .foregroundStyle(.secondary)
+        } else {
+            ForEach(store.todayTodos.prefix(5)) { todo in
+                Button(todo.title) {
+                    openApp()
+                }
+            }
+        }
+
+        if store.todayTodos.count > 5 {
+            Text("还有 \(store.todayTodos.count - 5) 个任务...")
+                .foregroundStyle(.secondary)
+        }
+
+        Divider()
+
+        Button("新建任务...") {
+            openApp()
+        }
+        .keyboardShortcut("n", modifiers: .command)
+
+        Divider()
+
+        Button("打开 TodoLite") {
+            openApp()
+        }
+
+        Button("退出") {
+            NSApplication.shared.terminate(nil)
+        }
+    }
+
+    private func openApp() {
+        NSApplication.shared.activate(ignoringOtherApps: true)
+    }
+}
+#endif

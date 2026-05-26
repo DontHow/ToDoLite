@@ -48,6 +48,7 @@ final class TodoStore {
         tags = try await g
 
         await indexer.rebuild(todos: todos, projects: projects, tags: tags)
+        WidgetDataStore.sync(todos: todos)
     }
 
     // MARK: - Todo CRUD
@@ -57,6 +58,7 @@ final class TodoStore {
         try await todoRepo.save(todo)
         todos.append(todo)
         await indexer.index(todo: todo, projects: projects, tags: tags)
+        WidgetDataStore.sync(todos: todos)
     }
 
     func updateTodo(_ todo: TodoItem) async throws {
@@ -65,12 +67,14 @@ final class TodoStore {
             todos[idx] = todo
         }
         await indexer.index(todo: todo, projects: projects, tags: tags)
+        WidgetDataStore.sync(todos: todos)
     }
 
     func deleteTodo(id: String) async throws {
         try await todoRepo.delete(id: id)
         todos.removeAll { $0.id == id }
         await indexer.remove(todoId: id)
+        WidgetDataStore.sync(todos: todos)
     }
 
     func toggleComplete(id: String) async throws {

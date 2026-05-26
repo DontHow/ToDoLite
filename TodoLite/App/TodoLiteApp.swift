@@ -11,5 +11,11 @@ struct TodoLiteApp: App {
                     iCloudSyncManager.shared.startMonitoring()
                 }
         }
+
+        #if os(macOS)
+        MenuBarExtra("TodoLite", systemImage: "checklist") {
+            MenuBarView()
+        }
+        #endif
     }
 }

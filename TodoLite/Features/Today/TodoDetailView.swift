@@ -90,5 +90,13 @@ struct TodoDetailView: View {
             }
         }
         .navigationTitle("编辑")
+        .onKeyPress(characters: .init(charactersIn: "\u{7F}")) { press in
+            guard press.modifiers == .command else { return .ignored }
+            Task {
+                try? await store.deleteTodo(id: edited.id)
+                dismiss()
+            }
+            return .handled
+        }
     }
 }
