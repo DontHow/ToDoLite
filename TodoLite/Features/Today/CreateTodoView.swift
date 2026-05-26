@@ -17,24 +17,28 @@ struct CreateTodoView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                modeSection
+            ZStack(alignment: .bottom) {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        modeToggle
 
-                if useQuickEntry {
-                    quickEntrySection
-                } else {
-                    detailSection
-                    statusSection
-                    prioritySection
-                    projectSection
-                    dateSection
+                        if useQuickEntry {
+                            quickEntryArea
+                        } else {
+                            detailForm
+                        }
+
+                        Spacer().frame(height: 100)
+                    }
+                    .padding(.horizontal, 20)
                 }
+                .scrollDismissesKeyboard(.interactively)
 
-                saveButtonSection
+                saveButtonBar
             }
             .navigationTitle("新建任务")
             #if os(iOS)
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -46,266 +50,465 @@ struct CreateTodoView: View {
 
     // MARK: - Mode Toggle
 
-    private var modeSection: some View {
-        Section {
-            Picker("输入模式", selection: $useQuickEntry) {
-                Text("快速输入").tag(true)
-                Text("详细输入").tag(false)
+    private var modeToggle: some View {
+        HStack(spacing: 0) {
+            modeButton("快速输入", icon: "bolt.fill", isActive: useQuickEntry) {
+                withAnimation(.spring(duration: 0.3)) { useQuickEntry = true }
             }
-            .pickerStyle(.segmented)
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets())
+            modeButton("详细输入", icon: "slider.horizontal.3", isActive: !useQuickEntry) {
+                withAnimation(.spring(duration: 0.3)) { useQuickEntry = false }
+            }
         }
+        .background(chipBg)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .padding(.top, 16)
+        .padding(.bottom, 20)
+    }
+
+    private func modeButton(_ label: String, icon: String, isActive: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.subheadline)
+                Text(label)
+                    .font(.subheadline.weight(isActive ? .semibold : .regular))
+            }
+            .foregroundStyle(isActive ? .white : .primary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(isActive ? Color.accentColor : Color.clear)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Quick Entry
 
-    private var quickEntrySection: some View {
-        Section {
-            TextField("", text: $title, axis: .vertical)
-                .lineLimit(1...3)
-                .font(.title3)
-                .placeholder(when: title.isEmpty) {
-                    Text("提交 TestFlight @工作 #iOS !高 ^明天")
-                        .foregroundStyle(.tertiary)
-                }
-                .onChange(of: title) { _, newValue in
-                    parsedDraft = TodoParser.parse(newValue)
+    private var quickEntryArea: some View {
+        VStack(spacing: 16) {
+            ZStack(alignment: .topLeading) {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(cardBg)
+
+                if title.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("输入任务...")
+                            .foregroundStyle(.tertiary)
+                            .font(.title3)
+                        Text("@项目 #标签 !优先级 ^日期")
+                            .foregroundStyle(.quaternary)
+                            .font(.callout)
+                    }
+                    .padding(20)
+                    .allowsHitTesting(false)
                 }
 
+                TextEditor(text: $title)
+                    .font(.title3)
+                    .scrollContentBackground(.hidden)
+                    .padding(16)
+                    .frame(minHeight: 120)
+            }
+            .frame(minHeight: 120)
+            .onChange(of: title) { _, newValue in
+                parsedDraft = TodoParser.parse(newValue)
+            }
+
+            suggestionPanel
+
             if let draft = parsedDraft, !draft.title.isEmpty {
-                draftPreviewCard(draft)
+                quickPreviewCard(draft)
             }
         }
     }
 
-    private func draftPreviewCard(_ draft: TodoDraft) -> some View {
+    private var suggestionPanel: some View {
+        Group {
+            if let token = activeToken {
+                VStack(alignment: .leading, spacing: 10) {
+                    switch token.prefix {
+                    case "@":
+                        projectSuggestions(query: token.query)
+                    case "#":
+                        tagSuggestions(query: token.query)
+                    case "!":
+                        prioritySuggestions()
+                    case "^":
+                        dateSuggestions()
+                    default:
+                        EmptyView()
+                    }
+                }
+                .padding(14)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(cardBgTertiary)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.accentColor.opacity(0.15), lineWidth: 1)
+                )
+            }
+        }
+    }
+
+    private var activeToken: (prefix: Character, query: String)? {
+        let components = title.split(separator: " ", omittingEmptySubsequences: false)
+        guard let last = components.last, !last.isEmpty else { return nil }
+        let lastStr = String(last)
+        guard let first = lastStr.first, ["@", "#", "!", "^"].contains(first) else { return nil }
+        return (first, String(lastStr.dropFirst()))
+    }
+
+    private func insertSuggestion(_ text: String) {
+        let components = title.split(separator: " ", omittingEmptySubsequences: false)
+        if components.count > 1 {
+            let allButLast = components.dropLast().joined(separator: " ")
+            title = allButLast + " " + text
+        } else {
+            title = text
+        }
+    }
+
+    private func projectSuggestions(query: String) -> some View {
+        let filtered = query.isEmpty
+            ? store.projects
+            : store.projects.filter { $0.name.localizedCaseInsensitiveContains(query) }
+        return suggestionRow(title: "项目", icon: "folder.fill", color: .blue) {
+            ForEach(filtered) { project in
+                suggestionChip(text: project.emoji + " " + project.name) {
+                    insertSuggestion("@" + project.name)
+                }
+            }
+            if filtered.isEmpty {
+                Text("无匹配项目")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 4)
+            }
+        }
+    }
+
+    private func tagSuggestions(query: String) -> some View {
+        let filtered = query.isEmpty
+            ? store.tags
+            : store.tags.filter { $0.name.localizedCaseInsensitiveContains(query) }
+        return suggestionRow(title: "标签", icon: "number", color: .purple) {
+            ForEach(filtered) { tag in
+                suggestionChip(text: tag.name) {
+                    insertSuggestion("#" + tag.name)
+                }
+            }
+            if filtered.isEmpty {
+                Text("无匹配标签")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 4)
+            }
+        }
+    }
+
+    private func prioritySuggestions() -> some View {
+        let options: [(display: String, value: String)] = [
+            ("高", "high"), ("中", "medium"), ("低", "low")
+        ]
+        return suggestionRow(title: "优先级", icon: "flag.fill", color: .orange) {
+            ForEach(options, id: \.value) { option in
+                suggestionChip(text: option.display) {
+                    insertSuggestion("!" + option.value)
+                }
+            }
+        }
+    }
+
+    private func dateSuggestions() -> some View {
+        let options: [(display: String, value: String)] = [
+            ("今天", "today"), ("明天", "tomorrow"), ("下周", "next week"),
+            ("周末", "weekend"), ("周一", "mon"), ("周二", "tue"),
+            ("周三", "wed"), ("周四", "thu"), ("周五", "fri")
+        ]
+        return suggestionRow(title: "日期", icon: "calendar", color: .green) {
+            ForEach(options, id: \.value) { option in
+                suggestionChip(text: option.display) {
+                    insertSuggestion("^" + option.value)
+                }
+            }
+        }
+    }
+
+    private func suggestionRow<Content: View>(title: String, icon: String, color: Color, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.caption2)
+                    .foregroundStyle(color)
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            FlowLayout(spacing: 8) {
+                content()
+            }
+        }
+    }
+
+    private func suggestionChip(text: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(text)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(chipBg)
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func quickPreviewCard(_ draft: TodoDraft) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
             Text(draft.title)
                 .font(.headline)
+                .foregroundStyle(.primary)
 
-            FlowLayout(spacing: 6) {
+            FlowLayout(spacing: 8) {
                 if let project = draft.projectName {
-                    Label(project, systemImage: "folder")
-                        .font(.caption)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.blue.gradient)
-                        .clipShape(Capsule())
+                    TagChip(
+                        icon: "folder.fill",
+                        text: project,
+                        color: .blue
+                    )
                 }
 
                 if let prio = draft.priority {
-                    Label(prio.displayName, systemImage: "flag")
-                        .font(.caption)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(priorityColor(prio).gradient)
-                        .clipShape(Capsule())
+                    TagChip(
+                        icon: "flag.fill",
+                        text: prio.displayName,
+                        color: priorityColor(prio)
+                    )
                 }
 
                 if let date = draft.scheduledAt {
-                    Label(date.formatted(.dateTime.month().day()), systemImage: "calendar")
-                        .font(.caption)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.green.gradient)
-                        .clipShape(Capsule())
+                    TagChip(
+                        icon: "calendar",
+                        text: date.formatted(.dateTime.month().day()),
+                        color: .green
+                    )
                 }
 
                 ForEach(draft.tagNames, id: \.self) { tag in
-                    Label(tag, systemImage: "number")
-                        .font(.caption)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.purple.gradient)
-                        .clipShape(Capsule())
+                    TagChip(
+                        icon: "number",
+                        text: tag,
+                        color: .purple
+                    )
                 }
             }
         }
-        .padding()
-        .background(cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .listRowBackground(Color.clear)
-        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(cardBgTertiary)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(Color.accentColor.opacity(0.2), lineWidth: 1)
+        )
     }
 
-    // MARK: - Detail
+    // MARK: - Detail Form
 
-    private var detailSection: some View {
-        Section {
-            TextField("标题", text: $title)
-                .font(.title3.weight(.medium))
-            TextField("添加描述...", text: $description, axis: .vertical)
-                .lineLimit(2...6)
-                .foregroundStyle(.secondary)
-        }
-    }
+    private var detailForm: some View {
+        VStack(spacing: 24) {
+            // Title
+            VStack(alignment: .leading, spacing: 12) {
+                TextField("任务标题", text: $title)
+                    .font(.title2.weight(.semibold))
 
-    // MARK: - Status
-
-    private var statusSection: some View {
-        Section {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(TodoStatus.allCases, id: \.self) { s in
-                        Button {
-                            status = s
-                        } label: {
-                            Text(s.displayName)
-                                .font(.subheadline.weight(status == s ? .semibold : .regular))
-                                .foregroundStyle(status == s ? .white : .primary)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
-                                .background(status == s ? Color.accentColor : Color(.tertiarySystemFill))
-                                .clipShape(Capsule())
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-            }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-        } header: {
-            Label("状态", systemImage: "list.bullet.rectangle")
-        }
-    }
-
-    // MARK: - Priority
-
-    private var prioritySection: some View {
-        Section {
-            HStack(spacing: 12) {
-                ForEach(TodoPriority.allCases, id: \.self) { p in
-                    Button {
-                        priority = p
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "flag.fill")
-                                .font(.caption)
-                            Text(p.displayName)
-                                .font(.subheadline.weight(priority == p ? .semibold : .regular))
-                        }
-                        .foregroundStyle(priority == p ? .white : priorityColor(p))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(priority == p ? priorityColor(p) : Color(.tertiarySystemFill))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-        } header: {
-            Label("优先级", systemImage: "flag")
-        }
-    }
-
-    // MARK: - Project
-
-    private var projectSection: some View {
-        Section {
-            Menu {
-                Button("无项目") { projectId = nil }
                 Divider()
-                ForEach(store.projects) { project in
-                    Button {
-                        projectId = project.id
-                    } label: {
-                        HStack {
-                            Text(project.emoji + " " + project.name)
-                            if projectId == project.id {
-                                Image(systemName: "checkmark")
+
+                TextField("添加描述...", text: $description, axis: .vertical)
+                    .lineLimit(2...4)
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(18)
+            .background(
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(cardBg)
+            )
+
+            // Status
+            OptionRow(icon: "list.bullet.rectangle", iconColor: .indigo, label: "状态") {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(TodoStatus.allCases.filter { $0 != .archived }, id: \.self) { s in
+                            statusChip(s)
+                        }
+                    }
+                }
+            }
+
+            // Priority
+            OptionRow(icon: "flag.fill", iconColor: .orange, label: "优先级") {
+                HStack(spacing: 10) {
+                    ForEach(TodoPriority.allCases, id: \.self) { p in
+                        priorityChip(p)
+                    }
+                }
+            }
+
+            // Project
+            OptionRow(icon: "folder.fill", iconColor: .blue, label: "项目") {
+                Menu {
+                    Button("无项目") { projectId = nil }
+                    Divider()
+                    ForEach(store.projects) { project in
+                        Button {
+                            projectId = project.id
+                        } label: {
+                            HStack {
+                                Text(project.emoji + " " + project.name)
+                                if projectId == project.id {
+                                    Image(systemName: "checkmark")
+                                }
                             }
                         }
                     }
-                }
-            } label: {
-                HStack {
-                    Image(systemName: "folder")
-                        .foregroundStyle(.blue)
-                    Text(projectId.flatMap { id in store.projects.first { $0.id == id }?.name } ?? "选择项目")
-                        .foregroundStyle(projectId == nil ? .secondary : .primary)
-                    Spacer()
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(projectId.flatMap { id in store.projects.first { $0.id == id }?.name } ?? "选择项目")
+                            .foregroundStyle(projectId == nil ? .secondary : .primary)
+                        Image(systemName: "chevron.down")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(chipBg)
+                    .clipShape(Capsule())
                 }
             }
-        } header: {
-            Label("项目", systemImage: "folder")
-        }
-    }
 
-    // MARK: - Date
-
-    private var dateSection: some View {
-        Section {
-            VStack(alignment: .leading, spacing: 12) {
-                Toggle(isOn: $hasScheduled) {
-                    Label("计划日期", systemImage: "calendar")
-                }
-                .tint(.green)
+            // Dates
+            VStack(spacing: 16) {
+                dateToggleRow(
+                    icon: "calendar",
+                    color: .green,
+                    label: "计划日期",
+                    isOn: $hasScheduled
+                )
                 if hasScheduled {
                     DatePicker("", selection: Binding(
                         get: { scheduledAt ?? Date() },
                         set: { scheduledAt = $0 }
                     ), displayedComponents: .date)
-                    .datePickerStyle(.graphical)
+                    .datePickerStyle(.compact)
                 }
-            }
 
-            VStack(alignment: .leading, spacing: 12) {
-                Toggle(isOn: $hasDue) {
-                    Label("截止日期", systemImage: "clock.arrow.circlepath")
-                }
-                .tint(.orange)
+                Divider()
+
+                dateToggleRow(
+                    icon: "clock.arrow.circlepath",
+                    color: .orange,
+                    label: "截止日期",
+                    isOn: $hasDue
+                )
                 if hasDue {
                     DatePicker("", selection: Binding(
                         get: { dueAt ?? Date() },
                         set: { dueAt = $0 }
                     ), displayedComponents: .date)
-                    .datePickerStyle(.graphical)
+                    .datePickerStyle(.compact)
                 }
             }
-        } header: {
-            Label("日期", systemImage: "calendar.badge.clock")
+            .padding(18)
+            .background(
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(cardBg)
+            )
         }
     }
 
-    private var cardBackground: Color {
-        #if os(iOS)
-        return Color(.secondarySystemBackground)
-        #else
-        return Color.gray.opacity(0.12)
-        #endif
+    private func statusChip(_ s: TodoStatus) -> some View {
+        Button {
+            withAnimation(.spring(duration: 0.25)) { status = s }
+        } label: {
+            Text(s.displayName)
+                .font(.subheadline.weight(status == s ? .semibold : .regular))
+                .foregroundStyle(status == s ? .white : .primary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(status == s ? Color.indigo : chipBg)
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func priorityChip(_ p: TodoPriority) -> some View {
+        Button {
+            withAnimation(.spring(duration: 0.25)) { priority = p }
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "flag.fill")
+                    .font(.caption2)
+                Text(p.displayName)
+                    .font(.subheadline.weight(priority == p ? .semibold : .regular))
+            }
+            .foregroundStyle(priority == p ? .white : priorityColor(p))
+            .frame(minWidth: 60)
+            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+            .background(priority == p ? priorityColor(p) : chipBg)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func dateToggleRow(icon: String, color: Color, label: String, isOn: Binding<Bool>) -> some View {
+        HStack {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .foregroundStyle(color)
+                    .font(.body)
+                Text(label)
+                    .font(.body)
+            }
+            Spacer()
+            Toggle("", isOn: isOn)
+                .labelsHidden()
+                .tint(color)
+        }
     }
 
     // MARK: - Save Button
 
-    private var saveButtonSection: some View {
-        Section {
+    private var saveButtonBar: some View {
+        VStack(spacing: 0) {
+            Divider()
+
             Button {
                 Task { await save() }
             } label: {
-                HStack {
-                    Spacer()
+                HStack(spacing: 8) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title3)
                     Text("创建任务")
                         .font(.headline)
-                    Spacer()
                 }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    canSave ? Color.accentColor : Color.gray
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 16))
             }
             .disabled(!canSave)
-            .foregroundStyle(.white)
-            .padding(.vertical, 6)
-            .background(canSave ? Color.accentColor : Color.gray)
-            .clipShape(RoundedRectangle(cornerRadius: 14))
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+            .buttonStyle(.plain)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(.ultraThinMaterial)
         }
     }
 
@@ -326,6 +529,18 @@ struct CreateTodoView: View {
         case .high: return .red
         }
     }
+
+    // MARK: - Cross-platform colors
+
+    #if os(iOS)
+    private var cardBg: Color { Color(uiColor: .secondarySystemBackground) }
+    private var cardBgTertiary: Color { Color(uiColor: .tertiarySystemBackground) }
+    private var chipBg: Color { Color(uiColor: .tertiarySystemFill) }
+    #else
+    private var cardBg: Color { Color(nsColor: .controlBackgroundColor) }
+    private var cardBgTertiary: Color { Color(nsColor: .windowBackgroundColor).opacity(0.5) }
+    private var chipBg: Color { Color(nsColor: .controlBackgroundColor) }
+    #endif
 
     private func save() async {
         if useQuickEntry, let draft = parsedDraft {
@@ -356,18 +571,61 @@ struct CreateTodoView: View {
     }
 }
 
-// MARK: - Placeholder Modifier
+// MARK: - Option Row
 
-private extension View {
-    func placeholder<Content: View>(
-        when shouldShow: Bool,
-        alignment: Alignment = .leading,
-        @ViewBuilder placeholder: () -> Content
-    ) -> some View {
-        ZStack(alignment: alignment) {
-            placeholder().opacity(shouldShow ? 1 : 0)
-            self
+private struct OptionRow<Content: View>: View {
+    let icon: String
+    let iconColor: Color
+    let label: String
+    @ViewBuilder let content: Content
+
+    private var rowBackground: Color {
+        #if os(iOS)
+        Color(uiColor: .systemGray6)
+        #else
+        Color(nsColor: .controlBackgroundColor)
+        #endif
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .foregroundStyle(iconColor)
+                    .font(.body)
+                Text(label)
+                    .font(.body.weight(.medium))
+                Spacer()
+            }
+            content
         }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(rowBackground)
+        )
+    }
+}
+
+// MARK: - Tag Chip
+
+private struct TagChip: View {
+    let icon: String
+    let text: String
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.caption2)
+            Text(text)
+                .font(.caption.weight(.medium))
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(color.opacity(0.9))
+        .clipShape(Capsule())
     }
 }
 
