@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 本文档为 Claude Code (claude.ai/code) 提供本仓库的开发指南。
 
 ## 项目概述
@@ -27,6 +29,9 @@ xcodebuild -project TodoLite.xcodeproj -scheme TodoLite-macOS -destination 'plat
 ### 运行测试
 ```bash
 xcodebuild -project TodoLite.xcodeproj -scheme TodoLite-iOS -destination 'platform=iOS Simulator,name=iPhone 16' test
+
+# 运行单个测试类
+xcodebuild -project TodoLite.xcodeproj -scheme TodoLite-iOS -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:TodoLiteTests/TodoLiteTests test
 ```
 
 ### 目标（来自 project.yml）
@@ -105,6 +110,34 @@ iCloud Drive/TodoLite/
 4. **写入路径禁止 AI。** Quick Entry 使用 `TodoParser`（基于规则），不是 LLM。
 5. **防数据丢失高于一切。** 所有写入为原子操作（`Data.write(options: .atomic)`），保留冲突备份，每次保存递增版本号。
 
+## 模型默认值
+
+新建模型时应遵循以下默认值：
+
+| 模型 | 字段 | 默认值 |
+|------|------|--------|
+| `TodoItem` | `status` | `.inbox` |
+| `TodoItem` | `priority` | `.medium` |
+| `TodoItem` | `version` | `1` |
+| `Project` | `emoji` | `"📁"` |
+| `Project` | `colorHex` | `"#007AFF"` |
+| `TagItem` | `colorHex` | `"#FF9500"` |
+
+## MVP 开发阶段
+
+项目按六阶段递进开发，当前进度决定新增功能应落在哪个层级：
+
+1. **核心数据层** — Models / Repository / FileSystem / JSON Store
+2. **本地 CRUD** — Task List / Task Detail / Create/Edit/Delete
+3. **iCloud** — iCloud Container / NSMetadataQuery / 文件监听
+4. **Today + Board** — Today / Board / Drag & Drop
+5. **Parser + Search** — Quick Entry / SQLite FTS
+6. **体验层** — 快捷键 / MenuBar / Widget / 动画
+
+新增功能时，先判断属于哪个阶段。若依赖的阶段尚未完成，应优先补齐依赖而非跳跃实现。
+
 ## 工作流规范
 
 - **每次改动完成后自动提交。** 单一代码改动完成并验证编译通过后，应直接执行 `git add` 和 `git commit`，无需等待用户额外确认。
+- **多平台兼容性检查。** 使用 `Color(uiColor:)` 或 `Color(nsColor:)` 等 UIKit/AppKit 专属 API 时，必须用 `#if os(iOS)` / `#else` 包裹，确保 iOS 和 macOS 双目标均能编译。
+- **`xcodegen generate` 后需重新打开 Xcode。** 修改 `project.yml` 后，先生成项目再重新加载 Xcode，`.pbxproj` 不应手动编辑。
