@@ -141,3 +141,7 @@ iCloud Drive/TodoLite/
 - **每次改动完成后自动提交。** 单一代码改动完成并验证编译通过后，应直接执行 `git add` 和 `git commit`，无需等待用户额外确认。
 - **多平台兼容性检查。** 使用 `Color(uiColor:)` 或 `Color(nsColor:)` 等 UIKit/AppKit 专属 API 时，必须用 `#if os(iOS)` / `#else` 包裹，确保 iOS 和 macOS 双目标均能编译。
 - **`xcodegen generate` 后需重新打开 Xcode。** 修改 `project.yml` 后，先生成项目再重新加载 Xcode，`.pbxproj` 不应手动编辑。
+
+## 设计参考
+
+现代医疗移动应用 UI 设计，AI 医生助手，柔和的蓝色和薰衣草渐变背景，3D 可爱心形吉祥物戴眼镜，干净的卡片布局大圆角，浮动底部导航栏带 3D 中央图标，极简线性图标，玻璃态输入栏，专业友好氛围，高端 UX/UI，8k 分辨率
