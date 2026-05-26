@@ -1,0 +1,83 @@
+name: TodoLite
+targets:
+  TodoLite-iOS:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: TodoLite
+        excludes:
+          - "Resources/Info-macOS.plist"
+          - "Resources/TodoLite-macOS.entitlements"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.donghao.TodoLite
+        PRODUCT_MODULE_NAME: TodoLite
+        SWIFT_VERSION: "5.9"
+        INFOPLIST_KEY_CFBundleDisplayName: TodoLite
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        CODE_SIGN_ENTITLEMENTS: TodoLite/Resources/TodoLite.entitlements
+    info:
+      path: TodoLite/Resources/Info.plist
+      properties:
+        CFBundleVersion: "1"
+        CFBundleShortVersionString: "1.0"
+        LSRequiresIPhoneOS: YES
+    entitlements:
+      path: TodoLite/Resources/TodoLite.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.$(CFBundleIdentifier)
+        com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)
+
+  TodoLite-macOS:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: TodoLite
+        excludes:
+          - "Resources/Info.plist"
+          - "Resources/TodoLite.entitlements"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.donghao.TodoLite
+        SWIFT_VERSION: "5.9"
+        INFOPLIST_KEY_CFBundleDisplayName: TodoLite
+        INFOPLIST_KEY_CFBundleDisplayName: TodoLite
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        CODE_SIGN_ENTITLEMENTS: TodoLite/Resources/TodoLite-macOS.entitlements
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGNING_ALLOWED: NO
+        CODE_SIGNING_REQUIRED: NO
+    info:
+      path: TodoLite/Resources/Info-macOS.plist
+      properties:
+        CFBundleVersion: "1"
+        CFBundleShortVersionString: "1.0"
+        LSMinimumSystemVersion: "14.0"
+    entitlements:
+      path: TodoLite/Resources/TodoLite-macOS.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.$(CFBundleIdentifier)
+        com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)
+
+  TodoLiteTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Tests
+    dependencies:
+      - target: TodoLite-iOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.donghao.TodoLiteTests
+        SWIFT_VERSION: "5.9"
+        GENERATE_INFOPLIST_FILE: YES
