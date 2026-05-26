@@ -57,9 +57,17 @@ struct BoardColumnView: View {
             .padding(.horizontal, 8)
 
             VStack(spacing: 8) {
+                if todos.isEmpty {
+                    Text("拖拽任务到此处")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, minHeight: 60)
+                }
                 ForEach(todos) { todo in
                     BoardCardView(todo: todo)
+                        .transition(.scale.combined(with: .opacity))
                 }
+                .animation(.default, value: todos.map(\.id))
             }
             .frame(width: 280)
             .padding(8)

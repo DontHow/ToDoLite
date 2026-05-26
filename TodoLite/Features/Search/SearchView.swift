@@ -17,6 +17,21 @@ struct SearchView: View {
             }
             .navigationTitle("搜索")
             .searchable(text: $query)
+            .overlay {
+                if query.isEmpty && searchResults.isEmpty {
+                    EmptyStateView(
+                        icon: "magnifyingglass",
+                        title: "搜索任务",
+                        subtitle: "输入关键词搜索标题、描述、标签和项目"
+                    )
+                } else if searchResults.isEmpty && !query.isEmpty {
+                    EmptyStateView(
+                        icon: "magnifyingglass.circle",
+                        title: "无结果",
+                        subtitle: "换个关键词试试"
+                    )
+                }
+            }
             .onChange(of: query) { _, newValue in
                 performSearch(newValue)
             }

@@ -4,7 +4,7 @@ struct ContentView: View {
     @State private var selectedTab: Tab = .today
 
     enum Tab: Hashable {
-        case today, inbox, board, search, settings
+        case today, inbox, board, search, settings, done, archive
     }
 
     var body: some View {
@@ -18,7 +18,29 @@ struct ContentView: View {
             case .board: BoardView()
             case .search: SearchView()
             case .settings: SettingsView()
+            case .done: DoneView()
+            case .archive: ArchiveView()
             }
+        }
+        .onKeyPress(characters: .init(charactersIn: "1")) { press in
+            guard press.modifiers == .command else { return .ignored }
+            selectedTab = .today
+            return .handled
+        }
+        .onKeyPress(characters: .init(charactersIn: "2")) { press in
+            guard press.modifiers == .command else { return .ignored }
+            selectedTab = .inbox
+            return .handled
+        }
+        .onKeyPress(characters: .init(charactersIn: "3")) { press in
+            guard press.modifiers == .command else { return .ignored }
+            selectedTab = .board
+            return .handled
+        }
+        .onKeyPress(characters: .init(charactersIn: "k")) { press in
+            guard press.modifiers == .command else { return .ignored }
+            selectedTab = .search
+            return .handled
         }
         #else
         TabView(selection: $selectedTab) {

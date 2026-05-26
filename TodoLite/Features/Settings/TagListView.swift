@@ -26,6 +26,15 @@ struct TagListView: View {
             }
         }
         .navigationTitle("标签")
+        .overlay {
+            if store.tags.isEmpty {
+                EmptyStateView(
+                    icon: "number",
+                    title: "暂无标签",
+                    subtitle: "点击 + 创建标签"
+                )
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button(action: { showingCreate = true }) {

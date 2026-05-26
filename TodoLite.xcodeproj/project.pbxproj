@@ -11,6 +11,7 @@
 		0DE8DCD851B25BD082C546D7 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48106E0B355F6DF4FCD611D9 /* TodayView.swift */; };
 		121CDCCBF9E28A3B25554F29 /* TagItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58F50B635472C1181D267A19 /* TagItem.swift */; };
 		1C3B878773BA854DF2EFB4DE /* TodoLiteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A6222AE7E35B2F93D328CD /* TodoLiteTests.swift */; };
+		1FC6F3D1449B9114C527F125 /* DoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9139406947F9F0ACD7FE7C5 /* DoneView.swift */; };
 		23105A11D7CF1F62230DECF0 /* TodoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20F3D5784DFBA26C750F314 /* TodoStore.swift */; };
 		24830AD57007F4933353A917 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72654DAA37CB54F52E61D6AD /* SettingsView.swift */; };
 		2AA20DFB33D1BE4208F4C901 /* TagRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A5EF9CBAF44C3D6C4D00D7 /* TagRepository.swift */; };
@@ -41,13 +42,16 @@
 		7AC4A1FA4567F1772E3BFB86 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48106E0B355F6DF4FCD611D9 /* TodayView.swift */; };
 		822C9F97EC0A721FE2B766C2 /* TodoLiteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB88B942AA60A9580D528D1 /* TodoLiteApp.swift */; };
 		828DA4D5183D96B521B439BC /* TodoRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71533A795B7C1D2E14F29DA3 /* TodoRepository.swift */; };
+		87FB1D4E572EEE803656B1B5 /* ArchiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839931DBAD3C2C78FB6ACC80 /* ArchiveView.swift */; };
 		8D04A216E6C6B1E40FDCAD9C /* TodoLiteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB88B942AA60A9580D528D1 /* TodoLiteApp.swift */; };
+		900AB978123A6EF8D1C02AA9 /* DoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9139406947F9F0ACD7FE7C5 /* DoneView.swift */; };
 		902A9AE461E75C35110F48B9 /* TodoStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D8E95A5E9B4571B449F6EA /* TodoStatus.swift */; };
 		908DE15E936E36EDA9DF39CE /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DD99E867EC2339BF7164115 /* SearchView.swift */; };
 		909A877C48BB0451BF799A98 /* TodoPriority.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FC3F70E4177294C2D89F2B6 /* TodoPriority.swift */; };
 		93A6FF5AA82C82ED0CE25C8D /* DateResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 332963835BF72C1DDE664C6B /* DateResolver.swift */; };
 		93DEA5429EDB5521295A9DD4 /* ProjectRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 126E0DECCE5A124185324F23 /* ProjectRepository.swift */; };
 		9BB8866FE5C5A850D4160A84 /* TodoRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71533A795B7C1D2E14F29DA3 /* TodoRepository.swift */; };
+		9D547540D304B7E3369C5766 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4EDBB35E1745B841F9B42FC /* EmptyStateView.swift */; };
 		9E881BD9F279FE939C2B2F0B /* TodoRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D791A08856EC02B41DD8B494 /* TodoRowView.swift */; };
 		A4D33AD824EB1B008931CFBD /* TodoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6841E7BECD3B341D97FFC0E /* TodoItem.swift */; };
 		AB6BE1F270AD441C5B9FB493 /* SearchIndexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71F72D35D5E42656C96B3B8A /* SearchIndexer.swift */; };
@@ -56,9 +60,11 @@
 		BB3000DA3A611C970DA51097 /* DateResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 332963835BF72C1DDE664C6B /* DateResolver.swift */; };
 		BCEEEB88CBE356AE1C17F094 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06BD850587D1946851753EE9 /* ContentView.swift */; };
 		BE3B0324FE9E0BB2526D9EFB /* FileSystemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 591876A8C1E05923A74007CC /* FileSystemManager.swift */; };
+		C2D06F8E004DF2C42FCFB9E2 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4EDBB35E1745B841F9B42FC /* EmptyStateView.swift */; };
 		C74E95BA62B38DA990403F50 /* InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968D595707EE1B458C51B894 /* InboxView.swift */; };
 		CFC45EB68D744F548F27D360 /* ProjectListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C65ED265146396081DC3DCA /* ProjectListView.swift */; };
 		D1E6EB8792B7EE2DF830FDC3 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = B427D65449C1241510500B61 /* Project.swift */; };
+		DAFEDAC62093208227850915 /* ArchiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839931DBAD3C2C78FB6ACC80 /* ArchiveView.swift */; };
 		E0ECFA759AEA42876120B85D /* InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968D595707EE1B458C51B894 /* InboxView.swift */; };
 		E3B3D6788A7564434E41D0E8 /* TagListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A722664555B612AE98003AA /* TagListView.swift */; };
 		E5473CAFBD81516762635F2C /* TodoDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DD74F8E46E851130163FC5A /* TodoDetailView.swift */; };
@@ -104,6 +110,7 @@
 		71533A795B7C1D2E14F29DA3 /* TodoRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRepository.swift; sourceTree = "<group>"; };
 		71F72D35D5E42656C96B3B8A /* SearchIndexer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchIndexer.swift; sourceTree = "<group>"; };
 		72654DAA37CB54F52E61D6AD /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		839931DBAD3C2C78FB6ACC80 /* ArchiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveView.swift; sourceTree = "<group>"; };
 		89DE031DF57A787E40CB0B56 /* TodoDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoDraft.swift; sourceTree = "<group>"; };
 		8DD74F8E46E851130163FC5A /* TodoDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoDetailView.swift; sourceTree = "<group>"; };
 		968D595707EE1B458C51B894 /* InboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxView.swift; sourceTree = "<group>"; };
@@ -111,9 +118,11 @@
 		B427D65449C1241510500B61 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
 		B501D4D1D28A54C7A5080B09 /* iCloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCloudSyncManager.swift; sourceTree = "<group>"; };
 		B97071CD4A750336F3838402 /* Sidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar.swift; sourceTree = "<group>"; };
+		C4EDBB35E1745B841F9B42FC /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		C6841E7BECD3B341D97FFC0E /* TodoItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoItem.swift; sourceTree = "<group>"; };
 		CC9F994B2130F00883811BB5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D791A08856EC02B41DD8B494 /* TodoRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRowView.swift; sourceTree = "<group>"; };
+		D9139406947F9F0ACD7FE7C5 /* DoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoneView.swift; sourceTree = "<group>"; };
 		E37E08FACEFDA4F6A9A06E6D /* TodoLite.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TodoLite.entitlements; sourceTree = "<group>"; };
 		E5A6222AE7E35B2F93D328CD /* TodoLiteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoLiteTests.swift; sourceTree = "<group>"; };
 		ECB88B942AA60A9580D528D1 /* TodoLiteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoLiteApp.swift; sourceTree = "<group>"; };
@@ -133,7 +142,9 @@
 		373AF6695FACA40A85F1E905 /* Today */ = {
 			isa = PBXGroup;
 			children = (
+				839931DBAD3C2C78FB6ACC80 /* ArchiveView.swift */,
 				18EE9C51AE20DF1BAC0069E1 /* CreateTodoView.swift */,
+				D9139406947F9F0ACD7FE7C5 /* DoneView.swift */,
 				48106E0B355F6DF4FCD611D9 /* TodayView.swift */,
 				8DD74F8E46E851130163FC5A /* TodoDetailView.swift */,
 				D791A08856EC02B41DD8B494 /* TodoRowView.swift */,
@@ -168,6 +179,7 @@
 			isa = PBXGroup;
 			children = (
 				6FBD66E3C4EB29534F26799F /* Color+Hex.swift */,
+				C4EDBB35E1745B841F9B42FC /* EmptyStateView.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -442,11 +454,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DAFEDAC62093208227850915 /* ArchiveView.swift in Sources */,
 				500B7D3FC79498F3A012FD52 /* BoardView.swift in Sources */,
 				F6D43781B80F5CE8D8F4FB17 /* Color+Hex.swift in Sources */,
 				BCEEEB88CBE356AE1C17F094 /* ContentView.swift in Sources */,
 				62716AEC079E9124AF64D220 /* CreateTodoView.swift in Sources */,
 				93A6FF5AA82C82ED0CE25C8D /* DateResolver.swift in Sources */,
+				1FC6F3D1449B9114C527F125 /* DoneView.swift in Sources */,
+				9D547540D304B7E3369C5766 /* EmptyStateView.swift in Sources */,
 				BE3B0324FE9E0BB2526D9EFB /* FileSystemManager.swift in Sources */,
 				C74E95BA62B38DA990403F50 /* InboxView.swift in Sources */,
 				D1E6EB8792B7EE2DF830FDC3 /* Project.swift in Sources */,
@@ -486,11 +501,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				87FB1D4E572EEE803656B1B5 /* ArchiveView.swift in Sources */,
 				67D70AC2E92026E42D3220DC /* BoardView.swift in Sources */,
 				3B08DE598F8F3B003F2D387A /* Color+Hex.swift in Sources */,
 				49FBD5ED0EA4A29873695398 /* ContentView.swift in Sources */,
 				2C6682D6A9C4910526F86286 /* CreateTodoView.swift in Sources */,
 				BB3000DA3A611C970DA51097 /* DateResolver.swift in Sources */,
+				900AB978123A6EF8D1C02AA9 /* DoneView.swift in Sources */,
+				C2D06F8E004DF2C42FCFB9E2 /* EmptyStateView.swift in Sources */,
 				5378FE5C0500E8ADE5A48270 /* FileSystemManager.swift in Sources */,
 				E0ECFA759AEA42876120B85D /* InboxView.swift in Sources */,
 				F84A77EEEB724B58F55F83A9 /* Project.swift in Sources */,

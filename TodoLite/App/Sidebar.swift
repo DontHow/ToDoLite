@@ -21,6 +21,15 @@ struct Sidebar: View {
             NavigationLink(value: ContentView.Tab.settings) {
                 Label("设置", systemImage: "gearshape.fill")
             }
+
+            Section("历史") {
+                NavigationLink(value: ContentView.Tab.done) {
+                    Label("已完成", systemImage: "checkmark.circle")
+                }
+                NavigationLink(value: ContentView.Tab.archive) {
+                    Label("已归档", systemImage: "archivebox")
+                }
+            }
         }
         .listStyle(.sidebar)
         .frame(minWidth: 200)

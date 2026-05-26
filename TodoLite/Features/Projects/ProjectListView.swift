@@ -27,6 +27,15 @@ struct ProjectListView: View {
             }
         }
         .navigationTitle("项目")
+        .overlay {
+            if store.projects.isEmpty {
+                EmptyStateView(
+                    icon: "folder",
+                    title: "暂无项目",
+                    subtitle: "在设置中创建项目"
+                )
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button(action: { showingCreate = true }) {
