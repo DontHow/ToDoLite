@@ -26,7 +26,11 @@ actor FileSystemManager {
     private var containerURL: URL?
 
     init() {
-        containerURL = FileManager.default.url(forUbiquityContainerIdentifier: nil)
+        if let url = FileManager.default.url(forUbiquityContainerIdentifier: nil) {
+            containerURL = url.appendingPathComponent("Documents", isDirectory: true)
+        } else {
+            containerURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        }
     }
 
     // MARK: - Directory URLs
@@ -35,8 +39,7 @@ actor FileSystemManager {
         guard let container = containerURL else {
             throw FileSystemError.containerNotAvailable
         }
-        return container.appendingPathComponent("Documents", isDirectory: true)
-            .appendingPathComponent(appDirName, isDirectory: true)
+        return container.appendingPathComponent(appDirName, isDirectory: true)
     }
 
     private func tasksDirectory() throws -> URL {
