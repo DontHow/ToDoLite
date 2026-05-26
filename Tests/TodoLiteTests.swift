@@ -100,7 +100,9 @@ final class TodoLiteTests: XCTestCase {
     func testStatusDisplayNames() {
         XCTAssertEqual(TodoStatus.inbox.displayName, "收件箱")
         XCTAssertEqual(TodoStatus.doing.displayName, "进行中")
+        XCTAssertEqual(TodoStatus.waiting.displayName, "等待中")
         XCTAssertEqual(TodoStatus.done.displayName, "已完成")
+        XCTAssertEqual(TodoStatus.archived.displayName, "已归档")
     }
 
     func testPriorityDisplayNames() {
@@ -229,9 +231,13 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertFalse(TodoStore.isToday(todo))
     }
 
-    func testIsTodayCancelled() {
-        let todo = TodoItem(title: "已取消", status: .cancelled)
+    func testIsTodayWaiting() {
+        let todo = TodoItem(title: "等待中", status: .waiting)
+        // waiting tasks only appear in today if scheduled/due/pinned
         XCTAssertFalse(TodoStore.isToday(todo))
+
+        let waitingScheduled = TodoItem(title: "等待今日", status: .waiting, scheduledAt: Date())
+        XCTAssertTrue(TodoStore.isToday(waitingScheduled))
     }
 
     func testIsTodayArchived() {
@@ -288,12 +294,13 @@ final class TodoLiteTests: XCTestCase {
         store.todos = [
             TodoItem(title: "进行中", status: .doing),
             TodoItem(title: "已完成", status: .done),
-            TodoItem(title: "已取消", status: .cancelled),
+            TodoItem(title: "等待中", status: .waiting),
             TodoItem(title: "已归档", status: .archived),
             TodoItem(title: "收件箱", status: .inbox),
         ]
-        XCTAssertEqual(store.activeTodos.count, 2)
+        XCTAssertEqual(store.activeTodos.count, 3)
         XCTAssertTrue(store.activeTodos.contains { $0.title == "进行中" })
+        XCTAssertTrue(store.activeTodos.contains { $0.title == "等待中" })
         XCTAssertTrue(store.activeTodos.contains { $0.title == "收件箱" })
     }
 
@@ -311,21 +318,18 @@ final class TodoLiteTests: XCTestCase {
         let store = TodoStore()
         let doing = TodoItem(title: "进行中", status: .doing)
         let done = TodoItem(title: "已完成", status: .done, completedAt: Date())
-        let cancelled = TodoItem(title: "已取消", status: .cancelled)
+        let waiting = TodoItem(title: "等待中", status: .waiting)
 
-        store.todos = [doing, done, cancelled]
+        store.todos = [doing, done, waiting]
 
         XCTAssertEqual(store.todos[0].status, .doing)
         XCTAssertEqual(store.todos[1].status, .done)
-        XCTAssertEqual(store.todos[2].status, .cancelled)
+        XCTAssertEqual(store.todos[2].status, .waiting)
 
-        // Verify the toggle logic by mutating manually (toggleComplete is async)
+        // doing -> done
         var m1 = store.todos[0]
         if m1.status == .done {
-            m1.status = .next
-            m1.completedAt = nil
-        } else if m1.status == .cancelled {
-            m1.status = .next
+            m1.status = .doing
             m1.completedAt = nil
         } else {
             m1.status = .done
@@ -334,33 +338,29 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertEqual(m1.status, .done)
         XCTAssertNotNil(m1.completedAt)
 
+        // done -> doing
         var m2 = store.todos[1]
         if m2.status == .done {
-            m2.status = .next
-            m2.completedAt = nil
-        } else if m2.status == .cancelled {
-            m2.status = .next
+            m2.status = .doing
             m2.completedAt = nil
         } else {
             m2.status = .done
             m2.completedAt = Date()
         }
-        XCTAssertEqual(m2.status, .next)
+        XCTAssertEqual(m2.status, .doing)
         XCTAssertNil(m2.completedAt)
 
+        // waiting -> done
         var m3 = store.todos[2]
         if m3.status == .done {
-            m3.status = .next
-            m3.completedAt = nil
-        } else if m3.status == .cancelled {
-            m3.status = .next
+            m3.status = .doing
             m3.completedAt = nil
         } else {
             m3.status = .done
             m3.completedAt = Date()
         }
-        XCTAssertEqual(m3.status, .next)
-        XCTAssertNil(m3.completedAt)
+        XCTAssertEqual(m3.status, .done)
+        XCTAssertNotNil(m3.completedAt)
     }
 
     func testArchiveTodo() {
@@ -373,5 +373,25 @@ final class TodoLiteTests: XCTestCase {
         archived.completedAt = Date()
         XCTAssertEqual(archived.status, .archived)
         XCTAssertNotNil(archived.completedAt)
+    }
+
+    func testStatusCodableMigration() throws {
+        let jsonNext = #"{"id":"1","title":"t","description":"","status":"next","priority":"medium","tagIds":[],"isPinnedToday":false,"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decodedNext = try decoder.decode(TodoItem.self, from: jsonNext)
+        XCTAssertEqual(decodedNext.status, .doing)
+
+        let jsonBlocked = #"{"id":"2","title":"t","description":"","status":"blocked","priority":"medium","tagIds":[],"isPinnedToday":false,"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
+        let decodedBlocked = try decoder.decode(TodoItem.self, from: jsonBlocked)
+        XCTAssertEqual(decodedBlocked.status, .waiting)
+
+        let jsonSomeday = #"{"id":"3","title":"t","description":"","status":"someday","priority":"medium","tagIds":[],"isPinnedToday":false,"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
+        let decodedSomeday = try decoder.decode(TodoItem.self, from: jsonSomeday)
+        XCTAssertEqual(decodedSomeday.status, .waiting)
+
+        let jsonCancelled = #"{"id":"4","title":"t","description":"","status":"cancelled","priority":"medium","tagIds":[],"isPinnedToday":false,"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
+        let decodedCancelled = try decoder.decode(TodoItem.self, from: jsonCancelled)
+        XCTAssertEqual(decodedCancelled.status, .archived)
     }
 }

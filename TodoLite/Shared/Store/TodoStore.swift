@@ -26,7 +26,7 @@ final class TodoStore {
     }
 
     var activeTodos: [TodoItem] {
-        todos.filter { ![.done, .cancelled, .archived].contains($0.status) }
+        todos.filter { ![.done, .archived].contains($0.status) }
     }
 
     private let todoRepo = TodoRepository.shared
@@ -77,10 +77,7 @@ final class TodoStore {
         guard let idx = todos.firstIndex(where: { $0.id == id }) else { return }
         var todo = todos[idx]
         if todo.status == .done {
-            todo.status = .next
-            todo.completedAt = nil
-        } else if todo.status == .cancelled {
-            todo.status = .next
+            todo.status = .doing
             todo.completedAt = nil
         } else {
             todo.status = .done
@@ -147,7 +144,7 @@ final class TodoStore {
     // MARK: - Today Logic
 
     static func isToday(_ todo: TodoItem, now: Date = Date()) -> Bool {
-        if todo.status == .done || todo.status == .cancelled || todo.status == .archived {
+        if todo.status == .done || todo.status == .archived {
             return false
         }
         if todo.isPinnedToday {

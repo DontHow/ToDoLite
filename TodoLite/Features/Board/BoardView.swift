@@ -4,7 +4,7 @@ struct BoardView: View {
     @State private var store = TodoStore.shared
     @State private var showingCreate = false
 
-    let columns: [TodoStatus] = [.inbox, .next, .doing, .waiting, .blocked, .someday, .done]
+    let columns: [TodoStatus] = [.inbox, .doing, .waiting, .done]
 
     var body: some View {
         NavigationStack {
