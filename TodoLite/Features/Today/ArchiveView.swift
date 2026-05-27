@@ -7,7 +7,7 @@ struct ArchiveView: View {
         NavigationStack {
             List {
                 ForEach(store.todos.filter { $0.status == .archived }) { todo in
-                    NavigationLink(value: todo) {
+                    NavigationLink(destination: TodoDetailView(todo: todo)) {
                         TodoRowView(todo: todo)
                     }
                 }
@@ -23,9 +23,6 @@ struct ArchiveView: View {
             }
             .navigationTitle("已归档")
             .animation(.default, value: store.todos.filter { $0.status == .archived }.map(\.id))
-            .navigationDestination(for: TodoItem.self) { todo in
-                TodoDetailView(todo: todo)
-            }
             .overlay {
                 if !store.todos.contains(where: { $0.status == .archived }) {
                     EmptyStateView(

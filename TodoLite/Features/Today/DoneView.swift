@@ -7,16 +7,13 @@ struct DoneView: View {
         NavigationStack {
             List {
                 ForEach(store.todos.filter { $0.status == .done }) { todo in
-                    NavigationLink(value: todo) {
+                    NavigationLink(destination: TodoDetailView(todo: todo)) {
                         TodoRowView(todo: todo)
                     }
                 }
             }
             .navigationTitle("已完成")
             .animation(.default, value: store.todos.filter { $0.status == .done }.map(\.id))
-            .navigationDestination(for: TodoItem.self) { todo in
-                TodoDetailView(todo: todo)
-            }
             .overlay {
                 if !store.todos.contains(where: { $0.status == .done }) {
                     EmptyStateView(

@@ -99,7 +99,7 @@ struct BoardCardView: View {
     let todo: TodoItem
 
     var body: some View {
-        NavigationLink(value: todo) {
+        NavigationLink(destination: TodoDetailView(todo: todo)) {
             TodoRowView(todo: todo)
                 .padding(8)
                 #if os(iOS)

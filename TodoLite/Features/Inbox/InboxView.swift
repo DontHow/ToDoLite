@@ -8,7 +8,7 @@ struct InboxView: View {
         NavigationStack {
             List {
                 ForEach(store.inboxTodos) { todo in
-                    NavigationLink(value: todo) {
+                    NavigationLink(destination: TodoDetailView(todo: todo)) {
                         TodoRowView(todo: todo)
                     }
                 }
@@ -25,9 +25,6 @@ struct InboxView: View {
                         subtitle: "新任务会出现在这里"
                     )
                 }
-            }
-            .navigationDestination(for: TodoItem.self) { todo in
-                TodoDetailView(todo: todo)
             }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {

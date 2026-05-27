@@ -10,7 +10,7 @@ struct SearchView: View {
         NavigationStack {
             List {
                 ForEach(searchResults) { todo in
-                    NavigationLink(value: todo) {
+                    NavigationLink(destination: TodoDetailView(todo: todo)) {
                         TodoRowView(todo: todo)
                     }
                 }
@@ -34,9 +34,6 @@ struct SearchView: View {
             }
             .onChange(of: query) { _, newValue in
                 performSearch(newValue)
-            }
-            .navigationDestination(for: TodoItem.self) { todo in
-                TodoDetailView(todo: todo)
             }
         }
     }
