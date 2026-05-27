@@ -66,13 +66,13 @@ struct BoardColumnView: View {
             // Header
             HStack(spacing: 8) {
                 Text(status.displayName)
-                    .font(.callout.weight(.bold))
+                    .font(.body.weight(.bold))
 
                 Text("\(todos.count)")
-                    .font(.caption.weight(.semibold))
+                    .font(.callout.weight(.semibold))
                     .foregroundStyle(Color.labelSecondary)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 1)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
                     .background(Color.chipBackground)
                     .clipShape(Capsule())
 
@@ -129,7 +129,7 @@ struct BoardColumnView: View {
             .frame(maxWidth: .infinity, minHeight: 48)
             .overlay(
                 Text("拖拽任务到此处")
-                    .font(.caption)
+                    .font(.callout)
                     .foregroundStyle(Color.labelSecondary)
             )
     }
