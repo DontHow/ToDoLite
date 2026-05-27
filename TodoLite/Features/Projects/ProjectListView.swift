@@ -7,7 +7,11 @@ struct ProjectListView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 8) {
+            LazyVStack(spacing: 12) {
+                Text("项目")
+                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
                 ForEach(store.projects) { project in
                     HStack {
                         Text(project.emoji)

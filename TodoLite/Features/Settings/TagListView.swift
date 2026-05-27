@@ -6,7 +6,11 @@ struct TagListView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 8) {
+            LazyVStack(spacing: 12) {
+                Text("标签")
+                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
                 ForEach(store.tags) { tag in
                     TagRow(tag: tag)
                 }

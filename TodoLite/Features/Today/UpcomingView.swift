@@ -6,7 +6,11 @@ struct UpcomingView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 12) {
+                LazyVStack(spacing: 16) {
+                    Text("即将到来")
+                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
                     ForEach(upcomingTodos) { todo in
                         TodoListCard(todo: todo)
                     }

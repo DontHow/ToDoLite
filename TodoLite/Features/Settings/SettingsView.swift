@@ -4,7 +4,11 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 16) {
+                VStack(spacing: 20) {
+                    Text("设置")
+                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
                     settingsSection(title: "AI") {
                         NavigationLink(destination: LLMConfigView()) {
                             settingsRow(icon: "cpu", iconColor: .indigo, label: "LLM 配置")

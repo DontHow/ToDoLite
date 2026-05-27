@@ -6,7 +6,11 @@ struct OverdueView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 12) {
+                LazyVStack(spacing: 16) {
+                    Text("逾期")
+                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
                     ForEach(store.overdueTodos) { todo in
                         TodoListCard(todo: todo)
                     }
