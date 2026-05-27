@@ -42,60 +42,54 @@ struct DoneView: View {
     }
 
     private var groupedTodos: [(title: String, todos: [TodoItem])] {
-        let doneTodos = store.todos.filter { $0.status == .done }
+        let filtered = store.todos.filter { $0.status == .done }
+        let doneTodos = filtered.sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
         guard !doneTodos.isEmpty else { return [] }
 
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
 
-        var groups: [String: [TodoItem]] = [:]
+        var groups: [(title: String, todos: [TodoItem])] = []
+        var currentTitle: String?
+        var currentTodos: [TodoItem] = []
 
         for todo in doneTodos {
             guard let completedAt = todo.completedAt else { continue }
             let completedDay = calendar.startOfDay(for: completedAt)
 
-            let key: String
-            let sortKey: Int
-
+            let title: String
             if calendar.isDate(completedDay, inSameDayAs: today) {
-                key = "今天"
-                sortKey = 0
+                title = "今天"
             } else if calendar.isDate(completedDay, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-                key = "昨天"
-                sortKey = 1
-            } else if calendar.isDate(completedDay, equalTo: today, toGranularity: .weekOfYear) {
-                key = "本周"
-                sortKey = 2
-            } else if let lastWeekStart = calendar.date(byAdding: .day, value: -7, to: today),
-                      let lastWeekEnd = calendar.date(byAdding: .day, value: -1, to: today),
-                      completedDay >= calendar.startOfDay(for: lastWeekStart) && completedDay <= calendar.startOfDay(for: lastWeekEnd) {
-                key = "上周"
-                sortKey = 3
+                title = "昨天"
             } else {
+                var cal = calendar
+                cal.firstWeekday = 2
+                let weekComponents = cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: completedDay)
+                guard let weekStart = cal.date(from: weekComponents),
+                      let weekEnd = cal.date(byAdding: .day, value: 6, to: weekStart) else { continue }
+
                 let formatter = DateFormatter()
                 formatter.locale = Locale(identifier: "zh_CN")
-                formatter.dateFormat = "yyyy年M月"
-                key = formatter.string(from: completedDay)
-                sortKey = 4 + (calendar.dateComponents([.month], from: completedDay, to: today).month ?? 0)
+                formatter.dateFormat = "M月d日"
+                title = "\(formatter.string(from: weekStart))-\(formatter.string(from: weekEnd))"
             }
 
-            groups[key, default: []].append(todo)
+            if title != currentTitle {
+                if let t = currentTitle {
+                    groups.append((title: t, todos: currentTodos))
+                }
+                currentTitle = title
+                currentTodos = []
+            }
+            currentTodos.append(todo)
         }
 
-        let orderMap: [String: Int] = [
-            "今天": 0,
-            "昨天": 1,
-            "本周": 2,
-            "上周": 3,
-        ]
+        if let t = currentTitle, !currentTodos.isEmpty {
+            groups.append((title: t, todos: currentTodos))
+        }
 
         return groups
-            .sorted { a, b in
-                let orderA = orderMap[a.key] ?? (4 + (a.key.contains("年") ? 100 : 99))
-                let orderB = orderMap[b.key] ?? (4 + (b.key.contains("年") ? 100 : 99))
-                return orderA < orderB
-            }
-            .map { (title: $0.key, todos: $0.value.sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }) }
     }
 
     private var horizontalPadding: CGFloat {
