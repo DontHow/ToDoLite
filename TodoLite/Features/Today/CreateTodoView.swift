@@ -7,8 +7,8 @@ struct CreateTodoView: View {
     @State private var status: TodoStatus = .inbox
     @State private var priority: TodoPriority = .medium
     @State private var projectId: String?
-    @State private var dueAt: Date?
-    @State private var hasDue = false
+    @State private var dueAt: Date? = Calendar.current.date(byAdding: .day, value: 7, to: Date())
+    @State private var hasDue = true
     @State private var useQuickEntry = true
     @State private var parsedDraft: TodoDraft?
     @State private var isParsingLLM = false
