@@ -16,6 +16,10 @@ struct Sidebar: View {
                 .tag(ContentView.Tab.upcoming)
             Label("看板", systemImage: "rectangle.3.group.fill")
                 .tag(ContentView.Tab.board)
+            Label("项目", systemImage: "folder")
+                .tag(ContentView.Tab.projects)
+            Label("标签", systemImage: "tag")
+                .tag(ContentView.Tab.tags)
             Label("搜索", systemImage: "magnifyingglass")
                 .tag(ContentView.Tab.search)
 

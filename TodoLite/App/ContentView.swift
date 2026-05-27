@@ -4,7 +4,7 @@ struct ContentView: View {
     @State private var selectedTab: Tab = .today
 
     enum Tab: Hashable {
-        case today, inbox, board, search, settings, done, archive, overdue, upcoming
+        case today, inbox, board, search, settings, done, archive, overdue, upcoming, projects, tags
     }
 
     var body: some View {
@@ -22,6 +22,8 @@ struct ContentView: View {
             case .archive: ArchiveView()
             case .overdue: OverdueView()
             case .upcoming: UpcomingView()
+            case .projects: ProjectListView()
+            case .tags: TagListView()
             }
         }
         .onKeyPress(characters: .init(charactersIn: "1")) { press in

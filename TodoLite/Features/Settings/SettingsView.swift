@@ -5,20 +5,6 @@ struct SettingsView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    settingsSection(title: "项目") {
-                        NavigationLink(destination: ProjectListView()) {
-                            settingsRow(icon: "folder", iconColor: .blue, label: "管理项目")
-                        }
-                        .buttonStyle(CardButtonStyle())
-                    }
-
-                    settingsSection(title: "标签") {
-                        NavigationLink(destination: TagListView()) {
-                            settingsRow(icon: "number", iconColor: .purple, label: "管理标签")
-                        }
-                        .buttonStyle(CardButtonStyle())
-                    }
-
                     settingsSection(title: "AI") {
                         NavigationLink(destination: LLMConfigView()) {
                             settingsRow(icon: "cpu", iconColor: .indigo, label: "LLM 配置")
