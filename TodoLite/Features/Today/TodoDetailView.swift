@@ -6,6 +6,7 @@ struct TodoDetailView: View {
     @State private var edited: TodoItem
     @State private var hasScheduled: Bool
     @State private var hasDue: Bool
+    @State private var errorMessage: String?
     @Environment(\.dismiss) private var dismiss
 
     init(todo: TodoItem) {
@@ -45,6 +46,11 @@ struct TodoDetailView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") { dismiss() }
                 }
+            }
+            .alert("错误", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button("确定", role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
             }
             .onChange(of: hasScheduled) { _, newValue in
                 if !newValue {
@@ -285,8 +291,12 @@ struct TodoDetailView: View {
         VStack(spacing: 12) {
             Button {
                 Task {
-                    try? await store.archiveTodo(id: edited.id)
-                    dismiss()
+                    do {
+                        try await store.archiveTodo(id: edited.id)
+                        dismiss()
+                    } catch {
+                        errorMessage = "归档失败: \(error.localizedDescription)"
+                    }
                 }
             } label: {
                 HStack(spacing: 10) {
@@ -304,8 +314,12 @@ struct TodoDetailView: View {
 
             Button {
                 Task {
-                    try? await store.deleteTodo(id: edited.id)
-                    dismiss()
+                    do {
+                        try await store.deleteTodo(id: edited.id)
+                        dismiss()
+                    } catch {
+                        errorMessage = "删除失败: \(error.localizedDescription)"
+                    }
                 }
             } label: {
                 HStack(spacing: 10) {
@@ -372,8 +386,12 @@ struct TodoDetailView: View {
     }
 
     private func save() async {
-        try? await store.updateTodo(edited)
-        dismiss()
+        do {
+            try await store.updateTodo(edited)
+            dismiss()
+        } catch {
+            errorMessage = "保存失败: \(error.localizedDescription)"
+        }
     }
 
     // MARK: - Cross-platform colors

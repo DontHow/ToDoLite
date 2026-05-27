@@ -22,6 +22,15 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("历史") {
+                    NavigationLink("已完成") {
+                        DoneView()
+                    }
+                    NavigationLink("已归档") {
+                        ArchiveView()
+                    }
+                }
+
                 Section("关于") {
                     HStack {
                         Text("版本")

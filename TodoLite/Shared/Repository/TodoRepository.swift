@@ -7,13 +7,11 @@ actor TodoRepository {
 
     // MARK: - CRUD
 
-    func save(_ item: TodoItem) async throws {
+    func save(_ item: TodoItem) async throws -> TodoItem {
         let filename = filename(for: item.id)
 
-        // Conflict detection: read existing, check version
         if let existing = try? await read(id: item.id) {
-            guard item.version > existing.version else {
-                // Version not higher — possible conflict
+            guard item.version >= existing.version else {
                 let data = try JSONEncoder().encode(item)
                 try await fs.writeConflictBackup(filename: filename, data: data)
                 throw FileSystemError.conflictDetected
@@ -25,6 +23,7 @@ actor TodoRepository {
         updated.updatedAt = Date()
 
         try await fs.write(updated, filename: filename, directory: .tasks)
+        return updated
     }
 
     func read(id: String) async throws -> TodoItem {
@@ -50,11 +49,11 @@ actor TodoRepository {
 
     // MARK: - Archive
 
-    func archive(_ item: TodoItem) async throws {
+    func archive(_ item: TodoItem) async throws -> TodoItem {
         var archived = item
         archived.status = .archived
         archived.updatedAt = Date()
-        try await save(archived)
+        return try await save(archived)
     }
 
     // MARK: - Helpers

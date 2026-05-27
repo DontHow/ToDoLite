@@ -86,18 +86,18 @@ final class TodoStore {
 
     func createTodo(title: String, description: String = "", status: TodoStatus = .inbox, priority: TodoPriority = .medium, projectId: String? = nil, tagIds: [String] = [], scheduledAt: Date? = nil, dueAt: Date? = nil) async throws {
         let todo = TodoItem(title: title, description: description, status: status, priority: priority, projectId: projectId, tagIds: tagIds, scheduledAt: scheduledAt, dueAt: dueAt)
-        try await todoRepo.save(todo)
-        todos.append(todo)
-        await indexer.index(todo: todo, projects: projects, tags: tags)
+        let saved = try await todoRepo.save(todo)
+        todos.append(saved)
+        await indexer.index(todo: saved, projects: projects, tags: tags)
         WidgetDataStore.sync(todos: todos, focusSet: focusSet)
     }
 
     func updateTodo(_ todo: TodoItem) async throws {
-        try await todoRepo.save(todo)
-        if let idx = todos.firstIndex(where: { $0.id == todo.id }) {
-            todos[idx] = todo
+        let saved = try await todoRepo.save(todo)
+        if let idx = todos.firstIndex(where: { $0.id == saved.id }) {
+            todos[idx] = saved
         }
-        await indexer.index(todo: todo, projects: projects, tags: tags)
+        await indexer.index(todo: saved, projects: projects, tags: tags)
         WidgetDataStore.sync(todos: todos, focusSet: focusSet)
     }
 
