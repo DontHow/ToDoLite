@@ -92,6 +92,43 @@ final class TodoStore {
         WidgetDataStore.sync(todos: todos, focusSet: focusSet)
     }
 
+    func createTodoWithParsed(title: String, description: String = "", status: TodoStatus = .inbox, priority: TodoPriority = .medium, projectName: String? = nil, tagNames: [String] = [], scheduledAt: Date? = nil, dueAt: Date? = nil) async throws {
+        var projectId: String?
+        if let name = projectName {
+            if let existing = projects.first(where: { $0.name == name }) {
+                projectId = existing.id
+            } else {
+                let newProject = Project(name: name)
+                try await projectRepo.save(newProject)
+                projects.append(newProject)
+                projectId = newProject.id
+            }
+        }
+
+        var tagIds: [String] = []
+        for name in tagNames {
+            if let existing = tags.first(where: { $0.name == name }) {
+                tagIds.append(existing.id)
+            } else {
+                let newTag = TagItem(name: name)
+                try await tagRepo.save(newTag)
+                tags.append(newTag)
+                tagIds.append(newTag.id)
+            }
+        }
+
+        try await createTodo(
+            title: title,
+            description: description,
+            status: status,
+            priority: priority,
+            projectId: projectId,
+            tagIds: tagIds,
+            scheduledAt: scheduledAt,
+            dueAt: dueAt
+        )
+    }
+
     func updateTodo(_ todo: TodoItem) async throws {
         let saved = try await todoRepo.save(todo)
         if let idx = todos.firstIndex(where: { $0.id == saved.id }) {

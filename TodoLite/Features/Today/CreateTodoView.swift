@@ -85,7 +85,7 @@ struct CreateTodoView: View {
     }
 
     // MARK: - Quick Entry
-
+	
     private var quickEntryArea: some View {
         VStack(spacing: 16) {
             ZStack(alignment: .topLeading) {
@@ -601,15 +601,13 @@ struct CreateTodoView: View {
 
     private func save() async {
         if useQuickEntry, let draft = parsedDraft {
-            let matchedProject = store.projects.first { $0.name == draft.projectName }
-            let matchedTags = store.tags.filter { draft.tagNames.contains($0.name) }
-            try? await store.createTodo(
+            try? await store.createTodoWithParsed(
                 title: draft.title,
                 description: draft.description,
                 status: .inbox,
                 priority: draft.priority ?? .medium,
-                projectId: matchedProject?.id,
-                tagIds: matchedTags.map(\.id),
+                projectName: draft.projectName,
+                tagNames: draft.tagNames,
                 scheduledAt: draft.scheduledAt,
                 dueAt: draft.dueAt
             )
