@@ -53,7 +53,7 @@ struct ContentView: View {
                 .tag(Tab.inbox)
 
             BoardView()
-                .tabItem { Label("看板", systemImage: "columns") }
+                .tabItem { Label("看板", systemImage: "rectangle.3.group.fill") }
                 .tag(Tab.board)
 
             SearchView()

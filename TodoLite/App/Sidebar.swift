@@ -13,7 +13,7 @@ struct Sidebar: View {
                 Label("收件箱", systemImage: "tray.fill")
             }
             NavigationLink(value: ContentView.Tab.board) {
-                Label("看板", systemImage: "columns")
+                Label("看板", systemImage: "rectangle.3.group.fill")
             }
             NavigationLink(value: ContentView.Tab.search) {
                 Label("搜索", systemImage: "magnifyingglass")
