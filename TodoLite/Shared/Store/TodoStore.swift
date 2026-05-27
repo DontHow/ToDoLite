@@ -32,10 +32,7 @@ final class TodoStore {
             .filter {
                 $0.status != .done && $0.status != .archived &&
                 !ids.contains($0.id) &&
-                (
-                    ($0.scheduledAt.map { $0 >= todayStart && $0 < todayEnd } ?? false) ||
-                    ($0.dueAt.map { $0 >= todayStart && $0 < todayEnd } ?? false)
-                )
+                ($0.dueAt.map { $0 >= todayStart && $0 < todayEnd } ?? false)
             }
             .sorted { $0.priority.sortValue > $1.priority.sortValue }
     }

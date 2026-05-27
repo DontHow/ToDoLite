@@ -20,7 +20,7 @@ actor LLMParser {
 
         Priority levels: low, medium, high
 
-        Date formats for scheduledAt/dueAt: ISO8601 string (yyyy-MM-dd) or null.
+        Date format for dueAt: ISO8601 string (yyyy-MM-dd) or null.
         If user mentions relative dates, convert to absolute date.
 
         Respond ONLY with a JSON object in this exact format:
@@ -30,7 +30,6 @@ actor LLMParser {
           "projectName": "matched project name or null",
           "tagNames": ["matched tag names"],
           "priority": "low|medium|high",
-          "scheduledAt": "yyyy-MM-dd or null",
           "dueAt": "yyyy-MM-dd or null"
         }
         """
@@ -58,7 +57,6 @@ actor LLMParser {
         draft.projectName = parsed.projectName
         draft.tagNames = parsed.tagNames ?? []
         draft.priority = TodoPriority(rawValue: parsed.priority ?? "medium")
-        draft.scheduledAt = parsed.scheduledAt.flatMap { dateFromString($0) }
         draft.dueAt = parsed.dueAt.flatMap { dateFromString($0) }
 
         return draft
@@ -96,7 +94,6 @@ struct LLMJSONDraft: Codable {
     let projectName: String?
     let tagNames: [String]?
     let priority: String?
-    let scheduledAt: String?
     let dueAt: String?
 }
 

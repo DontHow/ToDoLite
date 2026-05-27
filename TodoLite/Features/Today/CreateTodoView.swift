@@ -7,9 +7,7 @@ struct CreateTodoView: View {
     @State private var status: TodoStatus = .inbox
     @State private var priority: TodoPriority = .medium
     @State private var projectId: String?
-    @State private var scheduledAt: Date?
     @State private var dueAt: Date?
-    @State private var hasScheduled = false
     @State private var hasDue = false
     @State private var useQuickEntry = true
     @State private var parsedDraft: TodoDraft?
@@ -356,7 +354,7 @@ struct CreateTodoView: View {
                     )
                 }
 
-                if let date = draft.scheduledAt {
+                if let date = draft.dueAt {
                     TagChip(
                         icon: "calendar",
                         text: date.formatted(.dateTime.month().day()),
@@ -458,24 +456,8 @@ struct CreateTodoView: View {
                 }
             }
 
-            // Dates
+            // Due Date
             VStack(spacing: 16) {
-                dateToggleRow(
-                    icon: "calendar",
-                    color: .green,
-                    label: "计划日期",
-                    isOn: $hasScheduled
-                )
-                if hasScheduled {
-                    DatePicker("", selection: Binding(
-                        get: { scheduledAt ?? Date() },
-                        set: { scheduledAt = $0 }
-                    ), displayedComponents: .date)
-                    .datePickerStyle(.compact)
-                }
-
-                Divider()
-
                 dateToggleRow(
                     icon: "clock.arrow.circlepath",
                     color: .orange,
@@ -608,7 +590,6 @@ struct CreateTodoView: View {
                 priority: draft.priority ?? .medium,
                 projectName: draft.projectName,
                 tagNames: draft.tagNames,
-                scheduledAt: draft.scheduledAt,
                 dueAt: draft.dueAt
             )
         } else {
@@ -618,7 +599,6 @@ struct CreateTodoView: View {
                 status: status,
                 priority: priority,
                 projectId: projectId,
-                scheduledAt: hasScheduled ? scheduledAt : nil,
                 dueAt: hasDue ? dueAt : nil
             )
         }

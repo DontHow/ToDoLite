@@ -38,14 +38,11 @@ struct UpcomingView: View {
         return store.todos
             .filter {
                 $0.status != .done && $0.status != .archived &&
-                (
-                    ($0.scheduledAt.map { $0 >= tomorrowStart } ?? false) ||
-                    ($0.dueAt.map { $0 >= tomorrowStart } ?? false)
-                )
+                ($0.dueAt.map { $0 >= tomorrowStart } ?? false)
             }
             .sorted {
-                let d0 = $0.scheduledAt ?? $0.dueAt ?? .distantFuture
-                let d1 = $1.scheduledAt ?? $1.dueAt ?? .distantFuture
+                let d0 = $0.dueAt ?? .distantFuture
+                let d1 = $1.dueAt ?? .distantFuture
                 return d0 < d1
             }
     }

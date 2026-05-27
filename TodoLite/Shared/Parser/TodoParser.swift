@@ -35,7 +35,7 @@ struct TodoParser {
         if let dateMatch = remaining.range(of: #"\^(\S+)"#, options: .regularExpression) {
             let matched = String(remaining[dateMatch])
             let dateInput = String(matched.dropFirst())
-            draft.scheduledAt = DateResolver.resolve(dateInput)
+            draft.dueAt = DateResolver.resolve(dateInput)
             remaining.removeSubrange(dateMatch)
         }
 

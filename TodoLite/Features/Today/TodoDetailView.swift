@@ -4,7 +4,6 @@ struct TodoDetailView: View {
     let todo: TodoItem
     @State private var store = TodoStore.shared
     @State private var edited: TodoItem
-    @State private var hasScheduled: Bool
     @State private var hasDue: Bool
     @State private var errorMessage: String?
     @Environment(\.dismiss) private var dismiss
@@ -12,7 +11,6 @@ struct TodoDetailView: View {
     init(todo: TodoItem) {
         self.todo = todo
         _edited = State(initialValue: todo)
-        _hasScheduled = State(initialValue: todo.scheduledAt != nil)
         _hasDue = State(initialValue: todo.dueAt != nil)
     }
 
@@ -51,13 +49,6 @@ struct TodoDetailView: View {
                 Button("确定", role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
-            }
-            .onChange(of: hasScheduled) { _, newValue in
-                if !newValue {
-                    edited.scheduledAt = nil
-                } else if edited.scheduledAt == nil {
-                    edited.scheduledAt = Date()
-                }
             }
             .onChange(of: hasDue) { _, newValue in
                 if !newValue {
@@ -231,22 +222,6 @@ struct TodoDetailView: View {
 
     private var dateCard: some View {
         VStack(spacing: 16) {
-            dateToggleRow(
-                icon: "calendar",
-                color: .green,
-                label: "计划日期",
-                isOn: $hasScheduled
-            )
-            if hasScheduled {
-                DatePicker("", selection: Binding(
-                    get: { edited.scheduledAt ?? Date() },
-                    set: { edited.scheduledAt = $0 }
-                ), displayedComponents: .date)
-                .datePickerStyle(.compact)
-            }
-
-            Divider()
-
             dateToggleRow(
                 icon: "clock.arrow.circlepath",
                 color: .orange,
