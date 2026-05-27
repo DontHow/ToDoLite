@@ -74,19 +74,19 @@ struct TodoDetailView: View {
     private var titleCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             TextField("任务标题", text: $edited.title)
-                .font(.title2.weight(.semibold))
+                .font(.body.weight(.semibold))
 
             Divider()
 
             TextField("添加描述...", text: $edited.description, axis: .vertical)
                 .lineLimit(2...6)
-                .font(.body)
-                .foregroundStyle(.secondary)
+                .font(.callout)
+                .foregroundStyle(Color.labelSecondary)
         }
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(cardBg)
+                .fill(Color.cardBackground)
         )
     }
 
@@ -113,7 +113,7 @@ struct TodoDetailView: View {
                 .foregroundStyle(edited.status == s ? .white : .primary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(edited.status == s ? Color.indigo : chipBg)
+                .background(edited.status == s ? Color.indigo : Color.chipBackground)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -145,7 +145,7 @@ struct TodoDetailView: View {
             .frame(minWidth: 60)
             .padding(.vertical, 10)
             .padding(.horizontal, 12)
-            .background(edited.priority == p ? priorityColor(p) : chipBg)
+            .background(edited.priority == p ? priorityColor(p) : Color.chipBackground)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
@@ -173,14 +173,14 @@ struct TodoDetailView: View {
             } label: {
                 HStack(spacing: 6) {
                     Text(edited.projectId.flatMap { id in store.projects.first { $0.id == id }?.name } ?? "选择项目")
-                        .foregroundStyle(edited.projectId == nil ? .secondary : .primary)
+                        .foregroundStyle(edited.projectId == nil ? Color.labelSecondary : .primary)
                     Image(systemName: "chevron.down")
                         .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.labelSecondary)
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(chipBg)
+                .background(Color.chipBackground)
                 .clipShape(Capsule())
             }
         }
@@ -193,7 +193,7 @@ struct TodoDetailView: View {
             if store.tags.isEmpty {
                 Text("暂无标签")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.labelSecondary)
                     .padding(.vertical, 4)
             } else {
                 FlowLayout(spacing: 8) {
@@ -217,7 +217,7 @@ struct TodoDetailView: View {
                             .foregroundStyle(isSelected ? .white : .primary)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 7)
-                            .background(isSelected ? Color.purple : chipBg)
+                            .background(isSelected ? Color.purple : Color.chipBackground)
                             .clipShape(Capsule())
                         }
                         .buttonStyle(.plain)
@@ -264,7 +264,7 @@ struct TodoDetailView: View {
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(cardBg)
+                .fill(Color.cardBackground)
         )
     }
 
@@ -274,8 +274,9 @@ struct TodoDetailView: View {
                 Image(systemName: icon)
                     .foregroundStyle(color)
                     .font(.body)
+                    .symbolRenderingMode(.hierarchical)
                 Text(label)
-                    .font(.body)
+                    .font(.callout)
             }
             Spacer()
             Toggle("", isOn: isOn)
@@ -283,7 +284,6 @@ struct TodoDetailView: View {
                 .tint(color)
         }
     }
-
 
     // MARK: - Actions
 
@@ -302,8 +302,9 @@ struct TodoDetailView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "archivebox.fill")
                         .font(.body)
+                        .symbolRenderingMode(.hierarchical)
                     Text("归档任务")
-                        .font(.body.weight(.medium))
+                        .font(.callout.weight(.medium))
                     Spacer()
                 }
                 .foregroundStyle(.orange)
@@ -325,8 +326,9 @@ struct TodoDetailView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "trash.fill")
                         .font(.body)
+                        .symbolRenderingMode(.hierarchical)
                     Text("删除任务")
-                        .font(.body.weight(.medium))
+                        .font(.callout.weight(.medium))
                     Spacer()
                 }
                 .foregroundStyle(.red)
@@ -336,7 +338,7 @@ struct TodoDetailView: View {
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(cardBg)
+                .fill(Color.cardBackground)
         )
     }
 
@@ -391,97 +393,6 @@ struct TodoDetailView: View {
             dismiss()
         } catch {
             errorMessage = "保存失败: \(error.localizedDescription)"
-        }
-    }
-
-    // MARK: - Cross-platform colors
-
-    #if os(iOS)
-    private var cardBg: Color { Color(uiColor: .secondarySystemBackground) }
-    private var chipBg: Color { Color(uiColor: .tertiarySystemFill) }
-    #else
-    private var cardBg: Color { Color(nsColor: .controlBackgroundColor) }
-    private var chipBg: Color { Color(nsColor: .controlBackgroundColor) }
-    #endif
-}
-
-// MARK: - Option Row
-
-private struct OptionRow<Content: View>: View {
-    let icon: String
-    let iconColor: Color
-    let label: String
-    @ViewBuilder let content: Content
-
-    private var rowBackground: Color {
-        #if os(iOS)
-        Color(uiColor: .systemGray6)
-        #else
-        Color(nsColor: .controlBackgroundColor)
-        #endif
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .foregroundStyle(iconColor)
-                    .font(.body)
-                Text(label)
-                    .font(.body.weight(.medium))
-                Spacer()
-            }
-            content
-        }
-        .padding(18)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(rowBackground)
-        )
-    }
-}
-
-// MARK: - Flow Layout
-
-private struct FlowLayout: Layout {
-    var spacing: CGFloat = 8
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let result = FlowResult(in: proposal.width ?? 0, subviews: subviews, spacing: spacing)
-        return result.size
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let result = FlowResult(in: bounds.width, subviews: subviews, spacing: spacing)
-        for (index, subview) in subviews.enumerated() {
-            subview.place(at: CGPoint(x: bounds.minX + result.positions[index].x,
-                                      y: bounds.minY + result.positions[index].y),
-                         proposal: .unspecified)
-        }
-    }
-
-    private struct FlowResult {
-        var size: CGSize = .zero
-        var positions: [CGPoint] = []
-
-        init(in maxWidth: CGFloat, subviews: Subviews, spacing: CGFloat) {
-            var x: CGFloat = 0
-            var y: CGFloat = 0
-            var lineHeight: CGFloat = 0
-
-            for subview in subviews {
-                let size = subview.sizeThatFits(.unspecified)
-                if x + size.width > maxWidth && x > 0 {
-                    x = 0
-                    y += lineHeight + spacing
-                    lineHeight = 0
-                }
-                positions.append(CGPoint(x: x, y: y))
-                lineHeight = max(lineHeight, size.height)
-                x += size.width + spacing
-            }
-
-            self.size = CGSize(width: maxWidth, height: y + lineHeight)
         }
     }
 }

@@ -8,12 +8,22 @@ struct SearchView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(searchResults) { todo in
-                    NavigationLink(destination: TodoDetailView(todo: todo)) {
-                        TodoRowView(todo: todo)
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(searchResults) { todo in
+                        NavigationLink(destination: TodoDetailView(todo: todo)) {
+                            TodoRowView(todo: todo)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(Color.cardBackground)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(CardButtonStyle())
                     }
                 }
+                .padding(.horizontal, horizontalPadding)
+                .padding(.vertical, 12)
             }
             .navigationTitle("搜索")
             .searchable(text: $query)
@@ -50,5 +60,13 @@ struct SearchView: View {
                 searchResults = matched
             }
         }
+    }
+
+    private var horizontalPadding: CGFloat {
+        #if os(iOS)
+        16
+        #else
+        12
+        #endif
     }
 }

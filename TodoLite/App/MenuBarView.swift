@@ -7,7 +7,7 @@ struct MenuBarView: View {
     var body: some View {
         if store.focusTodos.isEmpty {
             Text("今天没有任务")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.labelSecondary)
         } else {
             ForEach(store.focusTodos.prefix(5)) { todo in
                 Button(todo.title) {
@@ -18,7 +18,7 @@ struct MenuBarView: View {
 
         if store.focusTodos.count > 5 {
             Text("还有 \(store.focusTodos.count - 5) 个任务...")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.labelSecondary)
         }
 
         Divider()

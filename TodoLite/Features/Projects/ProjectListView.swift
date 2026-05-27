@@ -6,25 +6,26 @@ struct ProjectListView: View {
     @State private var newName = ""
 
     var body: some View {
-        List {
-            ForEach(store.projects) { project in
-                HStack {
-                    Text(project.emoji)
-                    Text(project.name)
-                    Spacer()
-                    Circle()
-                        .fill(Color(hex: project.colorHex))
-                        .frame(width: 12, height: 12)
-                }
-            }
-            .onDelete { indexSet in
-                for idx in indexSet {
-                    let project = store.projects[idx]
-                    Task {
-                        try? await store.deleteProject(id: project.id)
+        ScrollView {
+            LazyVStack(spacing: 8) {
+                ForEach(store.projects) { project in
+                    HStack {
+                        Text(project.emoji)
+                        Text(project.name)
+                            .font(.callout.weight(.medium))
+                        Spacer()
+                        Circle()
+                            .fill(Color(hex: project.colorHex))
+                            .frame(width: 12, height: 12)
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Color.cardBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
             }
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, 12)
         }
         .navigationTitle("项目")
         .overlay {
@@ -53,5 +54,13 @@ struct ProjectListView: View {
                 }
             }
         }
+    }
+
+    private var horizontalPadding: CGFloat {
+        #if os(iOS)
+        16
+        #else
+        12
+        #endif
     }
 }

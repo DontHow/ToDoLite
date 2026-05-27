@@ -5,15 +5,24 @@ struct DoneView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(store.todos.filter { $0.status == .done }) { todo in
-                    NavigationLink(destination: TodoDetailView(todo: todo)) {
-                        TodoRowView(todo: todo)
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(store.todos.filter { $0.status == .done }) { todo in
+                        NavigationLink(destination: TodoDetailView(todo: todo)) {
+                            TodoRowView(todo: todo)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(Color.cardBackground)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(CardButtonStyle())
                     }
                 }
+                .padding(.horizontal, horizontalPadding)
+                .padding(.vertical, 12)
             }
             .navigationTitle("已完成")
-            .animation(.default, value: store.todos.filter { $0.status == .done }.map(\.id))
             .overlay {
                 if !store.todos.contains(where: { $0.status == .done }) {
                     EmptyStateView(
@@ -24,5 +33,13 @@ struct DoneView: View {
                 }
             }
         }
+    }
+
+    private var horizontalPadding: CGFloat {
+        #if os(iOS)
+        16
+        #else
+        12
+        #endif
     }
 }

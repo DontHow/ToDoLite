@@ -17,7 +17,8 @@ struct BoardView: View {
                         )
                     }
                 }
-                .padding()
+                .padding(.horizontal, horizontalPadding)
+                .padding(.vertical, 12)
             }
             .navigationTitle("看板")
             .toolbar {
@@ -36,6 +37,14 @@ struct BoardView: View {
             }
         }
     }
+
+    private var horizontalPadding: CGFloat {
+        #if os(iOS)
+        16
+        #else
+        12
+        #endif
+    }
 }
 
 struct BoardColumnView: View {
@@ -48,11 +57,11 @@ struct BoardColumnView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(status.displayName)
-                    .font(.headline)
+                    .font(.system(.title3, design: .rounded, weight: .bold))
                 Spacer()
                 Text("\(todos.count)")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.labelSecondary)
             }
             .padding(.horizontal, 8)
 
@@ -60,19 +69,24 @@ struct BoardColumnView: View {
                 if todos.isEmpty {
                     Text("拖拽任务到此处")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.labelSecondary)
                         .frame(maxWidth: .infinity, minHeight: 60)
                 }
                 ForEach(todos) { todo in
                     BoardCardView(todo: todo)
                         .transition(.scale.combined(with: .opacity))
                 }
-                .animation(.default, value: todos.map(\.id))
             }
             .frame(width: 280)
             .padding(8)
-            .background(isTargeted ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.1))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isTargeted ? Color.accentColor.opacity(0.15) : Color.cardBackground)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.separatorColor.opacity(0.5), lineWidth: 0.5)
+            )
         }
         .dropDestination(for: String.self) { items, location in
             guard let id = items.first,
@@ -102,14 +116,14 @@ struct BoardCardView: View {
         NavigationLink(destination: TodoDetailView(todo: todo)) {
             TodoRowView(todo: todo)
                 .padding(8)
-                #if os(iOS)
-                .background(Color(.systemBackground))
-                #else
-                .background(Color.white)
-                #endif
+                .background(Color.cardBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.separatorColor.opacity(0.5), lineWidth: 0.5)
+                )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(CardButtonStyle())
         .draggable(todo.id)
     }
 }

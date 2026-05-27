@@ -61,7 +61,7 @@ struct CreateTodoView: View {
                 withAnimation(.spring(duration: 0.3)) { useQuickEntry = false }
             }
         }
-        .background(chipBg)
+        .background(Color.chipBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .padding(.top, 16)
         .padding(.bottom, 20)
@@ -90,7 +90,7 @@ struct CreateTodoView: View {
         VStack(spacing: 16) {
             ZStack(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(cardBg)
+                    .fill(Color.cardBackground)
 
                 if title.isEmpty {
                     VStack(alignment: .leading, spacing: 6) {
@@ -209,7 +209,7 @@ struct CreateTodoView: View {
                 .padding(14)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(cardBgTertiary)
+                        .fill(Color.cardBackgroundTertiary)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
@@ -250,7 +250,7 @@ struct CreateTodoView: View {
             if filtered.isEmpty {
                 Text("无匹配项目")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.labelSecondary)
                     .padding(.vertical, 4)
             }
         }
@@ -269,7 +269,7 @@ struct CreateTodoView: View {
             if filtered.isEmpty {
                 Text("无匹配标签")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.labelSecondary)
                     .padding(.vertical, 4)
             }
         }
@@ -309,9 +309,10 @@ struct CreateTodoView: View {
                 Image(systemName: icon)
                     .font(.caption2)
                     .foregroundStyle(color)
+                    .symbolRenderingMode(.hierarchical)
                 Text(title)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.labelSecondary)
             }
             FlowLayout(spacing: 8) {
                 content()
@@ -326,7 +327,7 @@ struct CreateTodoView: View {
                 .foregroundStyle(.primary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
-                .background(chipBg)
+                .background(Color.chipBackground)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -375,7 +376,7 @@ struct CreateTodoView: View {
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(cardBgTertiary)
+                .fill(Color.cardBackgroundTertiary)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18)
@@ -390,19 +391,19 @@ struct CreateTodoView: View {
             // Title
             VStack(alignment: .leading, spacing: 12) {
                 TextField("任务标题", text: $title)
-                    .font(.title2.weight(.semibold))
+                    .font(.body.weight(.semibold))
 
                 Divider()
 
                 TextField("添加描述...", text: $description, axis: .vertical)
                     .lineLimit(2...4)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+                    .font(.callout)
+                    .foregroundStyle(Color.labelSecondary)
             }
             .padding(18)
             .background(
                 RoundedRectangle(cornerRadius: 18)
-                    .fill(cardBg)
+                    .fill(Color.cardBackground)
             )
 
             // Status
@@ -445,14 +446,14 @@ struct CreateTodoView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Text(projectId.flatMap { id in store.projects.first { $0.id == id }?.name } ?? "选择项目")
-                            .foregroundStyle(projectId == nil ? .secondary : .primary)
+                            .foregroundStyle(projectId == nil ? Color.labelSecondary : .primary)
                         Image(systemName: "chevron.down")
                             .font(.caption2.weight(.semibold))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.labelSecondary)
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
-                    .background(chipBg)
+                    .background(Color.chipBackground)
                     .clipShape(Capsule())
                 }
             }
@@ -492,7 +493,7 @@ struct CreateTodoView: View {
             .padding(18)
             .background(
                 RoundedRectangle(cornerRadius: 18)
-                    .fill(cardBg)
+                    .fill(Color.cardBackground)
             )
         }
     }
@@ -506,7 +507,7 @@ struct CreateTodoView: View {
                 .foregroundStyle(status == s ? .white : .primary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(status == s ? Color.indigo : chipBg)
+                .background(status == s ? Color.indigo : Color.chipBackground)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -526,7 +527,7 @@ struct CreateTodoView: View {
             .frame(minWidth: 60)
             .padding(.vertical, 10)
             .padding(.horizontal, 12)
-            .background(priority == p ? priorityColor(p) : chipBg)
+            .background(priority == p ? priorityColor(p) : Color.chipBackground)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
@@ -538,8 +539,9 @@ struct CreateTodoView: View {
                 Image(systemName: icon)
                     .foregroundStyle(color)
                     .font(.body)
+                    .symbolRenderingMode(.hierarchical)
                 Text(label)
-                    .font(.body)
+                    .font(.callout)
             }
             Spacer()
             Toggle("", isOn: isOn)
@@ -597,18 +599,6 @@ struct CreateTodoView: View {
         }
     }
 
-    // MARK: - Cross-platform colors
-
-    #if os(iOS)
-    private var cardBg: Color { Color(uiColor: .secondarySystemBackground) }
-    private var cardBgTertiary: Color { Color(uiColor: .tertiarySystemBackground) }
-    private var chipBg: Color { Color(uiColor: .tertiarySystemFill) }
-    #else
-    private var cardBg: Color { Color(nsColor: .controlBackgroundColor) }
-    private var cardBgTertiary: Color { Color(nsColor: .windowBackgroundColor).opacity(0.5) }
-    private var chipBg: Color { Color(nsColor: .controlBackgroundColor) }
-    #endif
-
     private func save() async {
         if useQuickEntry, let draft = parsedDraft {
             let matchedProject = store.projects.first { $0.name == draft.projectName }
@@ -635,108 +625,5 @@ struct CreateTodoView: View {
             )
         }
         dismiss()
-    }
-}
-
-// MARK: - Option Row
-
-private struct OptionRow<Content: View>: View {
-    let icon: String
-    let iconColor: Color
-    let label: String
-    @ViewBuilder let content: Content
-
-    private var rowBackground: Color {
-        #if os(iOS)
-        Color(uiColor: .systemGray6)
-        #else
-        Color(nsColor: .controlBackgroundColor)
-        #endif
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .foregroundStyle(iconColor)
-                    .font(.body)
-                Text(label)
-                    .font(.body.weight(.medium))
-                Spacer()
-            }
-            content
-        }
-        .padding(18)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(rowBackground)
-        )
-    }
-}
-
-// MARK: - Tag Chip
-
-private struct TagChip: View {
-    let icon: String
-    let text: String
-    let color: Color
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.caption2)
-            Text(text)
-                .font(.caption.weight(.medium))
-        }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(color.opacity(0.9))
-        .clipShape(Capsule())
-    }
-}
-
-// MARK: - Flow Layout
-
-private struct FlowLayout: Layout {
-    var spacing: CGFloat = 8
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let result = FlowResult(in: proposal.width ?? 0, subviews: subviews, spacing: spacing)
-        return result.size
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let result = FlowResult(in: bounds.width, subviews: subviews, spacing: spacing)
-        for (index, subview) in subviews.enumerated() {
-            subview.place(at: CGPoint(x: bounds.minX + result.positions[index].x,
-                                      y: bounds.minY + result.positions[index].y),
-                         proposal: .unspecified)
-        }
-    }
-
-    private struct FlowResult {
-        var size: CGSize = .zero
-        var positions: [CGPoint] = []
-
-        init(in maxWidth: CGFloat, subviews: Subviews, spacing: CGFloat) {
-            var x: CGFloat = 0
-            var y: CGFloat = 0
-            var lineHeight: CGFloat = 0
-
-            for subview in subviews {
-                let size = subview.sizeThatFits(.unspecified)
-                if x + size.width > maxWidth && x > 0 {
-                    x = 0
-                    y += lineHeight + spacing
-                    lineHeight = 0
-                }
-                positions.append(CGPoint(x: x, y: y))
-                lineHeight = max(lineHeight, size.height)
-                x += size.width + spacing
-            }
-
-            self.size = CGSize(width: maxWidth, height: y + lineHeight)
-        }
     }
 }

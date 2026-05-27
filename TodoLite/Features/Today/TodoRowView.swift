@@ -3,6 +3,7 @@ import SwiftUI
 struct TodoRowView: View {
     let todo: TodoItem
     @State private var store = TodoStore.shared
+    @State private var isPressed = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -12,26 +13,29 @@ struct TodoRowView: View {
                 }
             }) {
                 Image(systemName: todo.status == .done ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(todo.status == .done ? .green : .secondary)
+                    .foregroundStyle(todo.status == .done ? .green : Color.labelSecondary)
                     .font(.title3)
+                    .symbolRenderingMode(.hierarchical)
             }
             .buttonStyle(.plain)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(todo.title)
+                    .font(.callout.weight(.semibold))
                     .strikethrough(todo.status == .done)
-                    .foregroundStyle(todo.status == .done ? .secondary : .primary)
+                    .foregroundStyle(todo.status == .done ? Color.labelSecondary : .primary)
 
                 HStack(spacing: 6) {
                     if let project = store.projects.first(where: { $0.id == todo.projectId }) {
                         Text(project.emoji + " " + project.name)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.labelSecondary)
                     }
 
                     ForEach(todo.tagIds.compactMap { id in store.tags.first(where: { $0.id == id }) }) { tag in
                         Text(tag.name)
                             .font(.caption)
+                            .foregroundStyle(Color.labelSecondary)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(Color(hex: tag.colorHex).opacity(0.2))
@@ -41,13 +45,12 @@ struct TodoRowView: View {
                     if let due = todo.dueAt {
                         Text(due, style: .date)
                             .font(.caption)
-                            .foregroundStyle(due < Date() ? .red : .secondary)
+                            .foregroundStyle(due < Date() ? .red : Color.labelSecondary)
                     }
                 }
             }
 
             Spacer()
-
         }
         .padding(.vertical, 4)
     }

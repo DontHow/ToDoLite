@@ -6,17 +6,24 @@ struct InboxView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(store.inboxTodos) { todo in
-                    NavigationLink(destination: TodoDetailView(todo: todo)) {
-                        TodoRowView(todo: todo)
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(store.inboxTodos) { todo in
+                        NavigationLink(destination: TodoDetailView(todo: todo)) {
+                            TodoRowView(todo: todo)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(Color.cardBackground)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(CardButtonStyle())
                     }
                 }
-                .transition(.slide)
-                .animation(.default, value: store.inboxTodos.map(\.id))
+                .padding(.horizontal, horizontalPadding)
+                .padding(.vertical, 12)
             }
             .navigationTitle("收件箱")
-            .animation(.default, value: store.inboxTodos.map(\.id))
             .overlay {
                 if store.inboxTodos.isEmpty {
                     EmptyStateView(
@@ -38,5 +45,13 @@ struct InboxView: View {
                 CreateTodoView()
             }
         }
+    }
+
+    private var horizontalPadding: CGFloat {
+        #if os(iOS)
+        16
+        #else
+        12
+        #endif
     }
 }

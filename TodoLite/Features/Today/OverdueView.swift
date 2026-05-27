@@ -5,10 +5,18 @@ struct OverdueView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(store.overdueTodos) { todo in
-                    TodoRowView(todo: todo)
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(store.overdueTodos) { todo in
+                        TodoRowView(todo: todo)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(Color.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
                 }
+                .padding(.horizontal, horizontalPadding)
+                .padding(.vertical, 12)
             }
             .navigationTitle("逾期")
             .overlay {
@@ -21,5 +29,13 @@ struct OverdueView: View {
                 }
             }
         }
+    }
+
+    private var horizontalPadding: CGFloat {
+        #if os(iOS)
+        16
+        #else
+        12
+        #endif
     }
 }

@@ -5,10 +5,18 @@ struct UpcomingView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(upcomingTodos) { todo in
-                    TodoRowView(todo: todo)
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(upcomingTodos) { todo in
+                        TodoRowView(todo: todo)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(Color.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
                 }
+                .padding(.horizontal, horizontalPadding)
+                .padding(.vertical, 12)
             }
             .navigationTitle("即将到来")
             .overlay {
@@ -40,5 +48,13 @@ struct UpcomingView: View {
                 let d1 = $1.scheduledAt ?? $1.dueAt ?? .distantFuture
                 return d0 < d1
             }
+    }
+
+    private var horizontalPadding: CGFloat {
+        #if os(iOS)
+        16
+        #else
+        12
+        #endif
     }
 }

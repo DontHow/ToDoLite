@@ -5,24 +5,24 @@ struct ArchiveView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(store.todos.filter { $0.status == .archived }) { todo in
-                    NavigationLink(destination: TodoDetailView(todo: todo)) {
-                        TodoRowView(todo: todo)
-                    }
-                }
-                .onDelete { indexSet in
-                    let archived = store.todos.filter { $0.status == .archived }
-                    for idx in indexSet {
-                        let todo = archived[idx]
-                        Task {
-                            try? await store.deleteTodo(id: todo.id)
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(store.todos.filter { $0.status == .archived }) { todo in
+                        NavigationLink(destination: TodoDetailView(todo: todo)) {
+                            TodoRowView(todo: todo)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(Color.cardBackground)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .contentShape(Rectangle())
                         }
+                        .buttonStyle(CardButtonStyle())
                     }
                 }
+                .padding(.horizontal, horizontalPadding)
+                .padding(.vertical, 12)
             }
             .navigationTitle("已归档")
-            .animation(.default, value: store.todos.filter { $0.status == .archived }.map(\.id))
             .overlay {
                 if !store.todos.contains(where: { $0.status == .archived }) {
                     EmptyStateView(
@@ -33,5 +33,13 @@ struct ArchiveView: View {
                 }
             }
         }
+    }
+
+    private var horizontalPadding: CGFloat {
+        #if os(iOS)
+        16
+        #else
+        12
+        #endif
     }
 }
