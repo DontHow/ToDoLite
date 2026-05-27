@@ -96,7 +96,7 @@ struct BoardColumnView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.cardBackground)
+                .fill(columnBackground)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
@@ -120,6 +120,14 @@ struct BoardColumnView: View {
         } isTargeted: { targeted in
             isTargeted = targeted
         }
+    }
+
+    private var columnBackground: Color {
+        #if os(iOS)
+        Color(uiColor: .secondarySystemBackground)
+        #else
+        Color(nsColor: .underPageBackgroundColor)
+        #endif
     }
 
     private var emptyPlaceholder: some View {
