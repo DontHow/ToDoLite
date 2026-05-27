@@ -6,13 +6,9 @@ struct UpcomingView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 8) {
+                LazyVStack(spacing: 12) {
                     ForEach(upcomingTodos) { todo in
-                        TodoRowView(todo: todo)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(Color.cardBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        TodoListCard(todo: todo)
                     }
                 }
                 .padding(.horizontal, horizontalPadding)

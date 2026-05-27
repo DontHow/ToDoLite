@@ -6,17 +6,9 @@ struct DoneView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 8) {
+                LazyVStack(spacing: 12) {
                     ForEach(store.todos.filter { $0.status == .done }) { todo in
-                        NavigationLink(destination: TodoDetailView(todo: todo)) {
-                            TodoRowView(todo: todo)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 12)
-                                .background(Color.cardBackground)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(CardButtonStyle())
+                        TodoListCard(todo: todo)
                     }
                 }
                 .padding(.horizontal, horizontalPadding)

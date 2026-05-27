@@ -42,20 +42,12 @@ struct TodayView: View {
     @ViewBuilder
     private var focusSection: some View {
         if !store.focusTodos.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text("Focus")
                     .font(.system(.title3, design: .rounded, weight: .bold))
 
                 ForEach(store.focusTodos) { todo in
-                    NavigationLink(destination: TodoDetailView(todo: todo)) {
-                        TodoRowView(todo: todo)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(Color.cardBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(CardButtonStyle())
+                    TodoListCard(todo: todo)
                 }
             }
         }
@@ -69,15 +61,7 @@ struct TodayView: View {
                     .font(.system(.title3, design: .rounded, weight: .bold))
 
                 ForEach(store.suggestedTodos, id: \.id) { todo in
-                    NavigationLink(destination: TodoDetailView(todo: todo)) {
-                        TodoRowView(todo: todo)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(Color.cardBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(CardButtonStyle())
+                    TodoListCard(todo: todo)
                 }
             }
         }
@@ -92,15 +76,7 @@ struct TodayView: View {
                     .foregroundStyle(.red)
 
                 ForEach(store.overdueTodos, id: \.id) { todo in
-                    NavigationLink(destination: TodoDetailView(todo: todo)) {
-                        TodoRowView(todo: todo)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(Color.cardBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(CardButtonStyle())
+                    TodoListCard(todo: todo)
                 }
             }
         }

@@ -53,6 +53,7 @@
 		77E1B682FE9C6ADEAD7B94A9 /* Sidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97071CD4A750336F3838402 /* Sidebar.swift */; };
 		7AC4A1FA4567F1772E3BFB86 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48106E0B355F6DF4FCD611D9 /* TodayView.swift */; };
 		7AC965994D470C85C233FA19 /* LLMConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCAD2DA251886161B71951F5 /* LLMConfig.swift */; };
+		7B5633322B768ECA65777436 /* TodoListCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51B86C342398905573268BD /* TodoListCard.swift */; };
 		7C65DE99E457340006B733AC /* CardButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62BB2BA40AA2249CED5099C7 /* CardButtonStyle.swift */; };
 		807FCB49F3E6C5498054EA09 /* LLMParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44D839C94A9DCCAF68DC0AB6 /* LLMParser.swift */; };
 		822C9F97EC0A721FE2B766C2 /* TodoLiteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB88B942AA60A9580D528D1 /* TodoLiteApp.swift */; };
@@ -93,6 +94,7 @@
 		CFC45EB68D744F548F27D360 /* ProjectListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C65ED265146396081DC3DCA /* ProjectListView.swift */; };
 		D1E6EB8792B7EE2DF830FDC3 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = B427D65449C1241510500B61 /* Project.swift */; };
 		DAFEDAC62093208227850915 /* ArchiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839931DBAD3C2C78FB6ACC80 /* ArchiveView.swift */; };
+		E054D7776F165CFA00BA86BA /* TodoListCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51B86C342398905573268BD /* TodoListCard.swift */; };
 		E0ECFA759AEA42876120B85D /* InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968D595707EE1B458C51B894 /* InboxView.swift */; };
 		E3B3D6788A7564434E41D0E8 /* TagListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A722664555B612AE98003AA /* TagListView.swift */; };
 		E50D03402D61E0174DED2C1F /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6BEAEBB56E40F24301F1D70 /* SwiftUI.framework */; };
@@ -169,6 +171,7 @@
 		B0DF434CB3B1319AA51AEE20 /* OverdueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverdueView.swift; sourceTree = "<group>"; };
 		B427D65449C1241510500B61 /* Project.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Project.swift; sourceTree = "<group>"; };
 		B501D4D1D28A54C7A5080B09 /* iCloudSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCloudSyncManager.swift; sourceTree = "<group>"; };
+		B51B86C342398905573268BD /* TodoListCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoListCard.swift; sourceTree = "<group>"; };
 		B97071CD4A750336F3838402 /* Sidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar.swift; sourceTree = "<group>"; };
 		BCAD2DA251886161B71951F5 /* LLMConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMConfig.swift; sourceTree = "<group>"; };
 		C4EDBB35E1745B841F9B42FC /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
@@ -385,6 +388,7 @@
 				40A7770E7A373D027A21350C /* FlowLayout.swift */,
 				08467824F9AEE596573144BF /* OptionRow.swift */,
 				56153883BE64735ACEDFBC10 /* TagChip.swift */,
+				B51B86C342398905573268BD /* TodoListCard.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -653,6 +657,7 @@
 				5A192E9E392FA9AB8685258E /* TodoDetailView.swift in Sources */,
 				410AA9069634C37DB8CE2CAB /* TodoDraft.swift in Sources */,
 				A4D33AD824EB1B008931CFBD /* TodoItem.swift in Sources */,
+				E054D7776F165CFA00BA86BA /* TodoListCard.swift in Sources */,
 				822C9F97EC0A721FE2B766C2 /* TodoLiteApp.swift in Sources */,
 				B818113F020C2E4B58804CC9 /* TodoParser.swift in Sources */,
 				909A877C48BB0451BF799A98 /* TodoPriority.swift in Sources */,
@@ -725,6 +730,7 @@
 				E5473CAFBD81516762635F2C /* TodoDetailView.swift in Sources */,
 				572453C5D03D521DBE968435 /* TodoDraft.swift in Sources */,
 				44AC26AB0FD0E1406E912658 /* TodoItem.swift in Sources */,
+				7B5633322B768ECA65777436 /* TodoListCard.swift in Sources */,
 				8D04A216E6C6B1E40FDCAD9C /* TodoLiteApp.swift in Sources */,
 				2AA66F30BC6923E1E157A9A8 /* TodoParser.swift in Sources */,
 				52D9CAE24A875E0058C67D36 /* TodoPriority.swift in Sources */,

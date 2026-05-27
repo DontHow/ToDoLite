@@ -136,7 +136,7 @@ struct BoardCardView: View {
                 .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: 14)
                         #if os(iOS)
                         .fill(Color(uiColor: .systemBackground))
                         #else
@@ -144,7 +144,7 @@ struct BoardCardView: View {
                         #endif
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: 14)
                         .stroke(Color.separatorColor.opacity(0.5), lineWidth: 0.5)
                 )
         }
