@@ -20,20 +20,13 @@ struct DoneView: View {
                     } else {
                         ForEach(groupedTodos, id: \.title) { group in
                             VStack(alignment: .leading, spacing: 8) {
-                                if group.title == "今天" || group.title == "昨天" {
-                                    Text(group.title)
-                                        .font(.system(.title3, design: .rounded, weight: .bold))
-                                        .foregroundStyle(.secondary)
-                                        .padding(.horizontal, 4)
-                                } else {
-                                    Text(group.title)
-                                        .font(.system(.callout, design: .rounded, weight: .semibold))
-                                        .foregroundStyle(.primary)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 6)
-                                        .background(Color(.tertiarySystemFill))
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                }
+                                Text(group.title)
+                                    .font(.system(.callout, design: .rounded, weight: .semibold))
+                                    .foregroundStyle(.primary)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color(.tertiarySystemFill))
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
 
                                 LazyVStack(spacing: 8) {
                                     ForEach(group.todos) { todo in
@@ -59,6 +52,10 @@ struct DoneView: View {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
 
+        var cal = calendar
+        cal.firstWeekday = 2
+        let currentWeekComponents = cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: today)
+
         var groups: [(title: String, todos: [TodoItem])] = []
         var currentTitle: String?
         var currentTodos: [TodoItem] = []
@@ -67,23 +64,18 @@ struct DoneView: View {
             guard let completedAt = todo.completedAt else { continue }
             let completedDay = calendar.startOfDay(for: completedAt)
 
-            let title: String
-            if calendar.isDate(completedDay, inSameDayAs: today) {
-                title = "今天"
-            } else if calendar.isDate(completedDay, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
-                title = "昨天"
-            } else {
-                var cal = calendar
-                cal.firstWeekday = 2
-                let weekComponents = cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: completedDay)
-                guard let weekStart = cal.date(from: weekComponents),
-                      let weekEnd = cal.date(byAdding: .day, value: 6, to: weekStart) else { continue }
+            let weekComponents = cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: completedDay)
+            guard let weekStart = cal.date(from: weekComponents),
+                  let weekEnd = cal.date(byAdding: .day, value: 6, to: weekStart) else { continue }
 
-                let formatter = DateFormatter()
-                formatter.locale = Locale(identifier: "zh_CN")
-                formatter.dateFormat = "M月d日"
-                title = "\(formatter.string(from: weekStart))-\(formatter.string(from: weekEnd))"
-            }
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "zh_CN")
+            formatter.dateFormat = "M月d日"
+            let weekRange = "\(formatter.string(from: weekStart))-\(formatter.string(from: weekEnd))"
+
+            let isCurrentWeek = weekComponents.yearForWeekOfYear == currentWeekComponents.yearForWeekOfYear
+                && weekComponents.weekOfYear == currentWeekComponents.weekOfYear
+            let title = isCurrentWeek ? "本周 \(weekRange)" : weekRange
 
             if title != currentTitle {
                 if let t = currentTitle {
