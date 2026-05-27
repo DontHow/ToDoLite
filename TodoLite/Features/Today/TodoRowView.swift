@@ -5,10 +5,10 @@ struct TodoRowView: View {
     @State private var store = TodoStore.shared
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 10) {
             completeButton
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
                 titleText
 
                 if hasMetadata {
@@ -18,10 +18,10 @@ struct TodoRowView: View {
 
             Spacer()
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
     }
 
-    // MARK: - Components
+    // MARK: - Complete Button
 
     private var completeButton: some View {
         Button(action: {
@@ -30,13 +30,15 @@ struct TodoRowView: View {
             }
         }) {
             Image(systemName: todo.status == .done ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(todo.status == .done ? .green : Color.labelSecondary)
                 .font(.body)
                 .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(todo.status == .done ? .green : Color.labelSecondary)
         }
-        .buttonStyle(.plain)
-        .padding(.top, 2)
+        .buttonStyle(ScaleButtonStyle())
+        .padding(.top, 1)
     }
+
+    // MARK: - Title
 
     private var titleText: some View {
         Text(todo.title)
@@ -46,58 +48,74 @@ struct TodoRowView: View {
             .lineLimit(2)
     }
 
+    // MARK: - Metadata
+
     private var metadataRow: some View {
         HStack(spacing: 0) {
-            if let project = store.projects.first(where: { $0.id == todo.projectId }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "folder")
-                        .font(.caption2)
-                    Text(project.name)
-                }
-                .foregroundStyle(Color.labelSecondary)
+            HStack(spacing: 6) {
+                projectChip
+                tagChips
             }
+            .layoutPriority(1)
 
-            let tagList = todo.tagIds.compactMap { id in store.tags.first(where: { $0.id == id }) }
+            Spacer(minLength: 8)
 
-            if store.projects.first(where: { $0.id == todo.projectId }) != nil && !tagList.isEmpty {
-                separatorDot
-            }
-
-            ForEach(Array(tagList.enumerated()), id: \.element.id) { index, tag in
-                if index > 0 {
-                    separatorDot
-                }
-                Text(tag.name)
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(Color(hex: tag.colorHex))
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color(hex: tag.colorHex).opacity(0.12))
-                    .clipShape(Capsule())
-            }
-
-            if let due = todo.dueAt {
-                if (store.projects.first(where: { $0.id == todo.projectId }) != nil || !tagList.isEmpty) {
-                    separatorDot
-                }
-                HStack(spacing: 4) {
-                    Image(systemName: "calendar")
-                        .font(.caption2)
-                    Text(due, style: .date)
-                }
-                .foregroundStyle(due < Date() ? .red : Color.labelSecondary)
-            }
+            dateChip
         }
-        .font(.caption)
     }
 
-    private var separatorDot: some View {
-        Text(" · ")
-            .font(.caption)
+    @ViewBuilder
+    private var projectChip: some View {
+        if let project = store.projects.first(where: { $0.id == todo.projectId }) {
+            HStack(spacing: 3) {
+                Image(systemName: "folder")
+                    .imageScale(.small)
+                Text(project.name)
+            }
+            .font(.caption2)
             .foregroundStyle(Color.labelSecondary)
+        }
+    }
+
+    @ViewBuilder
+    private var tagChips: some View {
+        let tagList = todo.tagIds.compactMap { id in store.tags.first(where: { $0.id == id }) }
+        ForEach(tagList) { tag in
+            Text(tag.name)
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 1)
+                .background(Color(hex: tag.colorHex))
+                .clipShape(Capsule())
+        }
+    }
+
+    @ViewBuilder
+    private var dateChip: some View {
+        if let due = todo.dueAt {
+            HStack(spacing: 3) {
+                Image(systemName: "calendar")
+                    .imageScale(.small)
+                Text(due, style: .date)
+            }
+            .font(.caption2)
+            .foregroundStyle(due < Date() ? .red : Color.labelSecondary)
+            .layoutPriority(0)
+        }
     }
 
     private var hasMetadata: Bool {
         todo.projectId != nil || !todo.tagIds.isEmpty || todo.dueAt != nil
+    }
+}
+
+// MARK: - Scale Button Style
+
+private struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.85 : 1.0)
+            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
     }
 }
