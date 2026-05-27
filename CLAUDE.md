@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 TodoLite 是一个 Local First 的原生 SwiftUI 待办应用，支持 iOS 和 macOS。数据以独立 JSON 文件形式存储在 iCloud Documents 中（不使用 SwiftData / Core Data）。每个待办、项目和标签都是单独的 JSON 文件。SQLite 仅用于全文搜索索引，不作为事实源。
 
+设计理念为 **"Apple 原生+（增强微设计）"** —— 让应用感觉像 Apple 第一方应用，但带有精品级设计细节。不能显得千篇一律，也不应违背原生平台行为。
+
 ## 构建与开发
 
 ### 项目生成
@@ -102,6 +104,14 @@ iCloud Drive/TodoLite/
 - **iOS**：`TabView`，标签页：Today、Inbox、Board、Search、Settings
 - **macOS**：`NavigationSplitView`，Sidebar → 详情。包含 `MenuBarExtra`。快捷键：⌘1 Today、⌘2 Inbox、⌘3 Board、⌘K Search
 
+### 视觉规范
+
+**字体与层级：** 使用标准 SF Pro 字体，通过极端布局层级建立对比。分区标题优先使用 `.font(.system(.title3, design: .rounded, weight: .bold))`。任务标题使用 `.body` 或 `.callout` 配合 `.semibold` 字重。元数据使用 `Color(.secondaryLabel)`，保持画布干净。
+
+**布局与间距：** 标准内边距 iOS `16pt`，macOS `12pt`。使用显式视觉容器代替原始列表，需要视觉风格时用自定义语义卡片分组，而非标准 `Form` 或 `List` 背景。不使用厚重阴影，暗色模式分隔使用微妙边框：`.border(Color(.separator).opacity(0.5), width: 0.5)`。
+
+**微交互：** 按钮按下和单元格选中必须带有响应式缩放：`.scaleEffect(isPressed ? 0.98 : 1.0)`。macOS 悬停效果（`.onHover`）默认隐藏可操作项（删除/编辑图标），悬停时显现。持久栏使用系统材质：`.background(.ultraThinMaterial)`。
+
 ## 重要原则
 
 1. **文件系统是事实源。** 禁止将 SQLite 或内存作为权威来源。
@@ -141,37 +151,7 @@ iCloud Drive/TodoLite/
 - **每次改动完成后自动提交。** 单一代码改动完成并验证编译通过后，应直接执行 `git add` 和 `git commit`，无需等待用户额外确认。
 - **多平台兼容性检查。** 使用 `Color(uiColor:)` 或 `Color(nsColor:)` 等 UIKit/AppKit 专属 API 时，必须用 `#if os(iOS)` / `#else` 包裹，确保 iOS 和 macOS 双目标均能编译。
 - **`xcodegen generate` 后需重新打开 Xcode。** 修改 `project.yml` 后，先生成项目再重新加载 Xcode，`.pbxproj` 不应手动编辑。
-
-## 设计参考
-
-```
-# 角色与上下文
-你是精通 SwiftUI、AppKit 和 UIKit 的 iOS 与 macOS 开发专家。严格遵守 Apple 人机界面指南（HIG），同时具备现代极简独立应用的高级审美。
-
-我们正使用 100% SwiftUI 构建一款兼容 iOS 与 macOS 的精品待办应用。
-
-# 设计理念："Apple 原生+（增强微设计）"
-核心目标是让应用感觉像 Apple 第一方应用，但带有精品级设计细节。不能显得千篇一律，也不应违背原生平台行为。
-
-## 1. 字体与层级
-- 使用标准 SF Pro 字体，通过极端布局层级建立对比。
-- 分区标题优先使用 `.font(.system(.title3, design: .rounded, weight: .bold))`，而非通用标题。
-- 任务标题使用 `.body` 或 `.callout` 配合 `.semibold` 字重。
-- 元数据使用二级/三级颜色（`Color(.secondaryLabel)`），保持画布干净。
-
-## 2. 布局与间距
-- 保持标准内边距（iOS `16pt`，macOS `12pt`），提供呼吸空间。
-- 使用显式视觉容器代替原始列表。需要视觉风格时，用自定义语义卡片分组，而非标准 `Form` 或 `List` 背景。
-- 不使用厚重阴影。暗色模式分隔使用微妙自定义边框：`.border(Color(.separator).opacity(0.5), width: 0.5)`。
-
-## 3. 微交互与光影（"设计"要素）
-- **激活态：** 按钮按下和单元格选中必须带有响应式缩放效果：`.scaleEffect(isPressed ? 0.98 : 1.0)`。
-- **动态反馈：** macOS 上提供微妙悬停效果（`.onHover`），默认隐藏可操作项（如删除/编辑图标），悬停时显现。
-- **玻璃质感点缀：** 持久栏（如自定义底部面板或浮动筛选栏）使用系统材质：`.background(.ultraThinMaterial)`。
-
-# 代码生成规则（严格）
-1. **多平台分离：** 清晰分离 iOS 专用布局（如带底部 TabBar 的 `NavigationStack`）与 macOS 专用布局（如带侧边栏和顶部工具栏的 `NavigationSplitView`）。恰当使用 `#if os(iOS)` 和 `#if os(macOS)`，或隔离平台视图。
-2. **仅使用 SF Symbols：** 所有图标使用原生 SF Symbols。尽可能应用层级渲染变体：`.symbolRenderingMode(.hierarchical)`。
-3. **性能与简洁：** 避免第三方库依赖。使用纯 SwiftUI。编写模块化、高度可复用的子视图（`TaskRow`、`CategoryCard`）。确保代码在 Swift 6 严格并发安全下完全编译。
-4. **禁止占位符：** 提供功能完整的 SwiftUI 视图，逻辑清晰。不要用 `// ... implement later` 等注释截断代码。
-```
+- **多平台分离。** 清晰分离 iOS 专用布局（如带底部 TabBar 的 `NavigationStack`）与 macOS 专用布局（如带侧边栏和顶部工具栏的 `NavigationSplitView`）。恰当使用 `#if os(iOS)` 和 `#if os(macOS)`，或隔离平台视图。
+- **仅使用 SF Symbols。** 所有图标使用原生 SF Symbols，尽可能应用层级渲染变体 `.symbolRenderingMode(.hierarchical)`。
+- **禁止第三方依赖。** 使用纯 SwiftUI。编写模块化、高度可复用的子视图（如 `TaskRow`、`CategoryCard`）。确保代码在 Swift 6 严格并发安全下完全编译。
+- **禁止占位符。** 提供功能完整的 SwiftUI 视图，逻辑清晰。不要用 `// ... implement later` 等注释截断代码。
