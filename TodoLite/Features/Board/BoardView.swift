@@ -142,6 +142,7 @@ struct BoardCardView: View {
                         #else
                         .fill(Color(nsColor: .controlBackgroundColor))
                         #endif
+                        .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 3)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)

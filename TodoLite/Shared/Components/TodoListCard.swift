@@ -12,6 +12,7 @@ struct TodoListCard: View {
                 .background(
                     RoundedRectangle(cornerRadius: 14)
                         .fill(Color.cardBackground)
+                        .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 3)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
