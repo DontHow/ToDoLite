@@ -64,12 +64,35 @@ View → TodoStore (Observable) → Repository (actor) → FileSystemManager (ac
 ### 冲突解决
 仓库在写入前检查 `version`。如果传入版本不大于已有版本，则将冲突备份写入 `conflicts/` 目录，并抛出 `FileSystemError.conflictDetected`。iCloud 同步按版本号合并（`iCloudSyncManager`）。
 
-### Today 逻辑
-`TodoStore.isToday(_:now:)` 决定成员资格。待办出现在 Today 的条件：
-- 非 done/archived，且
-- `isPinnedToday == true`，或 `scheduledAt` 为今天，或 `dueAt` <= now
+### Today 设计
 
-Today 排序：置顶优先，然后按优先级（高 > 中 > 低），最后按 createdAt 升序。
+Today 不是任务属性。任务上没有 `isToday` 或 `focusedAt` 字段。
+
+Today 是"当天工作上下文"，单独存储在 `meta/focus_yyyy-mm-dd.json`：
+
+```json
+{
+  "date": "2026-05-27",
+  "taskIds": ["task_001", "task_002"]
+}
+```
+
+Today 页面分三个区域：
+
+| 区域 | 来源 | 说明 |
+|------|------|------|
+| **Focus** | `focus_yyyy-mm-dd.json` 中的 taskIds | 用户主动加入 Today 的任务 |
+| **Suggested** | `scheduledAt` 为今天 或 `dueAt` 为今天 | 系统建议，不自动进入 Focus |
+| **Overdue** | `dueAt` < 今天 | 逾期任务，不污染 Focus |
+
+Focus 排序：优先级（高 > 中 > 低），然后按加入顺序。
+
+**时间字段语义（严格分离）：**
+- `scheduledAt` = "我计划什么时候做"（未来安排）
+- `dueAt` = "最晚什么时候完成"（截止约束）
+- **Today Focus** = "今天主动关注什么"（当日工作上下文）
+
+三者彻底分离，不要混为一谈。
 
 ### 状态映射（Codable 迁移）
 废弃状态在 JSON 解码时重映射：
@@ -88,6 +111,7 @@ iCloud Drive/TodoLite/
   archive/
   conflicts/
   meta/
+    focus_yyyy-mm-dd.json
 ```
 
 ## 测试规范
@@ -96,13 +120,15 @@ iCloud Drive/TodoLite/
 - Model Codable 编解码
 - Parser 边界情况（空输入、emoji、多空格、大小写不敏感）
 - `DateResolver` 边界情况（周末、跨年、从今天算 weekday）
-- `TodoStore` 派生集合（`todayTodos`、`activeTodos`、`inboxTodos`）及排序
+- `TodoStore` 派生集合（`focusTodos`、`suggestedTodos`、`overdueTodos`、`activeTodos`、`inboxTodos`）及排序
 - 旧版 JSON 字符串的状态 Codable 迁移
 
 ## UI 结构
 
 - **iOS**：`TabView`，标签页：Today、Inbox、Board、Search、Settings
 - **macOS**：`NavigationSplitView`，Sidebar → 详情。包含 `MenuBarExtra`。快捷键：⌘1 Today、⌘2 Inbox、⌘3 Board、⌘K Search
+
+Sidebar / Tab 视图列表：Today、Inbox、Overdue、Upcoming、Board、Projects、Tags、Done、Archive
 
 ### 视觉规范
 
