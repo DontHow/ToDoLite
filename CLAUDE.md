@@ -175,9 +175,11 @@ Sidebar / Tab 视图列表：Today、Inbox、Overdue、Upcoming、Board、Projec
 ## 工作流规范
 
 - **每次改动完成后自动提交。** 单一代码改动完成并验证编译通过后，应直接执行 `git add` 和 `git commit`，无需等待用户额外确认。
+- 提交后自动重新构建并打开供给用户测试
 - **多平台兼容性检查。** 使用 `Color(uiColor:)` 或 `Color(nsColor:)` 等 UIKit/AppKit 专属 API 时，必须用 `#if os(iOS)` / `#else` 包裹，确保 iOS 和 macOS 双目标均能编译。
 - **`xcodegen generate` 后需重新打开 Xcode。** 修改 `project.yml` 后，先生成项目再重新加载 Xcode，`.pbxproj` 不应手动编辑。
 - **多平台分离。** 清晰分离 iOS 专用布局（如带底部 TabBar 的 `NavigationStack`）与 macOS 专用布局（如带侧边栏和顶部工具栏的 `NavigationSplitView`）。恰当使用 `#if os(iOS)` 和 `#if os(macOS)`，或隔离平台视图。
 - **仅使用 SF Symbols。** 所有图标使用原生 SF Symbols，尽可能应用层级渲染变体 `.symbolRenderingMode(.hierarchical)`。
 - **禁止第三方依赖。** 使用纯 SwiftUI。编写模块化、高度可复用的子视图（如 `TaskRow`、`CategoryCard`）。确保代码在 Swift 6 严格并发安全下完全编译。
 - **禁止占位符。** 提供功能完整的 SwiftUI 视图，逻辑清晰。不要用 `// ... implement later` 等注释截断代码。
+- 当用户说“发布”时，自动提高版本号，然后将编译好的macOS应用安装
