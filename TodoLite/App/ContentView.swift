@@ -2,12 +2,14 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab: Tab = .today
+    @State private var store = TodoStore.shared
 
     enum Tab: Hashable {
         case today, inbox, board, search, settings, done, archive, overdue, upcoming, projects, tags
     }
 
     var body: some View {
+        let fontSize = FontSizeOption(level: store.fontSizeLevel)?.dynamicTypeSize ?? .medium
         #if os(macOS)
         NavigationSplitView {
             Sidebar(selection: $selectedTab)
@@ -26,6 +28,7 @@ struct ContentView: View {
             case .tags: TagListView()
             }
         }
+        .dynamicTypeSize(fontSize)
         .onKeyPress(characters: .init(charactersIn: "1")) { press in
             guard press.modifiers == .command else { return .ignored }
             selectedTab = .today
@@ -68,6 +71,7 @@ struct ContentView: View {
                 .tabItem { Label("设置", systemImage: "gearshape.fill") }
                 .tag(Tab.settings)
         }
+        .dynamicTypeSize(fontSize)
         #endif
     }
 }

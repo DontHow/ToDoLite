@@ -10,6 +10,11 @@ final class TodoStore {
     var tags: [TagItem] = []
     var llmConfig: LLMConfig = LLMConfig()
     var focusSet: FocusSet = FocusSet()
+    var fontSizeLevel: Int = UserDefaults.standard.integer(forKey: "fontSizeLevel") {
+        didSet {
+            UserDefaults.standard.set(fontSizeLevel, forKey: "fontSizeLevel")
+        }
+    }
 
     var focusTodos: [TodoItem] {
         let ids = Set(focusSet.taskIds)

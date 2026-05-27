@@ -58,6 +58,7 @@
 		807FCB49F3E6C5498054EA09 /* LLMParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44D839C94A9DCCAF68DC0AB6 /* LLMParser.swift */; };
 		822C9F97EC0A721FE2B766C2 /* TodoLiteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB88B942AA60A9580D528D1 /* TodoLiteApp.swift */; };
 		828DA4D5183D96B521B439BC /* TodoRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71533A795B7C1D2E14F29DA3 /* TodoRepository.swift */; };
+		8758D3B4B97D5708CD75522F /* FontSizeOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F169F4D447684C1E1BF93CD4 /* FontSizeOption.swift */; };
 		87FB1D4E572EEE803656B1B5 /* ArchiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839931DBAD3C2C78FB6ACC80 /* ArchiveView.swift */; };
 		8D04A216E6C6B1E40FDCAD9C /* TodoLiteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB88B942AA60A9580D528D1 /* TodoLiteApp.swift */; };
 		8EFAF5AF58FF6879C5361C36 /* OverdueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0DF434CB3B1319AA51AEE20 /* OverdueView.swift */; };
@@ -72,6 +73,7 @@
 		95E16E858A25C7EE319A344B /* FocusRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA25926512C3D404F36FD47A /* FocusRepository.swift */; };
 		9BB8866FE5C5A850D4160A84 /* TodoRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71533A795B7C1D2E14F29DA3 /* TodoRepository.swift */; };
 		9D547540D304B7E3369C5766 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4EDBB35E1745B841F9B42FC /* EmptyStateView.swift */; };
+		9E7EF108600FDF848A886AEA /* FontSizeOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F169F4D447684C1E1BF93CD4 /* FontSizeOption.swift */; };
 		9E881BD9F279FE939C2B2F0B /* TodoRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D791A08856EC02B41DD8B494 /* TodoRowView.swift */; };
 		A22F0437510A10BAE89F209F /* FocusRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA25926512C3D404F36FD47A /* FocusRepository.swift */; };
 		A37EFC6A2710CF88253735A4 /* WidgetDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7261FF18315AA0C632D8B158 /* WidgetDataStore.swift */; };
@@ -184,6 +186,7 @@
 		E37E08FACEFDA4F6A9A06E6D /* TodoLite.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TodoLite.entitlements; sourceTree = "<group>"; };
 		E5A6222AE7E35B2F93D328CD /* TodoLiteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoLiteTests.swift; sourceTree = "<group>"; };
 		ECB88B942AA60A9580D528D1 /* TodoLiteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoLiteApp.swift; sourceTree = "<group>"; };
+		F169F4D447684C1E1BF93CD4 /* FontSizeOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontSizeOption.swift; sourceTree = "<group>"; };
 		F1E3D2293CAE43B09F736BBD /* TodoLiteWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = TodoLiteWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		F20F3D5784DFBA26C750F314 /* TodoStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoStore.swift; sourceTree = "<group>"; };
 		F6BEAEBB56E40F24301F1D70 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -418,6 +421,7 @@
 			isa = PBXGroup;
 			children = (
 				AB3B33E28B66C13723E9C48F /* FocusSet.swift */,
+				F169F4D447684C1E1BF93CD4 /* FontSizeOption.swift */,
 				BCAD2DA251886161B71951F5 /* LLMConfig.swift */,
 				B427D65449C1241510500B61 /* Project.swift */,
 				58F50B635472C1181D267A19 /* TagItem.swift */,
@@ -633,6 +637,7 @@
 				F9DF56A6E5BD58B493B7678D /* FlowLayout.swift in Sources */,
 				A22F0437510A10BAE89F209F /* FocusRepository.swift in Sources */,
 				6E860F121E50850759C0223D /* FocusSet.swift in Sources */,
+				8758D3B4B97D5708CD75522F /* FontSizeOption.swift in Sources */,
 				C74E95BA62B38DA990403F50 /* InboxView.swift in Sources */,
 				7AC965994D470C85C233FA19 /* LLMConfig.swift in Sources */,
 				F21670E9D83F0FB827C10682 /* LLMConfigRepository.swift in Sources */,
@@ -706,6 +711,7 @@
 				F39F7CDE602F1C2620578415 /* FlowLayout.swift in Sources */,
 				95E16E858A25C7EE319A344B /* FocusRepository.swift in Sources */,
 				EA6D7E6BCA11C12A1B689EA9 /* FocusSet.swift in Sources */,
+				9E7EF108600FDF848A886AEA /* FontSizeOption.swift in Sources */,
 				E0ECFA759AEA42876120B85D /* InboxView.swift in Sources */,
 				1B4B4605F564E8C72F00EC50 /* LLMConfig.swift in Sources */,
 				949B02281C0A986A27E7A504 /* LLMConfigRepository.swift in Sources */,
