@@ -20,10 +20,20 @@ struct DoneView: View {
                     } else {
                         ForEach(groupedTodos, id: \.title) { group in
                             VStack(alignment: .leading, spacing: 8) {
-                                Text(group.title)
-                                    .font(.system(.title3, design: .rounded, weight: .bold))
-                                    .foregroundStyle(.secondary)
-                                    .padding(.horizontal, 4)
+                                if group.title == "今天" || group.title == "昨天" {
+                                    Text(group.title)
+                                        .font(.system(.title3, design: .rounded, weight: .bold))
+                                        .foregroundStyle(.secondary)
+                                        .padding(.horizontal, 4)
+                                } else {
+                                    Text(group.title)
+                                        .font(.system(.callout, design: .rounded, weight: .semibold))
+                                        .foregroundStyle(.primary)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color(.tertiarySystemFill))
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                }
 
                                 LazyVStack(spacing: 8) {
                                     ForEach(group.todos) { todo in
