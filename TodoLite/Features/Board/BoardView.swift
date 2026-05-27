@@ -61,6 +61,14 @@ struct BoardColumnView: View {
     @State private var store = TodoStore.shared
     @State private var isTargeted = false
 
+    private var sortedTodos: [TodoItem] {
+        todos.sorted {
+            guard let d0 = $0.dueAt else { return false }
+            guard let d1 = $1.dueAt else { return true }
+            return d0 < d1
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
@@ -90,7 +98,7 @@ struct BoardColumnView: View {
                     emptyPlaceholder
                 }
 
-                ForEach(todos) { todo in
+                ForEach(sortedTodos) { todo in
                     BoardCardView(todo: todo)
                         .transition(.scale.combined(with: .opacity))
                 }

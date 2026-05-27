@@ -8,7 +8,6 @@ struct CreateTodoView: View {
     @State private var priority: TodoPriority = .medium
     @State private var projectId: String?
     @State private var dueAt: Date? = Calendar.current.date(byAdding: .day, value: 7, to: Date())
-    @State private var hasDue = true
     @State private var useQuickEntry = true
     @State private var parsedDraft: TodoDraft?
     @State private var isParsingLLM = false
@@ -457,20 +456,20 @@ struct CreateTodoView: View {
             }
 
             // Due Date
-            VStack(spacing: 16) {
-                dateToggleRow(
-                    icon: "clock.arrow.circlepath",
-                    color: .orange,
-                    label: "截止日期",
-                    isOn: $hasDue
-                )
-                if hasDue {
-                    DatePicker("", selection: Binding(
-                        get: { dueAt ?? Date() },
-                        set: { dueAt = $0 }
-                    ), displayedComponents: .date)
-                    .datePickerStyle(.compact)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 10) {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .foregroundStyle(.orange)
+                        .font(.body)
+                        .symbolRenderingMode(.hierarchical)
+                    Text("截止日期")
+                        .font(.body)
                 }
+                DatePicker("", selection: Binding(
+                    get: { dueAt ?? Date() },
+                    set: { dueAt = $0 }
+                ), displayedComponents: .date)
+                .datePickerStyle(.compact)
             }
             .padding(18)
             .background(
@@ -599,7 +598,7 @@ struct CreateTodoView: View {
                 status: status,
                 priority: priority,
                 projectId: projectId,
-                dueAt: hasDue ? dueAt : nil
+                dueAt: dueAt
             )
         }
         dismiss()

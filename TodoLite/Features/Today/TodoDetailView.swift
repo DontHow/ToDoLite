@@ -4,14 +4,12 @@ struct TodoDetailView: View {
     let todo: TodoItem
     @State private var store = TodoStore.shared
     @State private var edited: TodoItem
-    @State private var hasDue: Bool
     @State private var errorMessage: String?
     @Environment(\.dismiss) private var dismiss
 
     init(todo: TodoItem) {
         self.todo = todo
         _edited = State(initialValue: todo)
-        _hasDue = State(initialValue: todo.dueAt != nil)
     }
 
     var body: some View {
@@ -49,13 +47,6 @@ struct TodoDetailView: View {
                 Button("确定", role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
-            }
-            .onChange(of: hasDue) { _, newValue in
-                if !newValue {
-                    edited.dueAt = nil
-                } else if edited.dueAt == nil {
-                    edited.dueAt = Date()
-                }
             }
         }
     }
@@ -222,42 +213,26 @@ struct TodoDetailView: View {
 
     private var dateCard: some View {
         VStack(spacing: 16) {
-            dateToggleRow(
-                icon: "clock.arrow.circlepath",
-                color: .orange,
-                label: "截止日期",
-                isOn: $hasDue
-            )
-            if hasDue {
-                DatePicker("", selection: Binding(
-                    get: { edited.dueAt ?? Date() },
-                    set: { edited.dueAt = $0 }
-                ), displayedComponents: .date)
-                .datePickerStyle(.compact)
+            HStack(spacing: 10) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .foregroundStyle(.orange)
+                    .font(.body)
+                    .symbolRenderingMode(.hierarchical)
+                Text("截止日期")
+                    .font(.body)
+                Spacer()
             }
+            DatePicker("", selection: Binding(
+                get: { edited.dueAt ?? Date() },
+                set: { edited.dueAt = $0 }
+            ), displayedComponents: .date)
+            .datePickerStyle(.compact)
         }
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 18)
                 .fill(Color.cardBackground)
         )
-    }
-
-    private func dateToggleRow(icon: String, color: Color, label: String, isOn: Binding<Bool>) -> some View {
-        HStack {
-            HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .foregroundStyle(color)
-                    .font(.body)
-                    .symbolRenderingMode(.hierarchical)
-                Text(label)
-                    .font(.body)
-            }
-            Spacer()
-            Toggle("", isOn: isOn)
-                .labelsHidden()
-                .tint(color)
-        }
     }
 
     // MARK: - Actions
