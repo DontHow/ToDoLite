@@ -9,7 +9,7 @@ struct BoardView: View {
     var body: some View {
         NavigationStack {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 12) {
+                HStack(alignment: .top, spacing: 24) {
                     ForEach(columns, id: \.self) { status in
                         BoardColumnView(
                             status: status,
@@ -77,7 +77,7 @@ struct BoardColumnView: View {
                 .padding(.horizontal, 12)
 
             // Cards area
-            VStack(spacing: 8) {
+            VStack(spacing: 12) {
                 if todos.isEmpty {
                     emptyPlaceholder
                 }
@@ -87,21 +87,14 @@ struct BoardColumnView: View {
                         .transition(.scale.combined(with: .opacity))
                 }
             }
-            .padding(8)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 10)
             .frame(width: 260)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isTargeted ? Color.accentColor.opacity(0.08) : Color.clear)
+                    .fill(isTargeted ? Color.accentColor.opacity(0.06) : Color.clear)
             )
         }
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(columnBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.separatorColor.opacity(0.5), lineWidth: 0.5)
-        )
         .dropDestination(for: String.self) { items, location in
             guard let id = items.first,
                   let todo = store.todos.first(where: { $0.id == id }),
@@ -120,14 +113,6 @@ struct BoardColumnView: View {
         } isTargeted: { targeted in
             isTargeted = targeted
         }
-    }
-
-    private var columnBackground: Color {
-        #if os(iOS)
-        Color(uiColor: .secondarySystemBackground)
-        #else
-        Color(nsColor: .underPageBackgroundColor)
-        #endif
     }
 
     private var emptyPlaceholder: some View {
@@ -154,12 +139,12 @@ struct BoardCardView: View {
                         #if os(iOS)
                         .fill(Color(uiColor: .systemBackground))
                         #else
-                        .fill(Color(nsColor: .windowBackgroundColor))
+                        .fill(Color(nsColor: .controlBackgroundColor))
                         #endif
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.separatorColor.opacity(0.4), lineWidth: 0.5)
+                        .stroke(Color.separatorColor.opacity(0.5), lineWidth: 0.5)
                 )
         }
         .buttonStyle(CardButtonStyle())

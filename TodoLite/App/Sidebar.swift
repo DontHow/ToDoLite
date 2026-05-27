@@ -47,6 +47,8 @@ struct Sidebar: View {
             }
         }
         .listStyle(.sidebar)
+        .scrollContentBackground(.hidden)
+        .background(.ultraThinMaterial)
         .frame(minWidth: 200)
     }
 }
