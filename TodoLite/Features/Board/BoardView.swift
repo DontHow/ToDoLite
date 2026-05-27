@@ -61,7 +61,7 @@ struct BoardColumnView: View {
                     .font(.subheadline.weight(.bold))
 
                 Text("\(todos.count)")
-                    .font(.caption2.weight(.semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(Color.labelSecondary)
                     .padding(.horizontal, 5)
                     .padding(.vertical, 1)

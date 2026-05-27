@@ -42,7 +42,7 @@ struct TodoRowView: View {
 
     private var titleText: some View {
         Text(todo.title)
-            .font(.callout.weight(.semibold))
+            .font(.body.weight(.semibold))
             .strikethrough(todo.status == .done)
             .foregroundStyle(todo.status == .done ? Color.labelSecondary : .primary)
             .lineLimit(2)
@@ -72,7 +72,7 @@ struct TodoRowView: View {
                     .imageScale(.small)
                 Text(project.name)
             }
-            .font(.caption2)
+            .font(.caption)
             .foregroundStyle(Color.labelSecondary)
         }
     }
@@ -82,7 +82,7 @@ struct TodoRowView: View {
         let tagList = todo.tagIds.compactMap { id in store.tags.first(where: { $0.id == id }) }
         ForEach(tagList) { tag in
             Text(tag.name)
-                .font(.caption2.weight(.medium))
+                .font(.caption.weight(.medium))
                 .foregroundStyle(Color(hex: tag.colorHex))
                 .padding(.horizontal, 5)
                 .padding(.vertical, 1)
@@ -99,7 +99,7 @@ struct TodoRowView: View {
                     .imageScale(.small)
                 Text(due, style: .date)
             }
-            .font(.caption2)
+            .font(.caption)
             .foregroundStyle(due < Date() ? .red : Color.labelSecondary)
             .layoutPriority(0)
         }
