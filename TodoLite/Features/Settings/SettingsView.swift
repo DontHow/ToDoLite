@@ -53,10 +53,10 @@ struct SettingsView: View {
                 .foregroundStyle(iconColor)
                 .symbolRenderingMode(.hierarchical)
             Text(label)
-                .font(.callout.weight(.medium))
+                .font(.body.weight(.medium))
             Spacer()
             Image(systemName: "chevron.right")
-                .font(.caption)
+                .font(.callout)
                 .foregroundStyle(Color.labelSecondary)
         }
         .padding(16)

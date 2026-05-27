@@ -63,7 +63,7 @@ private struct TagRow: View {
                 .frame(width: 10, height: 10)
 
             Text(tag.name)
-                .font(.callout.weight(.medium))
+                .font(.body.weight(.medium))
 
             Spacer()
 

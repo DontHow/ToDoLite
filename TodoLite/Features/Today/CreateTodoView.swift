@@ -307,7 +307,7 @@ struct CreateTodoView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.caption2)
+                    .font(.caption)
                     .foregroundStyle(color)
                     .symbolRenderingMode(.hierarchical)
                 Text(title)
@@ -519,7 +519,7 @@ struct CreateTodoView: View {
         } label: {
             HStack(spacing: 4) {
                 Image(systemName: "flag.fill")
-                    .font(.caption2)
+                    .font(.caption)
                 Text(p.displayName)
                     .font(.subheadline.weight(priority == p ? .semibold : .regular))
             }

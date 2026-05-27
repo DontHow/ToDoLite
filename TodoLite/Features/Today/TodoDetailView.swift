@@ -80,7 +80,7 @@ struct TodoDetailView: View {
 
             TextField("添加描述...", text: $edited.description, axis: .vertical)
                 .lineLimit(2...6)
-                .font(.callout)
+                .font(.body)
                 .foregroundStyle(Color.labelSecondary)
         }
         .padding(18)
@@ -109,7 +109,7 @@ struct TodoDetailView: View {
             withAnimation(.spring(duration: 0.25)) { edited.status = s }
         } label: {
             Text(s.displayName)
-                .font(.subheadline.weight(edited.status == s ? .semibold : .regular))
+                .font(.callout.weight(edited.status == s ? .semibold : .regular))
                 .foregroundStyle(edited.status == s ? .white : .primary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
@@ -137,9 +137,9 @@ struct TodoDetailView: View {
         } label: {
             HStack(spacing: 4) {
                 Image(systemName: "flag.fill")
-                    .font(.caption2)
+                    .font(.caption)
                 Text(p.displayName)
-                    .font(.subheadline.weight(edited.priority == p ? .semibold : .regular))
+                    .font(.callout.weight(edited.priority == p ? .semibold : .regular))
             }
             .foregroundStyle(edited.priority == p ? .white : priorityColor(p))
             .frame(minWidth: 60)
@@ -175,7 +175,7 @@ struct TodoDetailView: View {
                     Text(edited.projectId.flatMap { id in store.projects.first { $0.id == id }?.name } ?? "选择项目")
                         .foregroundStyle(edited.projectId == nil ? Color.labelSecondary : .primary)
                     Image(systemName: "chevron.down")
-                        .font(.caption2.weight(.semibold))
+                        .font(.caption.weight(.semibold))
                         .foregroundStyle(Color.labelSecondary)
                 }
                 .padding(.horizontal, 14)
@@ -192,7 +192,7 @@ struct TodoDetailView: View {
         OptionRow(icon: "number", iconColor: .purple, label: "标签") {
             if store.tags.isEmpty {
                 Text("暂无标签")
-                    .font(.caption)
+                    .font(.callout)
                     .foregroundStyle(Color.labelSecondary)
                     .padding(.vertical, 4)
             } else {
@@ -212,7 +212,7 @@ struct TodoDetailView: View {
                                         .font(.caption2)
                                 }
                                 Text(tag.name)
-                                    .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                                    .font(.callout.weight(isSelected ? .semibold : .regular))
                             }
                             .foregroundStyle(isSelected ? .white : .primary)
                             .padding(.horizontal, 12)
@@ -276,7 +276,7 @@ struct TodoDetailView: View {
                     .font(.body)
                     .symbolRenderingMode(.hierarchical)
                 Text(label)
-                    .font(.callout)
+                    .font(.body)
             }
             Spacer()
             Toggle("", isOn: isOn)
@@ -304,7 +304,7 @@ struct TodoDetailView: View {
                         .font(.body)
                         .symbolRenderingMode(.hierarchical)
                     Text("归档任务")
-                        .font(.callout.weight(.medium))
+                        .font(.body.weight(.medium))
                     Spacer()
                 }
                 .foregroundStyle(.orange)
@@ -328,7 +328,7 @@ struct TodoDetailView: View {
                         .font(.body)
                         .symbolRenderingMode(.hierarchical)
                     Text("删除任务")
-                        .font(.callout.weight(.medium))
+                        .font(.body.weight(.medium))
                     Spacer()
                 }
                 .foregroundStyle(.red)

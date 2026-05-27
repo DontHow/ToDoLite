@@ -16,7 +16,7 @@ struct ProjectListView: View {
                     HStack {
                         Text(project.emoji)
                         Text(project.name)
-                            .font(.callout.weight(.medium))
+                            .font(.body.weight(.medium))
                         Spacer()
                         Circle()
                             .fill(Color(hex: project.colorHex))

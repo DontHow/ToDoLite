@@ -8,17 +8,25 @@ struct BoardView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 24) {
-                    ForEach(columns, id: \.self) { status in
-                        BoardColumnView(
-                            status: status,
-                            todos: store.todos.filter { $0.status == status }
-                        )
+            VStack(alignment: .leading, spacing: 0) {
+                Text("看板")
+                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 24) {
+                        ForEach(columns, id: \.self) { status in
+                            BoardColumnView(
+                                status: status,
+                                todos: store.todos.filter { $0.status == status }
+                            )
+                        }
                     }
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.vertical, 12)
                 }
-                .padding(.horizontal, horizontalPadding)
-                .padding(.vertical, 12)
             }
             .navigationTitle("看板")
             .toolbar {
@@ -58,7 +66,7 @@ struct BoardColumnView: View {
             // Header
             HStack(spacing: 8) {
                 Text(status.displayName)
-                    .font(.subheadline.weight(.bold))
+                    .font(.callout.weight(.bold))
 
                 Text("\(todos.count)")
                     .font(.caption.weight(.semibold))
