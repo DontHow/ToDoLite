@@ -8,8 +8,8 @@ struct BoardView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView(.horizontal) {
-                HStack(alignment: .top, spacing: 16) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .top, spacing: 12) {
                     ForEach(columns, id: \.self) { status in
                         BoardColumnView(
                             status: status,
@@ -54,40 +54,54 @@ struct BoardColumnView: View {
     @State private var isTargeted = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header
+            HStack(spacing: 8) {
                 Text(status.displayName)
-                    .font(.system(.title3, design: .rounded, weight: .bold))
-                Spacer()
-                Text("\(todos.count)")
-                    .font(.caption)
-                    .foregroundStyle(Color.labelSecondary)
-            }
-            .padding(.horizontal, 8)
+                    .font(.subheadline.weight(.semibold))
 
+                Text("\(todos.count)")
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(Color.labelSecondary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.chipBackground)
+                    .clipShape(Capsule())
+
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+
+            Divider()
+                .padding(.horizontal, 12)
+
+            // Cards area
             VStack(spacing: 8) {
                 if todos.isEmpty {
-                    Text("拖拽任务到此处")
-                        .font(.caption)
-                        .foregroundStyle(Color.labelSecondary)
-                        .frame(maxWidth: .infinity, minHeight: 60)
+                    emptyPlaceholder
                 }
+
                 ForEach(todos) { todo in
                     BoardCardView(todo: todo)
                         .transition(.scale.combined(with: .opacity))
                 }
             }
-            .frame(width: 280)
             .padding(8)
+            .frame(width: 260)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isTargeted ? Color.accentColor.opacity(0.15) : Color.cardBackground)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.separatorColor.opacity(0.5), lineWidth: 0.5)
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isTargeted ? Color.accentColor.opacity(0.08) : Color.clear)
             )
         }
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.cardBackground)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.separatorColor.opacity(0.5), lineWidth: 0.5)
+        )
         .dropDestination(for: String.self) { items, location in
             guard let id = items.first,
                   let todo = store.todos.first(where: { $0.id == id }),
@@ -107,6 +121,17 @@ struct BoardColumnView: View {
             isTargeted = targeted
         }
     }
+
+    private var emptyPlaceholder: some View {
+        RoundedRectangle(cornerRadius: 8)
+            .stroke(Color.separatorColor.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+            .frame(maxWidth: .infinity, minHeight: 48)
+            .overlay(
+                Text("拖拽任务到此处")
+                    .font(.caption)
+                    .foregroundStyle(Color.labelSecondary)
+            )
+    }
 }
 
 struct BoardCardView: View {
@@ -115,12 +140,18 @@ struct BoardCardView: View {
     var body: some View {
         NavigationLink(destination: TodoDetailView(todo: todo)) {
             TodoRowView(todo: todo)
-                .padding(8)
-                .background(Color.cardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .padding(10)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        #if os(iOS)
+                        .fill(Color(uiColor: .systemBackground))
+                        #else
+                        .fill(Color(nsColor: .windowBackgroundColor))
+                        #endif
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.separatorColor.opacity(0.5), lineWidth: 0.5)
+                        .stroke(Color.separatorColor.opacity(0.4), lineWidth: 0.5)
                 )
         }
         .buttonStyle(CardButtonStyle())
