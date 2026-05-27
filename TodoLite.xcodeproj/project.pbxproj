@@ -25,6 +25,7 @@
 		31F545B01820742C6430F829 /* TodoStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D8E95A5E9B4571B449F6EA /* TodoStatus.swift */; };
 		34475EC182D01A9E27950B5B /* LLMConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47348D9F74ADF47481480C95 /* LLMConfigView.swift */; };
 		355411E0F95B618AC01DDE72 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 2610997D7CB71C2EACE11126 /* README.md */; };
+		3E1C0A45B9E84D53A71B2C90 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6B7D1A90E3F84C11A2B5C607 /* Assets.xcassets */; };
 		361FFAF9D2DC3EFEC6D00BFA /* OverdueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0DF434CB3B1319AA51AEE20 /* OverdueView.swift */; };
 		3631FA46329915DBE4527793 /* UpcomingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8AB05F012329958EA7A1C24 /* UpcomingView.swift */; };
 		3B08DE598F8F3B003F2D387A /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FBD66E3C4EB29534F26799F /* Color+Hex.swift */; };
@@ -39,6 +40,7 @@
 		52D9CAE24A875E0058C67D36 /* TodoPriority.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FC3F70E4177294C2D89F2B6 /* TodoPriority.swift */; };
 		5378FE5C0500E8ADE5A48270 /* FileSystemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 591876A8C1E05923A74007CC /* FileSystemManager.swift */; };
 		559EFF0A7BAE451F1A1815BE /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 2610997D7CB71C2EACE11126 /* README.md */; };
+		5D46A201E8C94F2FBE723419 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6B7D1A90E3F84C11A2B5C607 /* Assets.xcassets */; };
 		572453C5D03D521DBE968435 /* TodoDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89DE031DF57A787E40CB0B56 /* TodoDraft.swift */; };
 		5A192E9E392FA9AB8685258E /* TodoDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DD74F8E46E851130163FC5A /* TodoDetailView.swift */; };
 		614735F3822AAB1D1CEE8754 /* SearchIndexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71F72D35D5E42656C96B3B8A /* SearchIndexer.swift */; };
@@ -158,6 +160,7 @@
 		626B22975261A9DB09E11970 /* Color+Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Card.swift"; sourceTree = "<group>"; };
 		62BB2BA40AA2249CED5099C7 /* CardButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardButtonStyle.swift; sourceTree = "<group>"; };
 		6FBD66E3C4EB29534F26799F /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
+		6B7D1A90E3F84C11A2B5C607 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		71533A795B7C1D2E14F29DA3 /* TodoRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRepository.swift; sourceTree = "<group>"; };
 		71F72D35D5E42656C96B3B8A /* SearchIndexer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchIndexer.swift; sourceTree = "<group>"; };
 		7261FF18315AA0C632D8B158 /* WidgetDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetDataStore.swift; sourceTree = "<group>"; };
@@ -468,6 +471,7 @@
 			children = (
 				2610997D7CB71C2EACE11126 /* README.md */,
 				B8020B3F663B71C42C3F352F /* App */,
+				6B7D1A90E3F84C11A2B5C607 /* Assets.xcassets */,
 				FEFF091C325EB8DE3F4B101A /* Features */,
 				622A141B92B94AD076A367A9 /* Resources */,
 				467A13A2C3839D7DC093A9D7 /* Shared */,
@@ -604,6 +608,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5D46A201E8C94F2FBE723419 /* Assets.xcassets in Resources */,
 				559EFF0A7BAE451F1A1815BE /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -612,6 +617,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3E1C0A45B9E84D53A71B2C90 /* Assets.xcassets in Resources */,
 				355411E0F95B618AC01DDE72 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

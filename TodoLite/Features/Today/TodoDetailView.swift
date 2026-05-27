@@ -227,6 +227,20 @@ struct TodoDetailView: View {
                 set: { edited.dueAt = $0 }
             ), displayedComponents: .date)
             .datePickerStyle(.compact)
+
+            if let completedAt = edited.completedAt {
+                Divider()
+                HStack(spacing: 10) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.body)
+                        .symbolRenderingMode(.hierarchical)
+                    Text("完成于 \(completedAt.formatted(.dateTime.year().month().day().hour().minute()))")
+                        .font(.body)
+                        .foregroundStyle(Color.labelSecondary)
+                    Spacer()
+                }
+            }
         }
         .padding(18)
         .background(

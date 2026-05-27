@@ -93,7 +93,16 @@ struct TodoRowView: View {
 
     @ViewBuilder
     private var dateChip: some View {
-        if let due = todo.dueAt {
+        if let completedAt = todo.completedAt, todo.status == .done {
+            HStack(spacing: 3) {
+                Image(systemName: "checkmark.circle")
+                    .imageScale(.small)
+                Text(completedAt.formatted(.dateTime.month().day()))
+            }
+            .font(.caption)
+            .foregroundStyle(.green)
+            .layoutPriority(0)
+        } else if let due = todo.dueAt {
             HStack(spacing: 3) {
                 Image(systemName: "calendar")
                     .imageScale(.small)
