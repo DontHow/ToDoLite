@@ -13,6 +13,8 @@ struct CreateTodoView: View {
     @State private var hasDue = false
     @State private var useQuickEntry = true
     @State private var parsedDraft: TodoDraft?
+    @State private var isParsingLLM = false
+    @State private var llmError: String?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -112,7 +114,10 @@ struct CreateTodoView: View {
             .frame(minHeight: 120)
             .onChange(of: title) { _, newValue in
                 parsedDraft = TodoParser.parse(newValue)
+                llmError = nil
             }
+
+            aiParseButton
 
             suggestionPanel
 
@@ -120,6 +125,68 @@ struct CreateTodoView: View {
                 quickPreviewCard(draft)
             }
         }
+    }
+
+    private var aiParseButton: some View {
+        HStack(spacing: 12) {
+            Button {
+                Task { await parseWithLLM() }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "sparkles")
+                        .font(.subheadline)
+                    if isParsingLLM {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Text("AI 解析")
+                            .font(.subheadline.weight(.medium))
+                    }
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(title.isEmpty ? Color.gray : Color.purple)
+                .clipShape(Capsule())
+            }
+            .disabled(title.isEmpty || isParsingLLM)
+            .buttonStyle(.plain)
+
+            if let error = llmError {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+        }
+    }
+
+    private func parseWithLLM() async {
+        guard !title.isEmpty else { return }
+        let config = store.llmConfig
+        guard !config.apiKey.isEmpty else {
+            llmError = "请先配置 LLM"
+            return
+        }
+
+        isParsingLLM = true
+        llmError = nil
+
+        do {
+            let draft = try await LLMParser.shared.parse(
+                title,
+                projects: store.projects,
+                tags: store.tags,
+                config: config
+            )
+            parsedDraft = draft
+        } catch {
+            llmError = "解析失败"
+        }
+
+        isParsingLLM = false
     }
 
     private var suggestionPanel: some View {
@@ -548,7 +615,7 @@ struct CreateTodoView: View {
             let matchedTags = store.tags.filter { draft.tagNames.contains($0.name) }
             try? await store.createTodo(
                 title: draft.title,
-                description: description,
+                description: draft.description,
                 status: .inbox,
                 priority: draft.priority ?? .medium,
                 projectId: matchedProject?.id,
