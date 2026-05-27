@@ -6,22 +6,33 @@ struct Sidebar: View {
 
     var body: some View {
         List(selection: $selection) {
-            Label("今日", systemImage: "sun.max.fill")
-                .tag(ContentView.Tab.today)
-            Label("收件箱", systemImage: "tray.fill")
-                .tag(ContentView.Tab.inbox)
-            Label("逾期", systemImage: "exclamationmark.triangle")
-                .tag(ContentView.Tab.overdue)
-            Label("即将到来", systemImage: "calendar")
-                .tag(ContentView.Tab.upcoming)
-            Label("看板", systemImage: "rectangle.3.group.fill")
-                .tag(ContentView.Tab.board)
-            Label("项目", systemImage: "folder")
-                .tag(ContentView.Tab.projects)
-            Label("标签", systemImage: "tag")
-                .tag(ContentView.Tab.tags)
-            Label("搜索", systemImage: "magnifyingglass")
-                .tag(ContentView.Tab.search)
+            Section("工作") {
+                Label("今日", systemImage: "sun.max.fill")
+                    .tag(ContentView.Tab.today)
+                Label("收件箱", systemImage: "tray.fill")
+                    .tag(ContentView.Tab.inbox)
+                Label("看板", systemImage: "rectangle.3.group.fill")
+                    .tag(ContentView.Tab.board)
+            }
+
+            Section("时间") {
+                Label("即将到来", systemImage: "calendar")
+                    .tag(ContentView.Tab.upcoming)
+                Label("逾期", systemImage: "exclamationmark.triangle")
+                    .tag(ContentView.Tab.overdue)
+            }
+
+            Section("组织") {
+                Label("项目", systemImage: "folder")
+                    .tag(ContentView.Tab.projects)
+                Label("标签", systemImage: "tag")
+                    .tag(ContentView.Tab.tags)
+            }
+
+            Section("工具") {
+                Label("搜索", systemImage: "magnifyingglass")
+                    .tag(ContentView.Tab.search)
+            }
 
             Section("历史") {
                 Label("已完成", systemImage: "checkmark.circle")
