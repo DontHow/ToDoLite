@@ -58,13 +58,13 @@ struct BoardColumnView: View {
             // Header
             HStack(spacing: 8) {
                 Text(status.displayName)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.subheadline.weight(.bold))
 
                 Text("\(todos.count)")
-                    .font(.caption2.weight(.medium))
+                    .font(.caption2.weight(.semibold))
                     .foregroundStyle(Color.labelSecondary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 1)
                     .background(Color.chipBackground)
                     .clipShape(Capsule())
 
@@ -117,7 +117,7 @@ struct BoardColumnView: View {
 
     private var emptyPlaceholder: some View {
         RoundedRectangle(cornerRadius: 8)
-            .stroke(Color.separatorColor.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+            .stroke(Color.separatorColor.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [6, 4]))
             .frame(maxWidth: .infinity, minHeight: 48)
             .overlay(
                 Text("拖拽任务到此处")
@@ -134,6 +134,7 @@ struct BoardCardView: View {
         NavigationLink(destination: TodoDetailView(todo: todo)) {
             TodoRowView(todo: todo)
                 .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
                         #if os(iOS)

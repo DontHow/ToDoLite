@@ -83,10 +83,10 @@ struct TodoRowView: View {
         ForEach(tagList) { tag in
             Text(tag.name)
                 .font(.caption2.weight(.medium))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color(hex: tag.colorHex))
                 .padding(.horizontal, 5)
                 .padding(.vertical, 1)
-                .background(Color(hex: tag.colorHex))
+                .background(Color(hex: tag.colorHex).opacity(0.12))
                 .clipShape(Capsule())
         }
     }
