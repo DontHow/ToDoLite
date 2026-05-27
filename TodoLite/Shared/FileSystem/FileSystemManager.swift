@@ -22,6 +22,7 @@ actor FileSystemManager {
     private let archiveDirName = "archive"
     private let conflictsDirName = "conflicts"
     private let metaDirName = "meta"
+    private let configDirName = "config"
 
     private var containerURL: URL?
 
@@ -70,6 +71,10 @@ actor FileSystemManager {
         try appDirectory().appendingPathComponent(metaDirName, isDirectory: true)
     }
 
+    private func configDirectory() throws -> URL {
+        try appDirectory().appendingPathComponent(configDirName, isDirectory: true)
+    }
+
     // MARK: - Setup
 
     func setupDirectories() async throws {
@@ -81,6 +86,7 @@ actor FileSystemManager {
             try archiveDirectory(),
             try conflictsDirectory(),
             try metaDirectory(),
+            try configDirectory(),
         ]
 
         for dir in dirs {
@@ -226,6 +232,7 @@ actor FileSystemManager {
         case .archive: return try archiveDirectory()
         case .conflicts: return try conflictsDirectory()
         case .meta: return try metaDirectory()
+        case .config: return try configDirectory()
         }
     }
 }
@@ -238,4 +245,5 @@ enum FileDirectory {
     case archive
     case conflicts
     case meta
+    case config
 }

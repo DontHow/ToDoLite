@@ -16,6 +16,12 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("AI") {
+                    NavigationLink("LLM 配置") {
+                        LLMConfigView()
+                    }
+                }
+
                 Section("关于") {
                     HStack {
                         Text("版本")

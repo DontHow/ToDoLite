@@ -8,6 +8,7 @@ final class TodoStore {
     var todos: [TodoItem] = []
     var projects: [Project] = []
     var tags: [TagItem] = []
+    var llmConfig: LLMConfig = LLMConfig()
 
     var todayTodos: [TodoItem] {
         todos.filter { TodoStore.isToday($0) }.sorted {
@@ -32,6 +33,7 @@ final class TodoStore {
     private let todoRepo = TodoRepository.shared
     private let projectRepo = ProjectRepository.shared
     private let tagRepo = TagRepository.shared
+    private let llmConfigRepo = LLMConfigRepository.shared
     private let indexer = SearchIndexer.shared
 
     init() {}
@@ -46,6 +48,7 @@ final class TodoStore {
         todos = try await t
         projects = try await p
         tags = try await g
+        llmConfig = await llmConfigRepo.loadOrDefault()
 
         await indexer.rebuild(todos: todos, projects: projects, tags: tags)
         WidgetDataStore.sync(todos: todos)
@@ -143,6 +146,13 @@ final class TodoStore {
     func deleteTag(id: String) async throws {
         try await tagRepo.delete(id: id)
         tags.removeAll { $0.id == id }
+    }
+
+    // MARK: - LLM Config
+
+    func saveLLMConfig(_ config: LLMConfig) async throws {
+        try await llmConfigRepo.save(config)
+        llmConfig = config
     }
 
     // MARK: - Today Logic
