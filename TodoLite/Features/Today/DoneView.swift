@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DoneView: View {
     @State private var store = TodoStore.shared
+    @State private var selectedWeekForReport: WeekReportSelection?
 
     var body: some View {
         NavigationStack {
@@ -20,13 +21,19 @@ struct DoneView: View {
                     } else {
                         ForEach(groupedTodos, id: \.title) { group in
                             VStack(alignment: .leading, spacing: 8) {
-                                Text(group.title)
-                                    .font(.system(.callout, design: .rounded, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(Color(.tertiarySystemFill))
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                HStack {
+                                    Text(group.title)
+                                        .font(.system(.callout, design: .rounded, weight: .semibold))
+                                        .foregroundStyle(.primary)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color(.tertiarySystemFill))
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                                    Spacer()
+
+                                    reportButton(for: group)
+                                }
 
                                 LazyVStack(spacing: 8) {
                                     ForEach(group.todos) { todo in
@@ -41,6 +48,13 @@ struct DoneView: View {
                 .padding(.vertical, 12)
             }
             .navigationTitle("已完成")
+        }
+        .sheet(item: $selectedWeekForReport) { week in
+            WeeklyReportSheet(
+                weekTitle: week.title,
+                todos: week.todos,
+                projects: store.projects
+            )
         }
     }
 
@@ -94,6 +108,25 @@ struct DoneView: View {
         return groups
     }
 
+    private func reportButton(for group: (title: String, todos: [TodoItem])) -> some View {
+        Button {
+            selectedWeekForReport = WeekReportSelection(title: group.title, todos: group.todos)
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "sparkles")
+                    .font(.caption)
+                Text("生成周报")
+                    .font(.caption)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(Color.accentColor.opacity(0.12))
+            .foregroundStyle(Color.accentColor)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+        }
+        .buttonStyle(.plain)
+    }
+
     private var horizontalPadding: CGFloat {
         #if os(iOS)
         16
@@ -101,4 +134,10 @@ struct DoneView: View {
         12
         #endif
     }
+}
+
+struct WeekReportSelection: Identifiable {
+    let id = UUID()
+    let title: String
+    let todos: [TodoItem]
 }
