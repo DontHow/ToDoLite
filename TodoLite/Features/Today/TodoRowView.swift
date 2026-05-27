@@ -97,7 +97,7 @@ struct TodoRowView: View {
             HStack(spacing: 3) {
                 Image(systemName: "calendar")
                     .imageScale(.small)
-                Text(due, style: .date)
+                Text(relativeDateString(due))
             }
             .font(.caption)
             .foregroundStyle(due < Date() ? .red : Color.labelSecondary)
@@ -107,6 +107,41 @@ struct TodoRowView: View {
 
     private var hasMetadata: Bool {
         todo.projectId != nil || !todo.tagIds.isEmpty || todo.dueAt != nil
+    }
+
+    private func relativeDateString(_ date: Date) -> String {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let target = calendar.startOfDay(for: date)
+
+        guard let daysDiff = calendar.dateComponents([.day], from: today, to: target).day else {
+            return date.formatted(.dateTime.month().day())
+        }
+
+        let weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+        let weekday = calendar.component(.weekday, from: target) - 1
+
+        switch daysDiff {
+        case 0: return "今天"
+        case 1: return "明天"
+        case 2: return "后天"
+        case 3...6:
+            let todayWeek = calendar.component(.weekOfYear, from: today)
+            let targetWeek = calendar.component(.weekOfYear, from: target)
+            return todayWeek == targetWeek ? weekdays[weekday] : "下周\(weekdays[weekday])"
+        case 7...13:
+            return "下周\(weekdays[weekday])"
+        case -1: return "昨天"
+        case -2: return "前天"
+        case -6...(-3):
+            let todayWeek = calendar.component(.weekOfYear, from: today)
+            let targetWeek = calendar.component(.weekOfYear, from: target)
+            return todayWeek == targetWeek ? "本周\(weekdays[weekday])" : "上周\(weekdays[weekday])"
+        case -13...(-7):
+            return "上周\(weekdays[weekday])"
+        default:
+            return date.formatted(.dateTime.month().day())
+        }
     }
 }
 
