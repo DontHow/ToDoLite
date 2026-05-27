@@ -26,18 +26,6 @@ struct SettingsView: View {
                         .buttonStyle(CardButtonStyle())
                     }
 
-                    settingsSection(title: "历史") {
-                        NavigationLink(destination: DoneView()) {
-                            settingsRow(icon: "checkmark.circle", iconColor: .green, label: "已完成")
-                        }
-                        .buttonStyle(CardButtonStyle())
-
-                        NavigationLink(destination: ArchiveView()) {
-                            settingsRow(icon: "archivebox", iconColor: .orange, label: "已归档")
-                        }
-                        .buttonStyle(CardButtonStyle())
-                    }
-
                     settingsSection(title: "关于") {
                         HStack {
                             Text("版本")
