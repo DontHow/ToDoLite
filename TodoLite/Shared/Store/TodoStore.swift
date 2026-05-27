@@ -9,17 +9,43 @@ final class TodoStore {
     var projects: [Project] = []
     var tags: [TagItem] = []
     var llmConfig: LLMConfig = LLMConfig()
+    var focusSet: FocusSet = FocusSet()
 
-    var todayTodos: [TodoItem] {
-        todos.filter { TodoStore.isToday($0) }.sorted {
-            if $0.isPinnedToday != $1.isPinnedToday {
-                return $0.isPinnedToday
+    var focusTodos: [TodoItem] {
+        let ids = Set(focusSet.taskIds)
+        return todos
+            .filter { ids.contains($0.id) && $0.status != .done && $0.status != .archived }
+            .sorted { $0.priority.sortValue > $1.priority.sortValue }
+    }
+
+    var suggestedTodos: [TodoItem] {
+        let ids = Set(focusSet.taskIds)
+        let calendar = Calendar.current
+        let todayStart = calendar.startOfDay(for: Date())
+        let todayEnd = calendar.date(byAdding: .day, value: 1, to: todayStart)!
+        return todos
+            .filter {
+                $0.status != .done && $0.status != .archived &&
+                !ids.contains($0.id) &&
+                (
+                    ($0.scheduledAt.map { $0 >= todayStart && $0 < todayEnd } ?? false) ||
+                    ($0.dueAt.map { $0 >= todayStart && $0 < todayEnd } ?? false)
+                )
             }
-            if $0.priority.sortValue != $1.priority.sortValue {
-                return $0.priority.sortValue > $1.priority.sortValue
+            .sorted { $0.priority.sortValue > $1.priority.sortValue }
+    }
+
+    var overdueTodos: [TodoItem] {
+        let ids = Set(focusSet.taskIds)
+        let calendar = Calendar.current
+        let todayStart = calendar.startOfDay(for: Date())
+        return todos
+            .filter {
+                $0.status != .done && $0.status != .archived &&
+                !ids.contains($0.id) &&
+                ($0.dueAt.map { $0 < todayStart } ?? false)
             }
-            return $0.createdAt < $1.createdAt
-        }
+            .sorted { $0.priority.sortValue > $1.priority.sortValue }
     }
 
     var inboxTodos: [TodoItem] {
@@ -34,6 +60,7 @@ final class TodoStore {
     private let projectRepo = ProjectRepository.shared
     private let tagRepo = TagRepository.shared
     private let llmConfigRepo = LLMConfigRepository.shared
+    private let focusRepo = FocusRepository.shared
     private let indexer = SearchIndexer.shared
 
     init() {}
@@ -49,9 +76,10 @@ final class TodoStore {
         projects = try await p
         tags = try await g
         llmConfig = await llmConfigRepo.loadOrDefault()
+        focusSet = await focusRepo.load()
 
         await indexer.rebuild(todos: todos, projects: projects, tags: tags)
-        WidgetDataStore.sync(todos: todos)
+        WidgetDataStore.sync(todos: todos, focusSet: focusSet)
     }
 
     // MARK: - Todo CRUD
@@ -61,7 +89,7 @@ final class TodoStore {
         try await todoRepo.save(todo)
         todos.append(todo)
         await indexer.index(todo: todo, projects: projects, tags: tags)
-        WidgetDataStore.sync(todos: todos)
+        WidgetDataStore.sync(todos: todos, focusSet: focusSet)
     }
 
     func updateTodo(_ todo: TodoItem) async throws {
@@ -70,14 +98,14 @@ final class TodoStore {
             todos[idx] = todo
         }
         await indexer.index(todo: todo, projects: projects, tags: tags)
-        WidgetDataStore.sync(todos: todos)
+        WidgetDataStore.sync(todos: todos, focusSet: focusSet)
     }
 
     func deleteTodo(id: String) async throws {
         try await todoRepo.delete(id: id)
         todos.removeAll { $0.id == id }
         await indexer.remove(todoId: id)
-        WidgetDataStore.sync(todos: todos)
+        WidgetDataStore.sync(todos: todos, focusSet: focusSet)
     }
 
     func toggleComplete(id: String) async throws {
@@ -101,11 +129,17 @@ final class TodoStore {
         try await updateTodo(todo)
     }
 
-    func pinToToday(id: String) async throws {
-        guard let idx = todos.firstIndex(where: { $0.id == id }) else { return }
-        var todo = todos[idx]
-        todo.isPinnedToday = true
-        try await updateTodo(todo)
+    // MARK: - Focus
+
+    func addToFocus(id: String) async throws {
+        guard !focusSet.taskIds.contains(id) else { return }
+        focusSet.taskIds.append(id)
+        try await focusRepo.save(focusSet)
+    }
+
+    func removeFromFocus(id: String) async throws {
+        focusSet.taskIds.removeAll { $0 == id }
+        try await focusRepo.save(focusSet)
     }
 
     // MARK: - Project CRUD
@@ -153,24 +187,5 @@ final class TodoStore {
     func saveLLMConfig(_ config: LLMConfig) async throws {
         try await llmConfigRepo.save(config)
         llmConfig = config
-    }
-
-    // MARK: - Today Logic
-
-    static func isToday(_ todo: TodoItem, now: Date = Date()) -> Bool {
-        if todo.status == .done || todo.status == .archived {
-            return false
-        }
-        if todo.isPinnedToday {
-            return true
-        }
-        let calendar = Calendar.current
-        if let scheduled = todo.scheduledAt, calendar.isDateInToday(scheduled) {
-            return true
-        }
-        if let due = todo.dueAt, due <= now {
-            return true
-        }
-        return false
     }
 }

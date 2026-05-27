@@ -48,11 +48,6 @@ struct TodoRowView: View {
 
             Spacer()
 
-            if todo.isPinnedToday {
-                Image(systemName: "pin.fill")
-                    .foregroundStyle(.orange)
-                    .font(.caption)
-            }
         }
         .padding(.vertical, 4)
     }

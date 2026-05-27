@@ -15,6 +15,14 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertEqual(decoded.priority, .high)
     }
 
+    func testFocusSetCodable() throws {
+        let focus = FocusSet(date: "2026-05-27", taskIds: ["t1", "t2"])
+        let data = try JSONEncoder().encode(focus)
+        let decoded = try JSONDecoder().decode(FocusSet.self, from: data)
+        XCTAssertEqual(decoded.date, "2026-05-27")
+        XCTAssertEqual(decoded.taskIds, ["t1", "t2"])
+    }
+
     func testProjectCodable() throws {
         let project = Project(name: "工作", emoji: "💼", colorHex: "#FF0000")
         let data = try JSONEncoder().encode(project)
@@ -224,69 +232,57 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertNotNil(color)
     }
 
-    // MARK: - TodoStore Logic
+    // MARK: - TodoStore Focus Logic
 
-    func testIsTodayDone() {
-        let todo = TodoItem(title: "已完成", status: .done)
-        XCTAssertFalse(TodoStore.isToday(todo))
-    }
-
-    func testIsTodayWaiting() {
-        let todo = TodoItem(title: "等待中", status: .waiting)
-        // waiting tasks only appear in today if scheduled/due/pinned
-        XCTAssertFalse(TodoStore.isToday(todo))
-
-        let waitingScheduled = TodoItem(title: "等待今日", status: .waiting, scheduledAt: Date())
-        XCTAssertTrue(TodoStore.isToday(waitingScheduled))
-    }
-
-    func testIsTodayArchived() {
-        let todo = TodoItem(title: "已归档", status: .archived)
-        XCTAssertFalse(TodoStore.isToday(todo))
-    }
-
-    func testIsTodayPinned() {
-        let todo = TodoItem(title: "固定", status: .doing, isPinnedToday: true)
-        XCTAssertTrue(TodoStore.isToday(todo))
-    }
-
-    func testIsTodayScheduledToday() {
-        let todo = TodoItem(title: "今日计划", status: .doing, scheduledAt: Date())
-        XCTAssertTrue(TodoStore.isToday(todo))
-    }
-
-    func testIsTodayDuePast() {
-        let past = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
-        let todo = TodoItem(title: "已逾期", status: .doing, dueAt: past)
-        XCTAssertTrue(TodoStore.isToday(todo))
-    }
-
-    func testIsTodayDueFuture() {
-        let future = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
-        let todo = TodoItem(title: "未来", status: .doing, dueAt: future)
-        XCTAssertFalse(TodoStore.isToday(todo))
-    }
-
-    func testTodayTodosSort() {
+    func testFocusTodos() {
         let store = TodoStore()
-        let now = Date()
-        let old = now.addingTimeInterval(-3600)
-        let older = now.addingTimeInterval(-7200)
+        let t1 = TodoItem(id: "t1", title: "高优Focus", status: .doing, priority: .high)
+        let t2 = TodoItem(id: "t2", title: "中优Focus", status: .doing, priority: .medium)
+        let t3 = TodoItem(id: "t3", title: "非Focus", status: .doing, priority: .high)
 
-        let pinned = TodoItem(title: "固定", status: .doing, priority: .low, createdAt: older)
-        let high = TodoItem(title: "高优", status: .doing, priority: .high, scheduledAt: Date(), createdAt: old)
-        let normal = TodoItem(title: "普通", status: .doing, priority: .medium, scheduledAt: Date(), createdAt: now)
+        store.todos = [t1, t2, t3]
+        store.focusSet = FocusSet(date: FocusSet.todayString(), taskIds: ["t1", "t2"])
 
-        // Make pinned appear in today
-        var pinnedMutable = pinned
-        pinnedMutable.isPinnedToday = true
+        XCTAssertEqual(store.focusTodos.count, 2)
+        XCTAssertEqual(store.focusTodos[0].title, "高优Focus")
+        XCTAssertEqual(store.focusTodos[1].title, "中优Focus")
+    }
 
-        store.todos = [normal, pinnedMutable, high]
-        let result = store.todayTodos
-        XCTAssertEqual(result.count, 3)
-        XCTAssertEqual(result[0].title, "固定")
-        XCTAssertEqual(result[1].title, "高优")
-        XCTAssertEqual(result[2].title, "普通")
+    func testFocusTodosExcludesDone() {
+        let store = TodoStore()
+        let t1 = TodoItem(id: "t1", title: "已完成Focus", status: .done, priority: .high)
+
+        store.todos = [t1]
+        store.focusSet = FocusSet(date: FocusSet.todayString(), taskIds: ["t1"])
+
+        XCTAssertEqual(store.focusTodos.count, 0)
+    }
+
+    func testSuggestedTodos() {
+        let store = TodoStore()
+        let today = Date()
+        let t1 = TodoItem(id: "t1", title: "今日计划", status: .doing, scheduledAt: today)
+        let t2 = TodoItem(id: "t2", title: "今日到期", status: .doing, dueAt: today)
+        let t3 = TodoItem(id: "t3", title: "已在Focus", status: .doing, scheduledAt: today)
+
+        store.todos = [t1, t2, t3]
+        store.focusSet = FocusSet(date: FocusSet.todayString(), taskIds: ["t3"])
+
+        XCTAssertEqual(store.suggestedTodos.count, 2)
+        XCTAssertTrue(store.suggestedTodos.contains { $0.title == "今日计划" })
+        XCTAssertTrue(store.suggestedTodos.contains { $0.title == "今日到期" })
+    }
+
+    func testOverdueTodos() {
+        let store = TodoStore()
+        let past = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+        let t1 = TodoItem(id: "t1", title: "逾期", status: .doing, dueAt: past)
+        let t2 = TodoItem(id: "t2", title: "今天到期", status: .doing, dueAt: Date())
+
+        store.todos = [t1, t2]
+
+        XCTAssertEqual(store.overdueTodos.count, 1)
+        XCTAssertEqual(store.overdueTodos[0].title, "逾期")
     }
 
     func testActiveTodos() {
@@ -376,22 +372,33 @@ final class TodoLiteTests: XCTestCase {
     }
 
     func testStatusCodableMigration() throws {
-        let jsonNext = #"{"id":"1","title":"t","description":"","status":"next","priority":"medium","tagIds":[],"isPinnedToday":false,"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
+
+        let jsonNext = #"{"id":"1","title":"t","description":"","status":"next","priority":"medium","tagIds":[],"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
         let decodedNext = try decoder.decode(TodoItem.self, from: jsonNext)
         XCTAssertEqual(decodedNext.status, .doing)
 
-        let jsonBlocked = #"{"id":"2","title":"t","description":"","status":"blocked","priority":"medium","tagIds":[],"isPinnedToday":false,"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
+        let jsonBlocked = #"{"id":"2","title":"t","description":"","status":"blocked","priority":"medium","tagIds":[],"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
         let decodedBlocked = try decoder.decode(TodoItem.self, from: jsonBlocked)
         XCTAssertEqual(decodedBlocked.status, .waiting)
 
-        let jsonSomeday = #"{"id":"3","title":"t","description":"","status":"someday","priority":"medium","tagIds":[],"isPinnedToday":false,"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
+        let jsonSomeday = #"{"id":"3","title":"t","description":"","status":"someday","priority":"medium","tagIds":[],"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
         let decodedSomeday = try decoder.decode(TodoItem.self, from: jsonSomeday)
         XCTAssertEqual(decodedSomeday.status, .waiting)
 
-        let jsonCancelled = #"{"id":"4","title":"t","description":"","status":"cancelled","priority":"medium","tagIds":[],"isPinnedToday":false,"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
+        let jsonCancelled = #"{"id":"4","title":"t","description":"","status":"cancelled","priority":"medium","tagIds":[],"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
         let decodedCancelled = try decoder.decode(TodoItem.self, from: jsonCancelled)
         XCTAssertEqual(decodedCancelled.status, .archived)
+    }
+
+    func testOldJsonIgnoresIsPinnedToday() throws {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        let json = #"{"id":"1","title":"t","description":"","status":"inbox","priority":"medium","tagIds":[],"isPinnedToday":true,"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
+        let decoded = try decoder.decode(TodoItem.self, from: json)
+        XCTAssertEqual(decoded.title, "t")
+        XCTAssertEqual(decoded.status, .inbox)
     }
 }

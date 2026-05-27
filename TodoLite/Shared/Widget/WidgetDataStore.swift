@@ -13,17 +13,15 @@ enum WidgetDataStore {
     static let suiteName = "group.com.donghao.TodoLite"
     static let key = "widgetData"
 
-    static func sync(todos: [TodoItem]) {
-        let today = Calendar.current.startOfDay(for: Date())
-        let todayTodos = todos.filter {
-            if $0.isPinnedToday { return true }
-            guard let scheduled = $0.scheduledAt else { return false }
-            return Calendar.current.isDate(scheduled, inSameDayAs: today)
-        }
+    static func sync(todos: [TodoItem], focusSet: FocusSet) {
+        let focusIds = Set(focusSet.taskIds)
+        let focusTodos = todos
+            .filter { focusIds.contains($0.id) && $0.status != .done && $0.status != .archived }
+            .sorted { $0.priority.sortValue > $1.priority.sortValue }
 
         let data = WidgetData(
-            count: todayTodos.count,
-            titles: todayTodos.prefix(3).map(\.title),
+            count: focusTodos.count,
+            titles: focusTodos.prefix(3).map(\.title),
             updatedAt: Date()
         )
 

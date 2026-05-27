@@ -5,19 +5,19 @@ struct MenuBarView: View {
     @State private var store = TodoStore.shared
 
     var body: some View {
-        if store.todayTodos.isEmpty {
+        if store.focusTodos.isEmpty {
             Text("今天没有任务")
                 .foregroundStyle(.secondary)
         } else {
-            ForEach(store.todayTodos.prefix(5)) { todo in
+            ForEach(store.focusTodos.prefix(5)) { todo in
                 Button(todo.title) {
                     openApp()
                 }
             }
         }
 
-        if store.todayTodos.count > 5 {
-            Text("还有 \(store.todayTodos.count - 5) 个任务...")
+        if store.focusTodos.count > 5 {
+            Text("还有 \(store.focusTodos.count - 5) 个任务...")
                 .foregroundStyle(.secondary)
         }
 

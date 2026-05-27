@@ -26,7 +26,6 @@ struct TodoDetailView: View {
                         projectSection
                         tagSection
                         dateCard
-                        pinCard
                         actionCard
 
                         Spacer().frame(height: 100)
@@ -279,28 +278,6 @@ struct TodoDetailView: View {
         }
     }
 
-    // MARK: - Pin
-
-    private var pinCard: some View {
-        HStack {
-            HStack(spacing: 10) {
-                Image(systemName: "pin.fill")
-                    .foregroundStyle(.red)
-                    .font(.body)
-                Text("固定到今日")
-                    .font(.body)
-            }
-            Spacer()
-            Toggle("", isOn: $edited.isPinnedToday)
-                .labelsHidden()
-                .tint(.red)
-        }
-        .padding(18)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(cardBg)
-        )
-    }
 
     // MARK: - Actions
 

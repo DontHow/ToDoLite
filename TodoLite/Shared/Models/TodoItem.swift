@@ -13,8 +13,6 @@ struct TodoItem: Codable, Identifiable, Hashable, Sendable {
 
     var tagIds: [String]
 
-    var isPinnedToday: Bool
-
     var scheduledAt: Date?
     var dueAt: Date?
 
@@ -32,7 +30,6 @@ struct TodoItem: Codable, Identifiable, Hashable, Sendable {
         priority: TodoPriority = .medium,
         projectId: String? = nil,
         tagIds: [String] = [],
-        isPinnedToday: Bool = false,
         scheduledAt: Date? = nil,
         dueAt: Date? = nil,
         createdAt: Date = Date(),
@@ -47,7 +44,6 @@ struct TodoItem: Codable, Identifiable, Hashable, Sendable {
         self.priority = priority
         self.projectId = projectId
         self.tagIds = tagIds
-        self.isPinnedToday = isPinnedToday
         self.scheduledAt = scheduledAt
         self.dueAt = dueAt
         self.createdAt = createdAt
