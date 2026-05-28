@@ -19,7 +19,7 @@ enum TodoStatus: String, Codable, CaseIterable, Sendable {
 
     var color: Color {
         switch self {
-        case .inbox: return Color(hex: "57BAEC")
+        case .inbox: return Color(hex: "A8D8F0")
         case .doing: return Color(hex: "F7E8DF")
         case .waiting: return Color(hex: "E6E6F9")
         case .done: return Color(hex: "E6F9F2")
