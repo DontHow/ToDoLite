@@ -3,12 +3,29 @@ import SwiftUI
 struct TagListView: View {
     @State private var store = TodoStore.shared
     @State private var showingCreate = false
+    @State private var editingTag: TagItem? = nil
 
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
                 ForEach(store.tags) { tag in
-                    TagRow(tag: tag)
+                    TagCard(
+                        tag: tag,
+                        taskCount: store.todos.filter { $0.tagIds.contains(tag.id) }.count
+                    )
+                    .contextMenu {
+                        Button {
+                            editingTag = tag
+                        } label: {
+                            Label("编辑", systemImage: "pencil")
+                        }
+
+                        Button(role: .destructive) {
+                            Task { try? await store.deleteTag(id: tag.id) }
+                        } label: {
+                            Label("删除", systemImage: "trash")
+                        }
+                    }
                 }
             }
             .padding(.horizontal, horizontalPadding)
@@ -32,7 +49,10 @@ struct TagListView: View {
             }
         }
         .sheet(isPresented: $showingCreate) {
-            CreateTagView()
+            TagEditorView()
+        }
+        .sheet(item: $editingTag) { tag in
+            TagEditorView(tag: tag)
         }
     }
 
@@ -45,27 +65,55 @@ struct TagListView: View {
     }
 }
 
-// MARK: - Tag Row
+// MARK: - Tag Card
 
-private struct TagRow: View {
+private struct TagCard: View {
     let tag: TagItem
-    @State private var store = TodoStore.shared
+    let taskCount: Int
     @State private var isHovering = false
 
     var body: some View {
-        HStack(spacing: 12) {
-            Circle()
-                .fill(Color(hex: tag.colorHex))
-                .frame(width: 10, height: 10)
+        HStack(spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(hex: tag.colorHex).opacity(0.15))
+                    .frame(width: 44, height: 44)
 
-            Text(tag.name)
-                .font(.body.weight(.medium))
+                Image(systemName: "number")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(Color(hex: tag.colorHex))
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(tag.name)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+
+                Text("\(taskCount) 任务")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(Color.labelSecondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color.chipBackground)
+                    .clipShape(Capsule())
+            }
 
             Spacer()
 
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(Color(hex: tag.colorHex))
+                    .frame(width: 10, height: 10)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.labelSecondary)
+            }
+
             #if os(macOS)
             Button {
-                Task { try? await store.deleteTag(id: tag.id) }
+                Task { try? await TodoStore.shared.deleteTag(id: tag.id) }
             } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.body)
@@ -78,29 +126,32 @@ private struct TagRow: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(Color.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.cardBackground)
+                .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 3)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.separatorColor.opacity(0.5), lineWidth: 0.5)
+        )
         .contentShape(Rectangle())
         .onHover { hovering in
             isHovering = hovering
         }
-        .contextMenu {
-            Button(role: .destructive) {
-                Task { try? await store.deleteTag(id: tag.id) }
-            } label: {
-                Label("删除", systemImage: "trash")
-            }
-        }
     }
 }
 
-// MARK: - Create Tag
+// MARK: - Tag Editor
 
-private struct CreateTagView: View {
+private struct TagEditorView: View {
     @State private var store = TodoStore.shared
     @State private var name = ""
     @State private var selectedColor = "#FF9500"
     @Environment(\.dismiss) private var dismiss
+
+    var tag: TagItem? = nil
+    var isEditing: Bool { tag != nil }
 
     private let presetColors: [String] = [
         "#FF3B30", "#FF9500", "#FFCC00", "#4CD964",
@@ -108,18 +159,26 @@ private struct CreateTagView: View {
         "#8E8E93", "#C7C7CC", "#34C759", "#AF52DE"
     ]
 
+    init(tag: TagItem? = nil) {
+        self.tag = tag
+        if let tag = tag {
+            _name = State(initialValue: tag.name)
+            _selectedColor = State(initialValue: tag.colorHex)
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: 24) {
+                    previewSection
                     nameSection
                     colorSection
-                    previewSection
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
             }
-            .navigationTitle("新建标签")
+            .navigationTitle(isEditing ? "编辑标签" : "新建标签")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
@@ -128,9 +187,16 @@ private struct CreateTagView: View {
                     Button("取消") { dismiss() }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button("创建") {
+                    Button(isEditing ? "保存" : "创建") {
                         Task {
-                            try? await store.createTag(name: name, colorHex: selectedColor)
+                            if let tag = tag {
+                                var updated = tag
+                                updated.name = name
+                                updated.colorHex = selectedColor
+                                try? await store.updateTag(updated)
+                            } else {
+                                try? await store.createTag(name: name, colorHex: selectedColor)
+                            }
                             dismiss()
                         }
                     }
@@ -138,6 +204,35 @@ private struct CreateTagView: View {
                 }
             }
         }
+    }
+
+    private var previewSection: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(hex: selectedColor).opacity(0.15))
+                    .frame(width: 44, height: 44)
+
+                Image(systemName: "number")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(Color(hex: selectedColor))
+            }
+
+            Text(name.isEmpty ? "预览" : name)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(name.isEmpty ? Color.labelSecondary : .primary)
+                .lineLimit(1)
+
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(Color.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.separatorColor.opacity(0.5), lineWidth: 0.5)
+        )
     }
 
     private var nameSection: some View {
@@ -198,27 +293,5 @@ private struct CreateTagView: View {
         .padding(18)
         .background(Color.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 18))
-    }
-
-    private var previewSection: some View {
-        HStack(spacing: 12) {
-            Circle()
-                .fill(Color(hex: selectedColor))
-                .frame(width: 10, height: 10)
-
-            Text(name.isEmpty ? "预览" : name)
-                .font(.callout.weight(.medium))
-                .foregroundStyle(name.isEmpty ? Color.labelSecondary : .primary)
-
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.separatorColor.opacity(0.5), lineWidth: 0.5)
-        )
     }
 }
