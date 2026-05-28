@@ -152,25 +152,28 @@ struct BoardColumnView: View {
                 .padding(.horizontal, 12)
 
             // Cards area
-            ScrollView(.vertical, showsIndicators: true) {
-                VStack(spacing: 12) {
-                    if todos.isEmpty {
-                        emptyPlaceholder
-                    } else if viewMode == .byProject && isConfigurable {
-                        projectGroupedContent
-                    } else {
-                        flatContent
+            GeometryReader { scrollGeo in
+                ScrollView(.vertical, showsIndicators: true) {
+                    VStack(spacing: 12) {
+                        if todos.isEmpty {
+                            emptyPlaceholder
+                        } else if viewMode == .byProject && isConfigurable {
+                            projectGroupedContent
+                        } else {
+                            flatContent
+                        }
                     }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 10)
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 10)
+                .frame(width: 260, height: scrollGeo.size.height)
             }
-            .frame(width: 260)
             .background(
                 RoundedRectangle(cornerRadius: 8)
                     .fill(isTargeted ? Color.accentColor.opacity(0.06) : Color.clear)
             )
         }
+        .frame(maxHeight: .infinity, alignment: .top)
         .dropDestination(for: String.self) { items, location in
             guard let id = items.first,
                   let todo = store.todos.first(where: { $0.id == id }),
