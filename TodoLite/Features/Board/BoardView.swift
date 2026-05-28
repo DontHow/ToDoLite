@@ -151,17 +151,19 @@ struct BoardColumnView: View {
                 .padding(.horizontal, 12)
 
             // Cards area
-            VStack(spacing: 12) {
-                if todos.isEmpty {
-                    emptyPlaceholder
-                } else if viewMode == .byProject && isConfigurable {
-                    projectGroupedContent
-                } else {
-                    flatContent
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(spacing: 12) {
+                    if todos.isEmpty {
+                        emptyPlaceholder
+                    } else if viewMode == .byProject && isConfigurable {
+                        projectGroupedContent
+                    } else {
+                        flatContent
+                    }
                 }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 10)
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 10)
             .frame(width: 260)
             .background(
                 RoundedRectangle(cornerRadius: 8)
