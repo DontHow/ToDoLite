@@ -87,9 +87,9 @@ struct BoardColumnView: View {
                     },
                     isDraggable: true
                 )
-                .frame(width: columnWidth)
             }
             .frame(height: geo.size.height)
         }
+        .frame(width: columnWidth)
     }
 }
