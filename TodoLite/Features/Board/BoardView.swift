@@ -16,6 +16,7 @@ struct BoardView: View {
                                 status: status,
                                 todos: store.todos.filter { $0.status == status }
                             )
+                            .frame(maxHeight: .infinity)
                         }
                     }
                     .padding(.horizontal, horizontalPadding)
