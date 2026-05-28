@@ -22,6 +22,7 @@ struct BoardView: View {
                     .padding(.horizontal, horizontalPadding)
                     .padding(.vertical, 12)
                 }
+                .frame(maxHeight: .infinity)
             }
             .navigationTitle("看板")
             .toolbar {
