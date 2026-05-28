@@ -12,7 +12,7 @@ struct BoardView: View {
                 let spacing: CGFloat = 24
                 let columnCount = CGFloat(columns.count)
                 let availableWidth = geo.size.width - horizontalPadding * 2
-                let columnWidth = max(220, (availableWidth - spacing * (columnCount - 1)) / columnCount)
+                let columnWidth = (availableWidth - spacing * (columnCount - 1)) / columnCount
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: spacing) {
                         ForEach(columns, id: \.self) { status in
