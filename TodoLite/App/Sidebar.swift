@@ -9,8 +9,6 @@ struct Sidebar: View {
             Section("工作") {
                 Label("今日", systemImage: "sun.max.fill")
                     .tag(ContentView.Tab.today)
-                Label("收件箱", systemImage: "tray.fill")
-                    .tag(ContentView.Tab.inbox)
                 Label("看板", systemImage: "rectangle.3.group.fill")
                     .tag(ContentView.Tab.board)
             }
