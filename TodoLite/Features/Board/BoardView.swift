@@ -38,7 +38,7 @@ struct BoardView: View {
                 }
             }
             .navigationDestination(for: TodoItem.self) { todo in
-                TodoDetailView(todo: todo)
+                CreateTodoView(todo: todo)
             }
             .sheet(isPresented: $showingCreate) {
                 CreateTodoView()

@@ -15,31 +15,48 @@ private func defaultDueDate() -> Date {
 }
 
 struct CreateTodoView: View {
+    let todo: TodoItem?
+
     @State private var store = TodoStore.shared
-    @State private var title = ""
-    @State private var description = ""
-    @State private var status: TodoStatus = .inbox
-    @State private var projectId: String?
-    @State private var dueAt: Date? = defaultDueDate()
+    @State private var edited: TodoItem
     @State private var useQuickEntry = true
     @State private var parsedDraft: TodoDraft?
     @State private var isParsingLLM = false
     @State private var llmError: String?
+    @State private var errorMessage: String?
     @Environment(\.dismiss) private var dismiss
     @FocusState private var quickEntryFocused: Bool
     @FocusState private var detailTitleFocused: Bool
+
+    init(todo: TodoItem? = nil) {
+        self.todo = todo
+        if let todo = todo {
+            _edited = State(initialValue: todo)
+            _useQuickEntry = State(initialValue: false)
+        } else {
+            var newTodo = TodoItem(title: "")
+            newTodo.dueAt = defaultDueDate()
+            _edited = State(initialValue: newTodo)
+        }
+    }
 
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottom) {
                 ScrollView {
                     VStack(spacing: 0) {
-                        modeToggle
+                        if todo == nil {
+                            modeToggle
+                        }
 
-                        if useQuickEntry {
+                        if todo == nil && useQuickEntry {
                             quickEntryArea
                         } else {
                             detailForm
+                        }
+
+                        if todo != nil {
+                            actionCard
                         }
 
                         Spacer().frame(height: 100)
@@ -50,7 +67,7 @@ struct CreateTodoView: View {
 
                 saveButtonBar
             }
-            .navigationTitle("新建任务")
+            .navigationTitle(todo == nil ? "新建任务" : "编辑任务")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
@@ -58,6 +75,11 @@ struct CreateTodoView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") { dismiss() }
                 }
+            }
+            .alert("错误", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button("确定", role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
             }
         }
     }
@@ -97,14 +119,14 @@ struct CreateTodoView: View {
     }
 
     // MARK: - Quick Entry
-	
+
     private var quickEntryArea: some View {
         VStack(spacing: 16) {
             ZStack(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: 20)
                     .fill(Color.cardBackground)
 
-                if title.isEmpty {
+                if edited.title.isEmpty {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("输入任务...")
                             .foregroundStyle(.tertiary)
@@ -117,7 +139,7 @@ struct CreateTodoView: View {
                     .allowsHitTesting(false)
                 }
 
-                TextEditor(text: $title)
+                TextEditor(text: $edited.title)
                     .font(.title3)
                     .scrollContentBackground(.hidden)
                     .padding(16)
@@ -125,7 +147,7 @@ struct CreateTodoView: View {
                     .focused($quickEntryFocused)
             }
             .frame(minHeight: 120)
-            .onChange(of: title) { _, newValue in
+            .onChange(of: edited.title) { _, newValue in
                 parsedDraft = TodoParser.parse(newValue)
                 llmError = nil
             }
@@ -164,10 +186,10 @@ struct CreateTodoView: View {
                 .foregroundStyle(.white)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(title.isEmpty ? Color.gray : Color.purple)
+                .background(edited.title.isEmpty ? Color.gray : Color.purple)
                 .clipShape(Capsule())
             }
-            .disabled(title.isEmpty || isParsingLLM)
+            .disabled(edited.title.isEmpty || isParsingLLM)
             .buttonStyle(.plain)
 
             if let error = llmError {
@@ -182,7 +204,7 @@ struct CreateTodoView: View {
     }
 
     private func parseWithLLM() async {
-        guard !title.isEmpty else { return }
+        guard !edited.title.isEmpty else { return }
         let config = store.llmConfig
         guard !config.apiKey.isEmpty else {
             llmError = "请先配置 LLM"
@@ -194,7 +216,7 @@ struct CreateTodoView: View {
 
         do {
             let draft = try await LLMParser.shared.parse(
-                title,
+                edited.title,
                 projects: store.projects,
                 tags: store.tags,
                 config: config
@@ -236,7 +258,7 @@ struct CreateTodoView: View {
     }
 
     private var activeToken: (prefix: Character, query: String)? {
-        let components = title.split(separator: " ", omittingEmptySubsequences: false)
+        let components = edited.title.split(separator: " ", omittingEmptySubsequences: false)
         guard let last = components.last, !last.isEmpty else { return nil }
         let lastStr = String(last)
         guard let first = lastStr.first, ["@", "#", "^"].contains(first) else { return nil }
@@ -244,12 +266,12 @@ struct CreateTodoView: View {
     }
 
     private func insertSuggestion(_ text: String) {
-        let components = title.split(separator: " ", omittingEmptySubsequences: false)
+        let components = edited.title.split(separator: " ", omittingEmptySubsequences: false)
         if components.count > 1 {
             let allButLast = components.dropLast().joined(separator: " ")
-            title = allButLast + " " + text
+            edited.title = allButLast + " " + text
         } else {
-            title = text
+            edited.title = text
         }
     }
 
@@ -385,13 +407,13 @@ struct CreateTodoView: View {
         VStack(spacing: 24) {
             // Title
             VStack(alignment: .leading, spacing: 12) {
-                TextField("任务标题", text: $title)
+                TextField("任务标题", text: $edited.title)
                     .font(.body.weight(.semibold))
                     .focused($detailTitleFocused)
 
                 Divider()
 
-                TextField("添加描述...", text: $description, axis: .vertical)
+                TextField("添加描述...", text: $edited.description, axis: .vertical)
                     .lineLimit(2...4)
                     .font(.callout)
                     .foregroundStyle(Color.labelSecondary)
@@ -434,11 +456,25 @@ struct CreateTodoView: View {
                         .font(.body)
                 }
                 DatePicker("", selection: Binding(
-                    get: { dueAt ?? Date() },
-                    set: { dueAt = $0 }
+                    get: { edited.dueAt ?? Date() },
+                    set: { edited.dueAt = $0 }
                 ), displayedComponents: .date)
                 .datePickerStyle(.graphical)
                 .frame(maxWidth: .infinity)
+
+                if let completedAt = edited.completedAt {
+                    Divider()
+                    HStack(spacing: 10) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                            .font(.body)
+                            .symbolRenderingMode(.hierarchical)
+                        Text("完成于 \(completedAt.formatted(.dateTime.year().month().day().hour().minute()))")
+                            .font(.body)
+                            .foregroundStyle(Color.labelSecondary)
+                        Spacer()
+                    }
+                }
             }
             .padding(18)
             .background(
@@ -455,23 +491,23 @@ struct CreateTodoView: View {
 
     private func statusChip(_ s: TodoStatus) -> some View {
         Button {
-            withAnimation(.spring(duration: 0.25)) { status = s }
+            withAnimation(.spring(duration: 0.25)) { edited.status = s }
         } label: {
             Text(s.displayName)
-                .font(.subheadline.weight(status == s ? .semibold : .regular))
+                .font(.subheadline.weight(edited.status == s ? .semibold : .regular))
                 .foregroundStyle(.primary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(status == s ? s.color : Color.chipBackground)
+                .background(edited.status == s ? s.color : Color.chipBackground)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
     }
 
     private func projectChip(_ project: Project?) -> some View {
-        let isSelected = projectId == project?.id
+        let isSelected = edited.projectId == project?.id
         return Button {
-            projectId = project?.id
+            edited.projectId = project?.id
         } label: {
             Text(project.map { $0.emoji + " " + $0.name } ?? "无项目")
                 .font(.subheadline.weight(isSelected ? .semibold : .regular))
@@ -484,21 +520,61 @@ struct CreateTodoView: View {
         .buttonStyle(.plain)
     }
 
-    private func dateToggleRow(icon: String, color: Color, label: String, isOn: Binding<Bool>) -> some View {
-        HStack {
-            HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .foregroundStyle(color)
-                    .font(.body)
-                    .symbolRenderingMode(.hierarchical)
-                Text(label)
-                    .font(.callout)
+    // MARK: - Action Card (Edit only)
+
+    private var actionCard: some View {
+        VStack(spacing: 12) {
+            Button {
+                Task {
+                    do {
+                        try await store.archiveTodo(id: edited.id)
+                        dismiss()
+                    } catch {
+                        errorMessage = "归档失败: \(error.localizedDescription)"
+                    }
+                }
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "archivebox.fill")
+                        .font(.body)
+                        .symbolRenderingMode(.hierarchical)
+                    Text("归档任务")
+                        .font(.body.weight(.medium))
+                    Spacer()
+                }
+                .foregroundStyle(.orange)
             }
-            Spacer()
-            Toggle("", isOn: isOn)
-                .labelsHidden()
-                .tint(color)
+            .buttonStyle(.plain)
+
+            Divider()
+
+            Button {
+                Task {
+                    do {
+                        try await store.deleteTodo(id: edited.id)
+                        dismiss()
+                    } catch {
+                        errorMessage = "删除失败: \(error.localizedDescription)"
+                    }
+                }
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "trash.fill")
+                        .font(.body)
+                        .symbolRenderingMode(.hierarchical)
+                    Text("删除任务")
+                        .font(.body.weight(.medium))
+                    Spacer()
+                }
+                .foregroundStyle(.red)
+            }
+            .buttonStyle(.plain)
         }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.cardBackground)
+        )
     }
 
     // MARK: - Save Button
@@ -511,9 +587,9 @@ struct CreateTodoView: View {
                 Task { await save() }
             } label: {
                 HStack(spacing: 8) {
-                    Image(systemName: "plus.circle.fill")
+                    Image(systemName: todo == nil ? "plus.circle.fill" : "checkmark.circle.fill")
                         .font(.title3)
-                    Text("创建任务")
+                    Text(todo == nil ? "创建任务" : "保存")
                         .font(.headline)
                 }
                 .foregroundStyle(.white)
@@ -535,15 +611,22 @@ struct CreateTodoView: View {
     // MARK: - Helpers
 
     private var canSave: Bool {
-        if useQuickEntry {
+        if todo == nil && useQuickEntry {
             !(parsedDraft?.title.isEmpty ?? true)
         } else {
-            !title.isEmpty
+            !edited.title.isEmpty
         }
     }
 
     private func save() async {
-        if useQuickEntry, let draft = parsedDraft {
+        if todo != nil {
+            do {
+                try await store.updateTodo(edited)
+                dismiss()
+            } catch {
+                errorMessage = "保存失败: \(error.localizedDescription)"
+            }
+        } else if useQuickEntry, let draft = parsedDraft {
             try? await store.createTodoWithParsed(
                 title: draft.title,
                 description: draft.description,
@@ -552,15 +635,16 @@ struct CreateTodoView: View {
                 tagNames: draft.tagNames,
                 dueAt: draft.dueAt ?? defaultDueDate()
             )
+            dismiss()
         } else {
             try? await store.createTodo(
-                title: title,
-                description: description,
-                status: status,
-                projectId: projectId,
-                dueAt: dueAt
+                title: edited.title,
+                description: edited.description,
+                status: edited.status,
+                projectId: edited.projectId,
+                dueAt: edited.dueAt
             )
+            dismiss()
         }
-        dismiss()
     }
 }

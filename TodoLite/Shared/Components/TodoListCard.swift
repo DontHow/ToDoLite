@@ -5,7 +5,7 @@ struct TodoListCard: View {
     var isDraggable: Bool = false
 
     var body: some View {
-        NavigationLink(destination: TodoDetailView(todo: todo)) {
+        NavigationLink(destination: CreateTodoView(todo: todo)) {
             TodoRowView(todo: todo)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
