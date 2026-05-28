@@ -12,7 +12,8 @@ struct CreateTodoView: View {
     @State private var isParsingLLM = false
     @State private var llmError: String?
     @Environment(\.dismiss) private var dismiss
-    @FocusState private var isTitleFocused: Bool
+    @FocusState private var quickEntryFocused: Bool
+    @FocusState private var detailTitleFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -32,11 +33,6 @@ struct CreateTodoView: View {
                     .padding(.horizontal, 20)
                 }
                 .scrollDismissesKeyboard(.interactively)
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        isTitleFocused = true
-                    }
-                }
 
                 saveButtonBar
             }
@@ -112,7 +108,7 @@ struct CreateTodoView: View {
                     .scrollContentBackground(.hidden)
                     .padding(16)
                     .frame(minHeight: 120)
-                    .focused($isTitleFocused)
+                    .focused($quickEntryFocused)
             }
             .frame(minHeight: 120)
             .onChange(of: title) { _, newValue in
@@ -126,6 +122,11 @@ struct CreateTodoView: View {
 
             if let draft = parsedDraft, !draft.title.isEmpty {
                 quickPreviewCard(draft)
+            }
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                quickEntryFocused = true
             }
         }
     }
@@ -372,7 +373,7 @@ struct CreateTodoView: View {
             VStack(alignment: .leading, spacing: 12) {
                 TextField("任务标题", text: $title)
                     .font(.body.weight(.semibold))
-                    .focused($isTitleFocused)
+                    .focused($detailTitleFocused)
 
                 Divider()
 
@@ -451,6 +452,11 @@ struct CreateTodoView: View {
                 RoundedRectangle(cornerRadius: 18)
                     .fill(Color.cardBackground)
             )
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                detailTitleFocused = true
+            }
         }
     }
 
