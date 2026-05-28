@@ -14,6 +14,7 @@ struct InboxView: View {
                 }
                 .padding(.horizontal, horizontalPadding)
                 .padding(.vertical, 12)
+                .frame(maxWidth: .infinity, alignment: .top)
             }
             .navigationTitle("收件箱")
             .overlay {

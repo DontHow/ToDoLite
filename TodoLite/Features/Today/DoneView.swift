@@ -42,6 +42,7 @@ struct DoneView: View {
                 }
                 .padding(.horizontal, horizontalPadding)
                 .padding(.vertical, 12)
+                .frame(maxWidth: .infinity, alignment: .top)
             }
             .navigationTitle("已完成")
         }

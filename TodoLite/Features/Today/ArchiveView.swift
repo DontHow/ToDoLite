@@ -13,6 +13,7 @@ struct ArchiveView: View {
                 }
                 .padding(.horizontal, horizontalPadding)
                 .padding(.vertical, 12)
+                .frame(maxWidth: .infinity, alignment: .top)
             }
             .navigationTitle("已归档")
             .overlay {
