@@ -276,15 +276,15 @@ struct BoardColumnView: View {
                         if group.projectId != nil,
                            let project = store.projects.first(where: { $0.id == group.projectId }) {
                             Text(project.emoji)
-                                .font(.caption)
+                                .font(.callout)
                                 .foregroundStyle(Color.accentColor)
                         }
                         Text(group.projectName)
-                            .font(.caption.weight(.semibold))
+                            .font(.callout.weight(.semibold))
                             .foregroundStyle(Color.accentColor)
 
                         Text("\(group.todos.count)")
-                            .font(.caption2.weight(.medium))
+                            .font(.caption.weight(.medium))
                             .foregroundStyle(Color.accentColor.opacity(0.7))
 
                         Spacer()
