@@ -8,7 +8,7 @@ struct BoardView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 0) {
+            GeometryReader { geo in
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: 24) {
                         ForEach(columns, id: \.self) { status in
@@ -16,13 +16,12 @@ struct BoardView: View {
                                 status: status,
                                 todos: store.todos.filter { $0.status == status }
                             )
-                            .frame(maxHeight: .infinity)
+                            .frame(height: geo.size.height)
                         }
                     }
                     .padding(.horizontal, horizontalPadding)
                     .padding(.vertical, 12)
                 }
-                .frame(maxHeight: .infinity)
             }
             .navigationTitle("看板")
             .toolbar {
@@ -167,6 +166,7 @@ struct BoardColumnView: View {
                 .padding(.vertical, 10)
             }
             .frame(width: 260)
+            .frame(maxHeight: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 8)
                     .fill(isTargeted ? Color.accentColor.opacity(0.06) : Color.clear)
@@ -190,7 +190,6 @@ struct BoardColumnView: View {
         } isTargeted: { targeted in
             isTargeted = targeted
         }
-        .frame(idealHeight: 0, maxHeight: .infinity)
     }
 
     // MARK: - Toolbar
