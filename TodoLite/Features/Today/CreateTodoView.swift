@@ -5,7 +5,6 @@ struct CreateTodoView: View {
     @State private var title = ""
     @State private var description = ""
     @State private var status: TodoStatus = .inbox
-    @State private var priority: TodoPriority = .medium
     @State private var projectId: String?
     @State private var dueAt: Date? = Calendar.current.date(byAdding: .day, value: 7, to: Date())
     @State private var useQuickEntry = true
@@ -94,7 +93,7 @@ struct CreateTodoView: View {
                         Text("输入任务...")
                             .foregroundStyle(.tertiary)
                             .font(.title3)
-                        Text("@项目 #标签 !优先级 ^日期")
+                        Text("@项目 #标签 ^日期")
                             .foregroundStyle(.quaternary)
                             .font(.callout)
                     }
@@ -195,8 +194,6 @@ struct CreateTodoView: View {
                         projectSuggestions(query: token.query)
                     case "#":
                         tagSuggestions(query: token.query)
-                    case "!":
-                        prioritySuggestions()
                     case "^":
                         dateSuggestions()
                     default:
@@ -220,7 +217,7 @@ struct CreateTodoView: View {
         let components = title.split(separator: " ", omittingEmptySubsequences: false)
         guard let last = components.last, !last.isEmpty else { return nil }
         let lastStr = String(last)
-        guard let first = lastStr.first, ["@", "#", "!", "^"].contains(first) else { return nil }
+        guard let first = lastStr.first, ["@", "#", "^"].contains(first) else { return nil }
         return (first, String(lastStr.dropFirst()))
     }
 
@@ -268,19 +265,6 @@ struct CreateTodoView: View {
                     .font(.caption)
                     .foregroundStyle(Color.labelSecondary)
                     .padding(.vertical, 4)
-            }
-        }
-    }
-
-    private func prioritySuggestions() -> some View {
-        let options: [(display: String, value: String)] = [
-            ("高", "high"), ("中", "medium"), ("低", "low")
-        ]
-        return suggestionRow(title: "优先级", icon: "flag.fill", color: .orange) {
-            ForEach(options, id: \.value) { option in
-                suggestionChip(text: option.display) {
-                    insertSuggestion("!" + option.value)
-                }
             }
         }
     }
@@ -345,14 +329,6 @@ struct CreateTodoView: View {
                     )
                 }
 
-                if let prio = draft.priority {
-                    TagChip(
-                        icon: "flag.fill",
-                        text: prio.displayName,
-                        color: priorityColor(prio)
-                    )
-                }
-
                 if let date = draft.dueAt {
                     TagChip(
                         icon: "calendar",
@@ -410,15 +386,6 @@ struct CreateTodoView: View {
                         ForEach(TodoStatus.allCases.filter { $0 != .archived }, id: \.self) { s in
                             statusChip(s)
                         }
-                    }
-                }
-            }
-
-            // Priority
-            OptionRow(icon: "flag.fill", iconColor: .orange, label: "优先级") {
-                HStack(spacing: 10) {
-                    ForEach(TodoPriority.allCases, id: \.self) { p in
-                        priorityChip(p)
                     }
                 }
             }
@@ -494,26 +461,6 @@ struct CreateTodoView: View {
         .buttonStyle(.plain)
     }
 
-    private func priorityChip(_ p: TodoPriority) -> some View {
-        Button {
-            withAnimation(.spring(duration: 0.25)) { priority = p }
-        } label: {
-            HStack(spacing: 4) {
-                Image(systemName: "flag.fill")
-                    .font(.caption)
-                Text(p.displayName)
-                    .font(.subheadline.weight(priority == p ? .semibold : .regular))
-            }
-            .foregroundStyle(priority == p ? .white : priorityColor(p))
-            .frame(minWidth: 60)
-            .padding(.vertical, 10)
-            .padding(.horizontal, 12)
-            .background(priority == p ? priorityColor(p) : Color.chipBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-        .buttonStyle(.plain)
-    }
-
     private func dateToggleRow(icon: String, color: Color, label: String, isOn: Binding<Bool>) -> some View {
         HStack {
             HStack(spacing: 10) {
@@ -572,21 +519,12 @@ struct CreateTodoView: View {
         }
     }
 
-    private func priorityColor(_ p: TodoPriority) -> Color {
-        switch p {
-        case .low: return .gray
-        case .medium: return .orange
-        case .high: return .red
-        }
-    }
-
     private func save() async {
         if useQuickEntry, let draft = parsedDraft {
             try? await store.createTodoWithParsed(
                 title: draft.title,
                 description: draft.description,
                 status: .inbox,
-                priority: draft.priority ?? .medium,
                 projectName: draft.projectName,
                 tagNames: draft.tagNames,
                 dueAt: draft.dueAt
@@ -596,7 +534,6 @@ struct CreateTodoView: View {
                 title: title,
                 description: description,
                 status: status,
-                priority: priority,
                 projectId: projectId,
                 dueAt: dueAt
             )

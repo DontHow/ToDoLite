@@ -20,7 +20,6 @@ final class TodoStore {
         let ids = Set(focusSet.taskIds)
         return todos
             .filter { ids.contains($0.id) && $0.status != .done && $0.status != .archived }
-            .sorted { $0.priority.sortValue > $1.priority.sortValue }
     }
 
     var suggestedTodos: [TodoItem] {
@@ -34,7 +33,6 @@ final class TodoStore {
                 !ids.contains($0.id) &&
                 ($0.dueAt.map { $0 >= todayStart && $0 < todayEnd } ?? false)
             }
-            .sorted { $0.priority.sortValue > $1.priority.sortValue }
     }
 
     var overdueTodos: [TodoItem] {
@@ -47,7 +45,6 @@ final class TodoStore {
                 !ids.contains($0.id) &&
                 ($0.dueAt.map { $0 < todayStart } ?? false)
             }
-            .sorted { $0.priority.sortValue > $1.priority.sortValue }
     }
 
     var inboxTodos: [TodoItem] {
@@ -86,15 +83,15 @@ final class TodoStore {
 
     // MARK: - Todo CRUD
 
-    func createTodo(title: String, description: String = "", status: TodoStatus = .inbox, priority: TodoPriority = .medium, projectId: String? = nil, tagIds: [String] = [], scheduledAt: Date? = nil, dueAt: Date? = nil) async throws {
-        let todo = TodoItem(title: title, description: description, status: status, priority: priority, projectId: projectId, tagIds: tagIds, scheduledAt: scheduledAt, dueAt: dueAt)
+    func createTodo(title: String, description: String = "", status: TodoStatus = .inbox, projectId: String? = nil, tagIds: [String] = [], scheduledAt: Date? = nil, dueAt: Date? = nil) async throws {
+        let todo = TodoItem(title: title, description: description, status: status, projectId: projectId, tagIds: tagIds, scheduledAt: scheduledAt, dueAt: dueAt)
         let saved = try await todoRepo.save(todo)
         todos.append(saved)
         await indexer.index(todo: saved, projects: projects, tags: tags)
         WidgetDataStore.sync(todos: todos, focusSet: focusSet)
     }
 
-    func createTodoWithParsed(title: String, description: String = "", status: TodoStatus = .inbox, priority: TodoPriority = .medium, projectName: String? = nil, tagNames: [String] = [], scheduledAt: Date? = nil, dueAt: Date? = nil) async throws {
+    func createTodoWithParsed(title: String, description: String = "", status: TodoStatus = .inbox, projectName: String? = nil, tagNames: [String] = [], scheduledAt: Date? = nil, dueAt: Date? = nil) async throws {
         var projectId: String?
         if let name = projectName {
             if let existing = projects.first(where: { $0.name == name }) {
@@ -123,7 +120,6 @@ final class TodoStore {
             title: title,
             description: description,
             status: status,
-            priority: priority,
             projectId: projectId,
             tagIds: tagIds,
             scheduledAt: scheduledAt,

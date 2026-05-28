@@ -19,7 +19,6 @@ struct TodoDetailView: View {
                     VStack(spacing: 20) {
                         titleCard
                         statusSection
-                        prioritySection
                         projectSection
                         tagSection
                         dateCard
@@ -97,38 +96,6 @@ struct TodoDetailView: View {
                 .padding(.vertical, 8)
                 .background(edited.status == s ? Color.indigo : Color.chipBackground)
                 .clipShape(Capsule())
-        }
-        .buttonStyle(.plain)
-    }
-
-    // MARK: - Priority
-
-    private var prioritySection: some View {
-        OptionRow(icon: "flag.fill", iconColor: .orange, label: "优先级") {
-            HStack(spacing: 10) {
-                ForEach(TodoPriority.allCases, id: \.self) { p in
-                    priorityChip(p)
-                }
-            }
-        }
-    }
-
-    private func priorityChip(_ p: TodoPriority) -> some View {
-        Button {
-            withAnimation(.spring(duration: 0.25)) { edited.priority = p }
-        } label: {
-            HStack(spacing: 4) {
-                Image(systemName: "flag.fill")
-                    .font(.caption)
-                Text(p.displayName)
-                    .font(.callout.weight(edited.priority == p ? .semibold : .regular))
-            }
-            .foregroundStyle(edited.priority == p ? .white : priorityColor(p))
-            .frame(minWidth: 60)
-            .padding(.vertical, 10)
-            .padding(.horizontal, 12)
-            .background(edited.priority == p ? priorityColor(p) : Color.chipBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
     }
@@ -341,14 +308,6 @@ struct TodoDetailView: View {
 
     private var canSave: Bool {
         !edited.title.isEmpty
-    }
-
-    private func priorityColor(_ p: TodoPriority) -> Color {
-        switch p {
-        case .low: return .gray
-        case .medium: return .orange
-        case .high: return .red
-        }
     }
 
     private func save() async {

@@ -5,6 +5,5 @@ struct TodoDraft {
     var description: String = ""
     var projectName: String?
     var tagNames: [String] = []
-    var priority: TodoPriority?
     var dueAt: Date?
 }

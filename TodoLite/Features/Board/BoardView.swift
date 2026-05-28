@@ -60,7 +60,6 @@ struct BoardView: View {
 enum BoardSortOption: String, CaseIterable {
     case dueDate = "截止日期"
     case createdDate = "创建日期"
-    case priority = "优先级"
 }
 
 enum BoardViewMode: String, CaseIterable {
@@ -92,8 +91,6 @@ struct BoardColumnView: View {
             }
         case .createdDate:
             return todos.sorted { $0.createdAt > $1.createdAt }
-        case .priority:
-            return todos.sorted { $0.priority.sortValue > $1.priority.sortValue }
         }
     }
 
@@ -116,10 +113,6 @@ struct BoardColumnView: View {
                     let d0 = pair0.value.map(\.createdAt).max() ?? .distantPast
                     let d1 = pair1.value.map(\.createdAt).max() ?? .distantPast
                     return d0 > d1
-                case .priority:
-                    let p0 = pair0.value.map(\.priority.sortValue).max() ?? 0
-                    let p1 = pair1.value.map(\.priority.sortValue).max() ?? 0
-                    return p0 > p1
                 }
             }
 

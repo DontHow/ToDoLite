@@ -18,8 +18,6 @@ actor LLMParser {
         Available tags (match by name, or empty array if none match):
         \(tagList.isEmpty ? "(none)" : tagList)
 
-        Priority levels: low, medium, high
-
         Date format for dueAt: ISO8601 string (yyyy-MM-dd) or null.
         If user mentions relative dates, convert to absolute date.
 
@@ -29,7 +27,6 @@ actor LLMParser {
           "description": "optional detailed description, or empty string",
           "projectName": "matched project name or null",
           "tagNames": ["matched tag names"],
-          "priority": "low|medium|high",
           "dueAt": "yyyy-MM-dd or null"
         }
         """
@@ -56,7 +53,6 @@ actor LLMParser {
         draft.description = parsed.description ?? ""
         draft.projectName = parsed.projectName
         draft.tagNames = parsed.tagNames ?? []
-        draft.priority = TodoPriority(rawValue: parsed.priority ?? "medium")
         draft.dueAt = parsed.dueAt.flatMap { dateFromString($0) }
 
         return draft
@@ -93,7 +89,6 @@ struct LLMJSONDraft: Codable {
     let description: String?
     let projectName: String?
     let tagNames: [String]?
-    let priority: String?
     let dueAt: String?
 }
 

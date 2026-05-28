@@ -7,7 +7,6 @@ struct TodoItem: Codable, Identifiable, Hashable, Sendable {
     var description: String
 
     var status: TodoStatus
-    var priority: TodoPriority
 
     var projectId: String?
 
@@ -27,7 +26,6 @@ struct TodoItem: Codable, Identifiable, Hashable, Sendable {
         title: String,
         description: String = "",
         status: TodoStatus = .inbox,
-        priority: TodoPriority = .medium,
         projectId: String? = nil,
         tagIds: [String] = [],
         scheduledAt: Date? = nil,
@@ -41,7 +39,6 @@ struct TodoItem: Codable, Identifiable, Hashable, Sendable {
         self.title = title
         self.description = description
         self.status = status
-        self.priority = priority
         self.projectId = projectId
         self.tagIds = tagIds
         self.scheduledAt = scheduledAt

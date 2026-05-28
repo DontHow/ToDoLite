@@ -20,17 +20,6 @@ struct TodoParser {
             remaining.removeSubrange(tagMatch)
         }
 
-        // Extract !priority
-        if let priorityMatch = remaining.range(of: #"!(low|medium|high)"#, options: [.regularExpression, .caseInsensitive]) {
-            let matched = String(remaining[priorityMatch]).lowercased()
-            switch matched {
-            case "!low": draft.priority = .low
-            case "!high": draft.priority = .high
-            default: draft.priority = .medium
-            }
-            remaining.removeSubrange(priorityMatch)
-        }
-
         // Extract ^date
         if let dateMatch = remaining.range(of: #"\^(\S+)"#, options: .regularExpression) {
             let matched = String(remaining[dateMatch])

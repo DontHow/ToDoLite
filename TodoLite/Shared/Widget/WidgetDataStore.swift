@@ -17,7 +17,6 @@ enum WidgetDataStore {
         let focusIds = Set(focusSet.taskIds)
         let focusTodos = todos
             .filter { focusIds.contains($0.id) && $0.status != .done && $0.status != .archived }
-            .sorted { $0.priority.sortValue > $1.priority.sortValue }
 
         let data = WidgetData(
             count: focusTodos.count,

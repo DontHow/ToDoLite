@@ -7,12 +7,11 @@ final class TodoLiteTests: XCTestCase {
     // MARK: - Models
 
     func testTodoItemCodable() throws {
-        let todo = TodoItem(title: "测试任务", status: .doing, priority: .high)
+        let todo = TodoItem(title: "测试任务", status: .doing)
         let data = try JSONEncoder().encode(todo)
         let decoded = try JSONDecoder().decode(TodoItem.self, from: data)
         XCTAssertEqual(decoded.title, "测试任务")
         XCTAssertEqual(decoded.status, .doing)
-        XCTAssertEqual(decoded.priority, .high)
     }
 
     func testFocusSetCodable() throws {
@@ -45,7 +44,6 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertEqual(draft.title, "提交 TestFlight")
         XCTAssertNil(draft.projectName)
         XCTAssertTrue(draft.tagNames.isEmpty)
-        XCTAssertNil(draft.priority)
     }
 
     func testParserWithProject() {
@@ -65,23 +63,17 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertEqual(draft.tagNames, ["iOS", "紧急"])
     }
 
-    func testParserWithPriority() {
-        let draft = TodoParser.parse("提交 TestFlight !high")
-        XCTAssertEqual(draft.priority, .high)
-    }
-
     func testParserWithDate() {
         let draft = TodoParser.parse("提交 TestFlight ^tomorrow")
-        XCTAssertNotNil(draft.scheduledAt)
+        XCTAssertNotNil(draft.dueAt)
     }
 
     func testParserFull() {
-        let draft = TodoParser.parse("提交 TestFlight @工作 #iOS !high ^tomorrow")
+        let draft = TodoParser.parse("提交 TestFlight @工作 #iOS ^tomorrow")
         XCTAssertEqual(draft.title, "提交 TestFlight")
         XCTAssertEqual(draft.projectName, "工作")
         XCTAssertEqual(draft.tagNames, ["iOS"])
-        XCTAssertEqual(draft.priority, .high)
-        XCTAssertNotNil(draft.scheduledAt)
+        XCTAssertNotNil(draft.dueAt)
     }
 
     // MARK: - DateResolver
@@ -111,12 +103,6 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertEqual(TodoStatus.waiting.displayName, "等待中")
         XCTAssertEqual(TodoStatus.done.displayName, "已完成")
         XCTAssertEqual(TodoStatus.archived.displayName, "已归档")
-    }
-
-    func testPriorityDisplayNames() {
-        XCTAssertEqual(TodoPriority.low.displayName, "低")
-        XCTAssertEqual(TodoPriority.medium.displayName, "中")
-        XCTAssertEqual(TodoPriority.high.displayName, "高")
     }
 
     // MARK: - DateResolver Edge Cases
@@ -201,11 +187,6 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertEqual(draft.tagNames, ["iOS"])
     }
 
-    func testParserCaseInsensitivePriority() {
-        let draft = TodoParser.parse("测试 !HIGH")
-        XCTAssertEqual(draft.priority, .high)
-    }
-
     // MARK: - Color+Hex
 
     func testColorHex3Char() {
@@ -236,21 +217,21 @@ final class TodoLiteTests: XCTestCase {
 
     func testFocusTodos() {
         let store = TodoStore()
-        let t1 = TodoItem(id: "t1", title: "高优Focus", status: .doing, priority: .high)
-        let t2 = TodoItem(id: "t2", title: "中优Focus", status: .doing, priority: .medium)
-        let t3 = TodoItem(id: "t3", title: "非Focus", status: .doing, priority: .high)
+        let t1 = TodoItem(id: "t1", title: "Focus1", status: .doing)
+        let t2 = TodoItem(id: "t2", title: "Focus2", status: .doing)
+        let t3 = TodoItem(id: "t3", title: "非Focus", status: .doing)
 
         store.todos = [t1, t2, t3]
         store.focusSet = FocusSet(date: FocusSet.todayString(), taskIds: ["t1", "t2"])
 
         XCTAssertEqual(store.focusTodos.count, 2)
-        XCTAssertEqual(store.focusTodos[0].title, "高优Focus")
-        XCTAssertEqual(store.focusTodos[1].title, "中优Focus")
+        XCTAssertTrue(store.focusTodos.contains { $0.title == "Focus1" })
+        XCTAssertTrue(store.focusTodos.contains { $0.title == "Focus2" })
     }
 
     func testFocusTodosExcludesDone() {
         let store = TodoStore()
-        let t1 = TodoItem(id: "t1", title: "已完成Focus", status: .done, priority: .high)
+        let t1 = TodoItem(id: "t1", title: "已完成Focus", status: .done)
 
         store.todos = [t1]
         store.focusSet = FocusSet(date: FocusSet.todayString(), taskIds: ["t1"])
@@ -261,9 +242,9 @@ final class TodoLiteTests: XCTestCase {
     func testSuggestedTodos() {
         let store = TodoStore()
         let today = Date()
-        let t1 = TodoItem(id: "t1", title: "今日计划", status: .doing, scheduledAt: today)
+        let t1 = TodoItem(id: "t1", title: "今日计划", status: .doing, scheduledAt: today, dueAt: today)
         let t2 = TodoItem(id: "t2", title: "今日到期", status: .doing, dueAt: today)
-        let t3 = TodoItem(id: "t3", title: "已在Focus", status: .doing, scheduledAt: today)
+        let t3 = TodoItem(id: "t3", title: "已在Focus", status: .doing, scheduledAt: today, dueAt: today)
 
         store.todos = [t1, t2, t3]
         store.focusSet = FocusSet(date: FocusSet.todayString(), taskIds: ["t3"])
