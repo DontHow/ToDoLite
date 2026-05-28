@@ -103,13 +103,24 @@ struct BoardColumnView: View {
 
         var result: [(projectId: String?, projectName: String, todos: [TodoItem])] = []
 
-        // Group with project first, sorted by project name
+        // Group with project first, sorted by selected sort option
         let withProject = grouped
             .filter { $0.key != nil }
             .sorted { pair0, pair1 in
-                let name0 = store.projects.first(where: { $0.id == pair0.key })?.name ?? ""
-                let name1 = store.projects.first(where: { $0.id == pair1.key })?.name ?? ""
-                return name0 < name1
+                switch sortOption {
+                case .dueDate:
+                    let d0 = pair0.value.compactMap(\.dueAt).min() ?? .distantFuture
+                    let d1 = pair1.value.compactMap(\.dueAt).min() ?? .distantFuture
+                    return d0 < d1
+                case .createdDate:
+                    let d0 = pair0.value.map(\.createdAt).max() ?? .distantPast
+                    let d1 = pair1.value.map(\.createdAt).max() ?? .distantPast
+                    return d0 > d1
+                case .priority:
+                    let p0 = pair0.value.map(\.priority.sortValue).max() ?? 0
+                    let p1 = pair1.value.map(\.priority.sortValue).max() ?? 0
+                    return p0 > p1
+                }
             }
 
         for (pid, ptodos) in withProject {
