@@ -71,6 +71,7 @@ struct BoardColumnView: View {
                     todos: todos,
                     emptyPlaceholder: "拖拽任务到此处",
                     accentColor: status.color,
+                    defaultGrouping: status == .done ? .byProject : .dueDate,
                     onDrop: { id in
                         guard let todo = store.todos.first(where: { $0.id == id }),
                               todo.status != status else { return false }
