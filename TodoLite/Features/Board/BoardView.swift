@@ -70,6 +70,7 @@ struct BoardColumnView: View {
                     title: status.displayName,
                     todos: todos,
                     emptyPlaceholder: "拖拽任务到此处",
+                    accentColor: status.color,
                     onDrop: { id in
                         guard let todo = store.todos.first(where: { $0.id == id }),
                               todo.status != status else { return false }

@@ -44,14 +44,14 @@ struct TaskListView: View {
         HStack(spacing: 8) {
             Text(title)
                 .font(.body.weight(.bold))
-                .foregroundStyle(accentColor != nil ? accentColor! : .primary)
+                .foregroundStyle(.primary)
 
             Text("\(todos.count)")
                 .font(.callout.weight(.semibold))
-                .foregroundStyle(accentColor != nil ? accentColor! : Color.labelSecondary)
+                .foregroundStyle(.primary)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(accentColor?.opacity(0.2) ?? Color.chipBackground)
+                .background(accentColor ?? Color.chipBackground)
                 .clipShape(Capsule())
 
             Spacer()
