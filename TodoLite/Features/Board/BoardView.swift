@@ -9,12 +9,17 @@ struct BoardView: View {
     var body: some View {
         NavigationStack {
             GeometryReader { geo in
+                let spacing: CGFloat = 24
+                let columnCount = CGFloat(columns.count)
+                let availableWidth = geo.size.width - horizontalPadding * 2
+                let columnWidth = max(220, (availableWidth - spacing * (columnCount - 1)) / columnCount)
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: 24) {
+                    HStack(alignment: .top, spacing: spacing) {
                         ForEach(columns, id: \.self) { status in
                             BoardColumnView(
                                 status: status,
-                                todos: store.todos.filter { $0.status == status }
+                                todos: store.todos.filter { $0.status == status },
+                                columnWidth: columnWidth
                             )
                             .frame(height: max(0, geo.size.height - 16))
                         }
@@ -67,6 +72,7 @@ enum BoardViewMode: String, CaseIterable {
 struct BoardColumnView: View {
     let status: TodoStatus
     let todos: [TodoItem]
+    let columnWidth: CGFloat
     @State private var store = TodoStore.shared
     @State private var isTargeted = false
     @State private var sortOption: BoardSortOption = .dueDate
@@ -166,7 +172,7 @@ struct BoardColumnView: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 10)
                 }
-                .frame(width: 260, height: scrollGeo.size.height)
+                .frame(width: columnWidth, height: scrollGeo.size.height)
             }
             .background(
                 RoundedRectangle(cornerRadius: 8)
