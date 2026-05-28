@@ -1,12 +1,26 @@
 import SwiftUI
 
+private func defaultDueDate() -> Date {
+    var calendar = Calendar.current
+    var date = Date()
+    var weekdaysAdded = 0
+    while weekdaysAdded < 3 {
+        date = calendar.date(byAdding: .day, value: 1, to: date)!
+        let weekday = calendar.component(.weekday, from: date)
+        if weekday != 1 && weekday != 7 {
+            weekdaysAdded += 1
+        }
+    }
+    return date
+}
+
 struct CreateTodoView: View {
     @State private var store = TodoStore.shared
     @State private var title = ""
     @State private var description = ""
     @State private var status: TodoStatus = .inbox
     @State private var projectId: String?
-    @State private var dueAt: Date? = Calendar.current.date(byAdding: .day, value: 7, to: Date())
+    @State private var dueAt: Date? = defaultDueDate()
     @State private var useQuickEntry = true
     @State private var parsedDraft: TodoDraft?
     @State private var isParsingLLM = false
@@ -401,12 +415,10 @@ struct CreateTodoView: View {
 
             // Project
             OptionRow(icon: "folder.fill", iconColor: .blue, label: "项目") {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        projectChip(nil)
-                        ForEach(store.projects) { project in
-                            projectChip(project)
-                        }
+                FlowLayout(spacing: 8) {
+                    projectChip(nil)
+                    ForEach(store.projects) { project in
+                        projectChip(project)
                     }
                 }
             }
@@ -426,6 +438,7 @@ struct CreateTodoView: View {
                     set: { dueAt = $0 }
                 ), displayedComponents: .date)
                 .datePickerStyle(.graphical)
+                .frame(maxWidth: .infinity)
             }
             .padding(18)
             .background(
