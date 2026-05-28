@@ -53,6 +53,7 @@ struct TodoRowView: View {
     private var metadataRow: some View {
         HStack(spacing: 0) {
             HStack(spacing: 6) {
+                focusChip
                 projectChip
                 tagChips
             }
@@ -61,6 +62,23 @@ struct TodoRowView: View {
             Spacer(minLength: 8)
 
             dateChip
+        }
+    }
+
+    @ViewBuilder
+    private var focusChip: some View {
+        if isInFocus {
+            HStack(spacing: 3) {
+                Image(systemName: "sun.max.fill")
+                    .imageScale(.small)
+                Text("今日")
+            }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(.orange)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 1)
+            .background(Color.orange.opacity(0.12))
+            .clipShape(Capsule())
         }
     }
 
@@ -115,7 +133,11 @@ struct TodoRowView: View {
     }
 
     private var hasMetadata: Bool {
-        todo.projectId != nil || !todo.tagIds.isEmpty || todo.dueAt != nil
+        isInFocus || todo.projectId != nil || !todo.tagIds.isEmpty || todo.dueAt != nil
+    }
+
+    private var isInFocus: Bool {
+        store.focusSet.taskIds.contains(todo.id)
     }
 
     private func relativeDateString(_ date: Date) -> String {
