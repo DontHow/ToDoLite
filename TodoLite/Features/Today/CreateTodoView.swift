@@ -401,33 +401,13 @@ struct CreateTodoView: View {
 
             // Project
             OptionRow(icon: "folder.fill", iconColor: .blue, label: "项目") {
-                Menu {
-                    Button("无项目") { projectId = nil }
-                    Divider()
-                    ForEach(store.projects) { project in
-                        Button {
-                            projectId = project.id
-                        } label: {
-                            HStack {
-                                Text(project.emoji + " " + project.name)
-                                if projectId == project.id {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        projectChip(nil)
+                        ForEach(store.projects) { project in
+                            projectChip(project)
                         }
                     }
-                } label: {
-                    HStack(spacing: 6) {
-                        Text(projectId.flatMap { id in store.projects.first { $0.id == id }?.name } ?? "选择项目")
-                            .foregroundStyle(projectId == nil ? Color.labelSecondary : .primary)
-                        Image(systemName: "chevron.down")
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(Color.labelSecondary)
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(Color.chipBackground)
-                    .clipShape(Capsule())
                 }
             }
 
@@ -445,7 +425,7 @@ struct CreateTodoView: View {
                     get: { dueAt ?? Date() },
                     set: { dueAt = $0 }
                 ), displayedComponents: .date)
-                .datePickerStyle(.compact)
+                .datePickerStyle(.graphical)
             }
             .padding(18)
             .background(
@@ -470,6 +450,22 @@ struct CreateTodoView: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
                 .background(status == s ? s.color : Color.chipBackground)
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func projectChip(_ project: Project?) -> some View {
+        let isSelected = projectId == project?.id
+        return Button {
+            projectId = project?.id
+        } label: {
+            Text(project.map { $0.emoji + " " + $0.name } ?? "无项目")
+                .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(isSelected ? Color.blue.opacity(0.2) : Color.chipBackground)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
