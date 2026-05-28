@@ -166,7 +166,6 @@ struct BoardColumnView: View {
                 .padding(.vertical, 10)
             }
             .frame(width: 260)
-            .frame(maxHeight: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 8)
                     .fill(isTargeted ? Color.accentColor.opacity(0.06) : Color.clear)
