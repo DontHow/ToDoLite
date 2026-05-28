@@ -550,7 +550,7 @@ struct CreateTodoView: View {
                 status: .inbox,
                 projectName: draft.projectName,
                 tagNames: draft.tagNames,
-                dueAt: draft.dueAt
+                dueAt: draft.dueAt ?? defaultDueDate()
             )
         } else {
             try? await store.createTodo(
