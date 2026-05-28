@@ -190,6 +190,7 @@ struct BoardColumnView: View {
         } isTargeted: { targeted in
             isTargeted = targeted
         }
+        .frame(idealHeight: 0, maxHeight: .infinity)
     }
 
     // MARK: - Toolbar
