@@ -13,7 +13,6 @@ struct TagListView: View {
             }
             .padding(.horizontal, horizontalPadding)
             .padding(.vertical, 12)
-            .frame(maxWidth: .infinity, alignment: .top)
         }
         .navigationTitle("标签")
         .overlay {
