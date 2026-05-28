@@ -8,10 +8,6 @@ struct TodayView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 20) {
-                    Text("今日")
-                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
                     focusSection
                     suggestedSection
                     overdueSection

@@ -9,12 +9,6 @@ struct BoardView: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 0) {
-                Text("看板")
-                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                    .padding(.horizontal, horizontalPadding)
-                    .padding(.top, 12)
-                    .padding(.bottom, 8)
-
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: 24) {
                         ForEach(columns, id: \.self) { status in

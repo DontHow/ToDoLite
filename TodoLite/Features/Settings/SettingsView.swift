@@ -7,10 +7,6 @@ struct SettingsView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    Text("设置")
-                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
                     settingsSection(title: "外观") {
                         fontSizeRow
                     }

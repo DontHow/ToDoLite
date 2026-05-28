@@ -8,10 +8,6 @@ struct InboxView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 16) {
-                    Text("收件箱")
-                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
                     ForEach(store.inboxTodos) { todo in
                         TodoListCard(todo: todo)
                     }

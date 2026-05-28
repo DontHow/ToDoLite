@@ -8,10 +8,6 @@ struct DoneView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 24) {
-                    Text("已完成")
-                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
                     if groupedTodos.isEmpty {
                         EmptyStateView(
                             icon: "checkmark.circle",

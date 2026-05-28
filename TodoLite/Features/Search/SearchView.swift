@@ -10,10 +10,6 @@ struct SearchView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 16) {
-                    Text("搜索")
-                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
                     ForEach(searchResults) { todo in
                         TodoListCard(todo: todo)
                     }
