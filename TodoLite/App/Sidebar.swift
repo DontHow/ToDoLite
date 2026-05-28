@@ -15,13 +15,6 @@ struct Sidebar: View {
                     .tag(ContentView.Tab.board)
             }
 
-            Section("时间") {
-                Label("即将到来", systemImage: "calendar")
-                    .tag(ContentView.Tab.upcoming)
-                Label("逾期", systemImage: "exclamationmark.triangle")
-                    .tag(ContentView.Tab.overdue)
-            }
-
             Section("组织") {
                 Label("项目", systemImage: "folder")
                     .tag(ContentView.Tab.projects)

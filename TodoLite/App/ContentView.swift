@@ -5,7 +5,7 @@ struct ContentView: View {
     @State private var store = TodoStore.shared
 
     enum Tab: Hashable {
-        case today, inbox, board, search, settings, done, archive, overdue, upcoming, projects, tags
+        case today, inbox, board, search, settings, done, archive, projects, tags
     }
 
     var body: some View {
@@ -22,8 +22,6 @@ struct ContentView: View {
             case .settings: SettingsView()
             case .done: DoneView()
             case .archive: ArchiveView()
-            case .overdue: OverdueView()
-            case .upcoming: UpcomingView()
             case .projects: ProjectListView()
             case .tags: TagListView()
             }

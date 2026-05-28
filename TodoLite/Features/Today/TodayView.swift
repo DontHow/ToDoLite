@@ -15,13 +15,14 @@ struct TodayView: View {
                     focusSection
                     suggestedSection
                     overdueSection
+                    upcomingSection
                 }
                 .padding(.horizontal, horizontalPadding)
                 .padding(.vertical, 12)
             }
             .navigationTitle("今日")
             .overlay {
-                if store.focusTodos.isEmpty && store.suggestedTodos.isEmpty && store.overdueTodos.isEmpty {
+                if store.focusTodos.isEmpty && store.suggestedTodos.isEmpty && store.overdueTodos.isEmpty && store.upcomingTodos.isEmpty {
                     EmptyStateView(
                         icon: "sun.max.fill",
                         title: "今日无任务",
@@ -80,6 +81,21 @@ struct TodayView: View {
                     .foregroundStyle(.red)
 
                 ForEach(store.overdueTodos, id: \.id) { todo in
+                    TodoListCard(todo: todo)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var upcomingSection: some View {
+        if !store.upcomingTodos.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("即将到来")
+                    .font(.system(.title3, design: .rounded, weight: .bold))
+                    .foregroundStyle(.blue)
+
+                ForEach(store.upcomingTodos, id: \.id) { todo in
                     TodoListCard(todo: todo)
                 }
             }

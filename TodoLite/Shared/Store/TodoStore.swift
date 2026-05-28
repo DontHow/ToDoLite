@@ -47,6 +47,24 @@ final class TodoStore {
             }
     }
 
+    var upcomingTodos: [TodoItem] {
+        let ids = Set(focusSet.taskIds)
+        let calendar = Calendar.current
+        let todayStart = calendar.startOfDay(for: Date())
+        let tomorrowStart = calendar.date(byAdding: .day, value: 1, to: todayStart)!
+        return todos
+            .filter {
+                $0.status != .done && $0.status != .archived &&
+                !ids.contains($0.id) &&
+                ($0.dueAt.map { $0 >= tomorrowStart } ?? false)
+            }
+            .sorted {
+                let d0 = $0.dueAt ?? .distantFuture
+                let d1 = $1.dueAt ?? .distantFuture
+                return d0 < d1
+            }
+    }
+
     var inboxTodos: [TodoItem] {
         todos.filter { $0.status == .inbox }
     }
