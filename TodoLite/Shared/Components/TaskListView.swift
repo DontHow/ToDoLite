@@ -18,6 +18,7 @@ struct TaskListView: View {
     let title: String
     let todos: [TodoItem]
     var emptyPlaceholder: String? = nil
+    var accentColor: Color? = nil
     var onDrop: ((String) -> Bool)? = nil
     var isDraggable: Bool = false
 
@@ -43,13 +44,14 @@ struct TaskListView: View {
         HStack(spacing: 8) {
             Text(title)
                 .font(.body.weight(.bold))
+                .foregroundStyle(accentColor != nil ? accentColor! : .primary)
 
             Text("\(todos.count)")
                 .font(.callout.weight(.semibold))
-                .foregroundStyle(Color.labelSecondary)
+                .foregroundStyle(accentColor != nil ? accentColor! : Color.labelSecondary)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(Color.chipBackground)
+                .background(accentColor?.opacity(0.2) ?? Color.chipBackground)
                 .clipShape(Capsule())
 
             Spacer()

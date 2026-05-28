@@ -77,7 +77,7 @@ struct TodoRowView: View {
             .foregroundStyle(.orange)
             .padding(.horizontal, 5)
             .padding(.vertical, 1)
-            .background(Color.orange.opacity(0.12))
+            .background(Color.today)
             .clipShape(Capsule())
         }
     }
@@ -121,13 +121,23 @@ struct TodoRowView: View {
             .foregroundStyle(.green)
             .layoutPriority(0)
         } else if let due = todo.dueAt {
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: Date())
+            let dueDay = calendar.startOfDay(for: due)
+            let isOverdue = dueDay < today
+            let isUpcoming = dueDay > today
+
             HStack(spacing: 3) {
                 Image(systemName: "calendar")
                     .imageScale(.small)
                 Text(relativeDateString(due))
             }
             .font(.caption)
-            .foregroundStyle(due < Date() ? .red : Color.labelSecondary)
+            .foregroundStyle(isOverdue ? .red : (isUpcoming ? .blue : .orange))
+            .padding(.horizontal, 5)
+            .padding(.vertical, 1)
+            .background(isOverdue ? Color.overdue : (isUpcoming ? Color.upcoming : Color.today))
+            .clipShape(Capsule())
             .layoutPriority(0)
         }
     }

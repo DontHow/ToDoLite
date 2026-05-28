@@ -40,4 +40,8 @@ extension Color {
         Color(nsColor: .separatorColor)
         #endif
     }
+
+    static var today: Color { Color(hex: "FFF3E0") }
+    static var overdue: Color { Color(hex: "FFEBEE") }
+    static var upcoming: Color { Color(hex: "E3F2FD") }
 }
