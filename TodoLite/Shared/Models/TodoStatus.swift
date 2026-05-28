@@ -1,4 +1,4 @@
-import Foundation
+import SwiftUI
 
 enum TodoStatus: String, Codable, CaseIterable, Sendable {
     case inbox
@@ -14,6 +14,16 @@ enum TodoStatus: String, Codable, CaseIterable, Sendable {
         case .waiting: return "等待中"
         case .done: return "已完成"
         case .archived: return "已归档"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .inbox: return Color(hex: "57BAEC")
+        case .doing: return Color(hex: "F7E8DF")
+        case .waiting: return Color(hex: "E6E6F9")
+        case .done: return Color(hex: "E6F9F2")
+        case .archived: return Color(hex: "8E8E93")
         }
     }
 
