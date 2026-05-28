@@ -7,13 +7,9 @@ struct InboxView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 16) {
-                    ForEach(store.inboxTodos) { todo in
-                        TodoListCard(todo: todo)
-                    }
-                }
-                .padding(.horizontal, horizontalPadding)
-                .padding(.vertical, 12)
+                TaskListView(title: "收件箱", todos: store.inboxTodos)
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.vertical, 12)
             }
             .navigationTitle("收件箱")
             .overlay {

@@ -42,6 +42,7 @@
 		62716AEC079E9124AF64D220 /* CreateTodoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18EE9C51AE20DF1BAC0069E1 /* CreateTodoView.swift */; };
 		67D70AC2E92026E42D3220DC /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51073436F257944285022BD0 /* BoardView.swift */; };
 		6A148D6720CDAFF37E9AC23F /* TagChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56153883BE64735ACEDFBC10 /* TagChip.swift */; };
+		6AAC0E640B83D121DBE8EF8D /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39B79AA7F14F6979D111CB0F /* TaskListView.swift */; };
 		6ADB556256F9CFC61EE9C9AD /* iCloudSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B501D4D1D28A54C7A5080B09 /* iCloudSyncManager.swift */; };
 		6BF996935ACFF26441D7F33A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 66A275836D28D6C960D88297 /* Assets.xcassets */; };
 		6C35BD0FCE65145E570D096C /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEE5F5940212BD4F58BDD6A /* MenuBarView.swift */; };
@@ -87,6 +88,7 @@
 		BB3000DA3A611C970DA51097 /* DateResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 332963835BF72C1DDE664C6B /* DateResolver.swift */; };
 		BCEEEB88CBE356AE1C17F094 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06BD850587D1946851753EE9 /* ContentView.swift */; };
 		BE3B0324FE9E0BB2526D9EFB /* FileSystemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 591876A8C1E05923A74007CC /* FileSystemManager.swift */; };
+		C183E707E51F9D96109BE9B3 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39B79AA7F14F6979D111CB0F /* TaskListView.swift */; };
 		C1BA6B53F3D27DC25824EE76 /* LLMConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47348D9F74ADF47481480C95 /* LLMConfigView.swift */; };
 		C2D06F8E004DF2C42FCFB9E2 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4EDBB35E1745B841F9B42FC /* EmptyStateView.swift */; };
 		C74E95BA62B38DA990403F50 /* InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968D595707EE1B458C51B894 /* InboxView.swift */; };
@@ -138,6 +140,7 @@
 		2C65ED265146396081DC3DCA /* ProjectListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectListView.swift; sourceTree = "<group>"; };
 		332963835BF72C1DDE664C6B /* DateResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateResolver.swift; sourceTree = "<group>"; };
 		34A5EF9CBAF44C3D6C4D00D7 /* TagRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagRepository.swift; sourceTree = "<group>"; };
+		39B79AA7F14F6979D111CB0F /* TaskListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListView.swift; sourceTree = "<group>"; };
 		40A7770E7A373D027A21350C /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		44784981DFAADC089A4228E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		44D839C94A9DCCAF68DC0AB6 /* LLMParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMParser.swift; sourceTree = "<group>"; };
@@ -387,6 +390,7 @@
 				40A7770E7A373D027A21350C /* FlowLayout.swift */,
 				08467824F9AEE596573144BF /* OptionRow.swift */,
 				56153883BE64735ACEDFBC10 /* TagChip.swift */,
+				39B79AA7F14F6979D111CB0F /* TaskListView.swift */,
 				B51B86C342398905573268BD /* TodoListCard.swift */,
 			);
 			path = Components;
@@ -655,6 +659,7 @@
 				6E7029CE19DC0210AD9E6E2F /* TagItem.swift in Sources */,
 				E3B3D6788A7564434E41D0E8 /* TagListView.swift in Sources */,
 				0DA220143A3C1D3D4F07DFB3 /* TagRepository.swift in Sources */,
+				6AAC0E640B83D121DBE8EF8D /* TaskListView.swift in Sources */,
 				0DE8DCD851B25BD082C546D7 /* TodayView.swift in Sources */,
 				5A192E9E392FA9AB8685258E /* TodoDetailView.swift in Sources */,
 				410AA9069634C37DB8CE2CAB /* TodoDraft.swift in Sources */,
@@ -727,6 +732,7 @@
 				121CDCCBF9E28A3B25554F29 /* TagItem.swift in Sources */,
 				F48B028F73DA245CE6320B98 /* TagListView.swift in Sources */,
 				2AA20DFB33D1BE4208F4C901 /* TagRepository.swift in Sources */,
+				C183E707E51F9D96109BE9B3 /* TaskListView.swift in Sources */,
 				7AC4A1FA4567F1772E3BFB86 /* TodayView.swift in Sources */,
 				E5473CAFBD81516762635F2C /* TodoDetailView.swift in Sources */,
 				572453C5D03D521DBE968435 /* TodoDraft.swift in Sources */,

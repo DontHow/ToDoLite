@@ -43,58 +43,28 @@ struct TodayView: View {
     @ViewBuilder
     private var focusSection: some View {
         if !store.focusTodos.isEmpty {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Focus")
-                    .font(.system(.title3, design: .rounded, weight: .bold))
-
-                ForEach(store.focusTodos) { todo in
-                    TodoListCard(todo: todo)
-                }
-            }
+            TaskListView(title: "Focus", todos: store.focusTodos)
         }
     }
 
     @ViewBuilder
     private var suggestedSection: some View {
         if !store.suggestedTodos.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Suggested")
-                    .font(.system(.title3, design: .rounded, weight: .bold))
-
-                ForEach(store.suggestedTodos, id: \.id) { todo in
-                    TodoListCard(todo: todo)
-                }
-            }
+            TaskListView(title: "Suggested", todos: store.suggestedTodos)
         }
     }
 
     @ViewBuilder
     private var overdueSection: some View {
         if !store.overdueTodos.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Overdue")
-                    .font(.system(.title3, design: .rounded, weight: .bold))
-                    .foregroundStyle(.red)
-
-                ForEach(store.overdueTodos, id: \.id) { todo in
-                    TodoListCard(todo: todo)
-                }
-            }
+            TaskListView(title: "Overdue", todos: store.overdueTodos)
         }
     }
 
     @ViewBuilder
     private var upcomingSection: some View {
         if !store.upcomingTodos.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("即将到来")
-                    .font(.system(.title3, design: .rounded, weight: .bold))
-                    .foregroundStyle(.blue)
-
-                ForEach(store.upcomingTodos, id: \.id) { todo in
-                    TodoListCard(todo: todo)
-                }
-            }
+            TaskListView(title: "即将到来", todos: store.upcomingTodos)
         }
     }
 

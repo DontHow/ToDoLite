@@ -6,13 +6,9 @@ struct ArchiveView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 16) {
-                    ForEach(store.todos.filter { $0.status == .archived }) { todo in
-                        TodoListCard(todo: todo)
-                    }
-                }
-                .padding(.horizontal, horizontalPadding)
-                .padding(.vertical, 12)
+                TaskListView(title: "已归档", todos: store.todos.filter { $0.status == .archived })
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.vertical, 12)
             }
             .navigationTitle("已归档")
             .overlay {

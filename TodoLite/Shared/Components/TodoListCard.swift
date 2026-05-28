@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TodoListCard: View {
     let todo: TodoItem
+    var isDraggable: Bool = false
 
     var body: some View {
         NavigationLink(destination: TodoDetailView(todo: todo)) {
@@ -21,5 +22,6 @@ struct TodoListCard: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(CardButtonStyle())
+        .draggable(isDraggable ? todo.id : "")
     }
 }
