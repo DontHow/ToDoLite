@@ -23,8 +23,26 @@ struct TaskListView: View {
     var isDraggable: Bool = false
 
     @State private var store = TodoStore.shared
-    @State private var grouping: TaskGrouping = .none
+    @State private var grouping: TaskGrouping
     @State private var isTargeted = false
+
+    init(
+        title: String,
+        todos: [TodoItem],
+        emptyPlaceholder: String? = nil,
+        accentColor: Color? = nil,
+        defaultGrouping: TaskGrouping = .none,
+        onDrop: ((String) -> Bool)? = nil,
+        isDraggable: Bool = false
+    ) {
+        self.title = title
+        self.todos = todos
+        self.emptyPlaceholder = emptyPlaceholder
+        self.accentColor = accentColor
+        self.onDrop = onDrop
+        self.isDraggable = isDraggable
+        _grouping = State(initialValue: defaultGrouping)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
