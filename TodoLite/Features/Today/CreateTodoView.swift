@@ -12,6 +12,7 @@ struct CreateTodoView: View {
     @State private var isParsingLLM = false
     @State private var llmError: String?
     @Environment(\.dismiss) private var dismiss
+    @FocusState private var isTitleFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -31,6 +32,11 @@ struct CreateTodoView: View {
                     .padding(.horizontal, 20)
                 }
                 .scrollDismissesKeyboard(.interactively)
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        isTitleFocused = true
+                    }
+                }
 
                 saveButtonBar
             }
@@ -106,6 +112,7 @@ struct CreateTodoView: View {
                     .scrollContentBackground(.hidden)
                     .padding(16)
                     .frame(minHeight: 120)
+                    .focused($isTitleFocused)
             }
             .frame(minHeight: 120)
             .onChange(of: title) { _, newValue in
@@ -365,6 +372,7 @@ struct CreateTodoView: View {
             VStack(alignment: .leading, spacing: 12) {
                 TextField("任务标题", text: $title)
                     .font(.body.weight(.semibold))
+                    .focused($isTitleFocused)
 
                 Divider()
 
