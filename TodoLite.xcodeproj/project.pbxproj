@@ -762,7 +762,7 @@
 				CODE_SIGN_ENTITLEMENTS = TodoLite/Resources/TodoLite.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = TodoLite/Resources/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TodoLite;
+				INFOPLIST_KEY_CFBundleDisplayName = "办他";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -792,7 +792,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = "TodoLite/Resources/Info-macOS.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = TodoLite;
+				INFOPLIST_KEY_CFBundleDisplayName = "办他";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -810,7 +810,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = TodoLiteWidget/Widget.entitlements;
 				INFOPLIST_FILE = TodoLiteWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TodoLiteWidget;
+				INFOPLIST_KEY_CFBundleDisplayName = "办他Widget";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -946,7 +946,7 @@
 				CODE_SIGN_ENTITLEMENTS = TodoLite/Resources/TodoLite.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = TodoLite/Resources/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TodoLite;
+				INFOPLIST_KEY_CFBundleDisplayName = "办他";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1014,7 +1014,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = "TodoLite/Resources/Info-macOS.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = TodoLite;
+				INFOPLIST_KEY_CFBundleDisplayName = "办他";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1032,7 +1032,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = TodoLiteWidget/Widget.entitlements;
 				INFOPLIST_FILE = TodoLiteWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = TodoLiteWidget;
+				INFOPLIST_KEY_CFBundleDisplayName = "办他Widget";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

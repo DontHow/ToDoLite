@@ -30,7 +30,7 @@ struct TodoLiteApp: App {
         .defaultSize(width: 1200, height: 800)
 
         #if os(macOS)
-        MenuBarExtra("TodoLite", systemImage: "checklist") {
+        MenuBarExtra("办他", systemImage: "checklist") {
             MenuBarView()
         }
         #endif

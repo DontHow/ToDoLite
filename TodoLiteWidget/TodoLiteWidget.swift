@@ -82,7 +82,7 @@ struct TodoLiteWidget: Widget {
             TodoLiteWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("今日任务")
+        .configurationDisplayName("办他")
         .description("查看今天的待办任务")
         .supportedFamilies([.systemSmall, .systemMedium])
     }

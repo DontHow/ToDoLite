@@ -21,7 +21,7 @@ struct LLMConfigView: View {
                     }
 
                     VStack(spacing: 12) {
-                        TextField("Base URL", text: $baseURL)
+                        TextField("API 地址", text: $baseURL)
                             #if os(iOS)
                             .textInputAutocapitalization(.never)
                             #endif
@@ -29,7 +29,7 @@ struct LLMConfigView: View {
 
                         Divider()
 
-                        SecureField("API Key", text: $apiKey)
+                        SecureField("API 密钥", text: $apiKey)
                             #if os(iOS)
                             .textInputAutocapitalization(.never)
                             #endif
@@ -51,7 +51,7 @@ struct LLMConfigView: View {
                         Spacer()
                     }
 
-                    TextField("Model", text: $model)
+                    TextField("模型名称", text: $model)
                         #if os(iOS)
                         .textInputAutocapitalization(.never)
                         #endif

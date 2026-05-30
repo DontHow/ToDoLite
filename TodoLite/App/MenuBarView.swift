@@ -30,7 +30,7 @@ struct MenuBarView: View {
 
         Divider()
 
-        Button("打开 TodoLite") {
+        Button("打开 办他") {
             openApp()
         }
 
