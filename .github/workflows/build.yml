@@ -7,6 +7,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   build-ios:
     runs-on: macos-latest
@@ -29,12 +32,50 @@ jobs:
         run: |
           xcodebuild -project TodoLite.xcodeproj \
             -scheme TodoLite-macOS \
+            -configuration Release \
             -destination 'platform=macOS' \
+            -derivedDataPath DerivedData \
             clean build
 
       - name: Analyze
+        if: github.event_name == 'pull_request'
         run: |
           xcodebuild -project TodoLite.xcodeproj \
             -scheme TodoLite-macOS \
             -destination 'platform=macOS' \
             analyze
+
+      - name: Package macOS
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          APP_SRC="DerivedData/Build/Products/Release/TodoLite-macOS.app"
+          hdiutil create -size 10m -volname "办他" -fs HFS+ -o TodoLite-temp.dmg
+          MOUNT=$(hdiutil attach TodoLite-temp.dmg | grep -o '/Volumes/.*')
+          cp -R "$APP_SRC" "$MOUNT/TodoLite.app"
+          ln -s /Applications "$MOUNT/Applications"
+          hdiutil detach "$MOUNT"
+          hdiutil convert TodoLite-temp.dmg -format UDZO -o TodoLite.dmg
+          rm -f TodoLite-temp.dmg
+
+      - name: Upload artifact
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: TodoLite-macOS
+          path: TodoLite.dmg
+
+  release:
+    needs: [build-ios, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: TodoLite-macOS
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: TodoLite.dmg
+          generate_release_notes: true
