@@ -36,6 +36,7 @@ struct TodayView: View {
             }
             .sheet(isPresented: $showingCreate) {
                 CreateTodoView()
+                    .presentationDetents([.large])
             }
         }
     }

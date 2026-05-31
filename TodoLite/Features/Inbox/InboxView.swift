@@ -31,6 +31,7 @@ struct InboxView: View {
             }
             .sheet(isPresented: $showingCreate) {
                 CreateTodoView()
+                    .presentationDetents([.large])
             }
         }
     }

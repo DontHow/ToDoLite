@@ -53,6 +53,25 @@ struct TaskListView: View {
             Divider().padding(.horizontal, 12)
             content
         }
+        .background(
+            EllipticalGradient(
+                gradient: Gradient(stops: [
+                    Gradient.Stop(color: Color.cardBackground, location: 0.0),
+                    Gradient.Stop(color: Color.cardBackground, location: 0.45),
+                    Gradient.Stop(color: (accentTheme?.softBackground ?? Color.cardBackground).opacity(0.55), location: 0.72),
+                    Gradient.Stop(color: (accentTheme?.softBackground ?? Color.cardBackground).opacity(0.85), location: 0.86),
+                    Gradient.Stop(color: (accentTheme?.primaryText ?? accentColor ?? Color.separatorColor).opacity(0.35), location: 1.0),
+                ]),
+                center: .center,
+                startRadiusFraction: 0,
+                endRadiusFraction: 1.2
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(accentTheme?.primaryText ?? accentColor ?? Color.separatorColor, lineWidth: 1.5)
+        )
         .dropDestination(for: String.self) { items, location in
             guard let id = items.first, let drop = onDrop else { return false }
             return drop(id)

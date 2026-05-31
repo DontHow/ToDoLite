@@ -6,7 +6,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(alignment: .leading, spacing: 20) {
                     settingsSection(title: "外观") {
                         fontSizeRow
                     }
@@ -21,15 +21,16 @@ struct SettingsView: View {
                     settingsSection(title: "关于") {
                         HStack {
                             Text("版本")
-                            Spacer()
-                            Text("1.0.0")
-                                .foregroundStyle(Color.labelSecondary)
+                            Spacer(minLength: 0)
+                            Text(appVersion)
+                                .foregroundStyle(.secondary)
                         }
                         .padding(16)
                         .background(Color.cardBackground)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, horizontalPadding)
                 .padding(.vertical, 12)
             }
@@ -42,7 +43,11 @@ struct SettingsView: View {
             Text("字体大小")
                 .font(.body.weight(.medium))
                 .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .layoutPriority(1)
+
             Spacer()
+
             HStack(spacing: 8) {
                 Button {
                     let minLevel = FontSizeOption.allCases.map(\.rawValue).min() ?? 0
@@ -60,7 +65,7 @@ struct SettingsView: View {
                     .font(.body.weight(.medium))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
-                    .frame(minWidth: 44, alignment: .center)
+                    .frame(minWidth: 36, alignment: .center)
 
                 Button {
                     let maxLevel = FontSizeOption.allCases.map(\.rawValue).max() ?? 0
@@ -74,8 +79,8 @@ struct SettingsView: View {
                 }
                 .buttonStyle(.plain)
             }
-            .fixedSize(horizontal: true, vertical: false)
         }
+        .frame(maxWidth: .infinity)
         .padding(16)
         .background(Color.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -86,11 +91,14 @@ struct SettingsView: View {
             Text(title)
                 .font(.system(.title3, design: .rounded, weight: .bold))
                 .lineLimit(1)
+                .minimumScaleFactor(0.8)
                 .padding(.horizontal, 4)
-            VStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 8) {
                 content()
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func settingsRow(icon: String, iconColor: Color, label: String) -> some View {
@@ -106,10 +114,15 @@ struct SettingsView: View {
                 .font(.callout)
                 .foregroundStyle(Color.labelSecondary)
         }
+        .frame(maxWidth: .infinity)
         .padding(16)
         .background(Color.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .contentShape(Rectangle())
+    }
+
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
     }
 
     private var horizontalPadding: CGFloat {

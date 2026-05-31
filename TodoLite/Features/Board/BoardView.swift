@@ -42,6 +42,7 @@ struct BoardView: View {
             }
             .sheet(isPresented: $showingCreate) {
                 CreateTodoView()
+                    .presentationDetents([.large])
             }
         }
     }

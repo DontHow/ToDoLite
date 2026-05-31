@@ -9,8 +9,7 @@ struct ContentView: View {
     }
 
     private var detailView: some View {
-        let scale = FontSizeOption(level: store.fontSizeLevel)?.scale ?? 1.0
-        return Group {
+        Group {
             switch selectedTab {
             case .today: TodayView()
             case .inbox: InboxView()
@@ -23,7 +22,6 @@ struct ContentView: View {
             case .tags: TagListView()
             }
         }
-        .scaleEffect(scale, anchor: .topLeading)
     }
 
     var body: some View {
@@ -34,6 +32,7 @@ struct ContentView: View {
         } detail: {
             detailView
         }
+        .dynamicTypeSize(fontSize)
         .onKeyPress(characters: .init(charactersIn: "1")) { press in
             guard press.modifiers == .command else { return .ignored }
             selectedTab = .today
