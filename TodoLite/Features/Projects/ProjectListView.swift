@@ -11,7 +11,8 @@ struct ProjectListView: View {
                 ForEach(store.projects) { project in
                     ProjectCard(
                         project: project,
-                        taskCount: store.todos.filter { $0.projectId == project.id }.count
+                        taskCount: store.todos.filter { $0.projectId == project.id }.count,
+                        onEdit: { editingProject = project }
                     )
                     .contextMenu {
                         Button {
@@ -70,15 +71,11 @@ struct ProjectListView: View {
 private struct ProjectCard: View {
     let project: Project
     let taskCount: Int
-    @State private var isHovering = false
+    let onEdit: () -> Void
 
     var body: some View {
         HStack(spacing: 14) {
-            Text(project.emoji)
-                .font(.system(size: 28))
-                .frame(width: 44, height: 44)
-                .background(Color.cardBackgroundTertiary)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+            ProjectIcon(colorHex: project.colorHex, size: 44, cornerRadius: 12)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(project.name)
@@ -99,28 +96,22 @@ private struct ProjectCard: View {
 
             Spacer()
 
-            HStack(spacing: 8) {
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(Color(hex: project.colorHex))
-                    .frame(width: 4, height: 28)
-
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.labelSecondary)
-            }
-
-            #if os(macOS)
             Button {
                 Task { try? await TodoStore.shared.deleteProject(id: project.id) }
             } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    Image(systemName: "trash.fill")
+                        .font(.body)
+                    Text("删除")
+                        .font(.caption.weight(.medium))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.red)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
-            .opacity(isHovering ? 1 : 0)
-            .animation(.easeInOut(duration: 0.15), value: isHovering)
-            #endif
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -134,9 +125,7 @@ private struct ProjectCard: View {
                 .stroke(Color.separatorColor.opacity(0.5), lineWidth: 0.5)
         )
         .contentShape(Rectangle())
-        .onHover { hovering in
-            isHovering = hovering
-        }
+        .onTapGesture(perform: onEdit)
     }
 }
 
@@ -145,17 +134,11 @@ private struct ProjectCard: View {
 private struct ProjectEditorView: View {
     @State private var store = TodoStore.shared
     @State private var name = ""
-    @State private var selectedEmoji = "📁"
     @State private var selectedColor = "#007AFF"
     @Environment(\.dismiss) private var dismiss
 
     var project: Project? = nil
     var isEditing: Bool { project != nil }
-
-    private let presetEmojis = [
-        "📁", "💼", "🏠", "🎓", "✈️", "🛒", "💰", "🏋️",
-        "🎨", "🎵", "📚", "💻", "🌱", "🔧", "📝", "🎯"
-    ]
 
     private let presetColors: [String] = [
         "#FF3B30", "#FF9500", "#FFCC00", "#4CD964",
@@ -167,7 +150,6 @@ private struct ProjectEditorView: View {
         self.project = project
         if let project = project {
             _name = State(initialValue: project.name)
-            _selectedEmoji = State(initialValue: project.emoji)
             _selectedColor = State(initialValue: project.colorHex)
         }
     }
@@ -178,7 +160,6 @@ private struct ProjectEditorView: View {
                 VStack(spacing: 24) {
                     previewSection
                     nameSection
-                    emojiSection
                     colorSection
                 }
                 .padding(.horizontal, 20)
@@ -198,11 +179,10 @@ private struct ProjectEditorView: View {
                             if let project = project {
                                 var updated = project
                                 updated.name = name
-                                updated.emoji = selectedEmoji
                                 updated.colorHex = selectedColor
                                 try? await store.updateProject(updated)
                             } else {
-                                try? await store.createProject(name: name, emoji: selectedEmoji, colorHex: selectedColor)
+                                try? await store.createProject(name: name, colorHex: selectedColor)
                             }
                             dismiss()
                         }
@@ -215,11 +195,7 @@ private struct ProjectEditorView: View {
 
     private var previewSection: some View {
         HStack(spacing: 14) {
-            Text(selectedEmoji)
-                .font(.system(size: 32))
-                .frame(width: 52, height: 52)
-                .background(Color.cardBackgroundTertiary)
-                .clipShape(RoundedRectangle(cornerRadius: 14))
+            ProjectIcon(colorHex: selectedColor, size: 52, cornerRadius: 14)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(name.isEmpty ? "预览" : name)
@@ -257,54 +233,6 @@ private struct ProjectEditorView: View {
 
             TextField("输入项目名称", text: $name)
                 .font(.body.weight(.semibold))
-        }
-        .padding(18)
-        .background(Color.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-    }
-
-    private var emojiSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                Image(systemName: "face.smiling")
-                    .foregroundStyle(.primary)
-                    .font(.body)
-                    .symbolRenderingMode(.hierarchical)
-                Text("图标")
-                    .font(.callout.weight(.medium))
-            }
-
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 48))], spacing: 12) {
-                ForEach(presetEmojis, id: \.self) { emoji in
-                    Button {
-                        withAnimation(.spring(duration: 0.25)) {
-                            selectedEmoji = emoji
-                        }
-                    } label: {
-                        Text(emoji)
-                            .font(.system(size: 24))
-                            .frame(width: 48, height: 48)
-                            .background(
-                                selectedEmoji == emoji
-                                ? Color(hex: selectedColor).opacity(0.15)
-                                : Color.cardBackgroundTertiary
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(
-                                        selectedEmoji == emoji
-                                        ? Color(hex: selectedColor)
-                                        : Color.clear,
-                                        lineWidth: 2
-                                    )
-                            )
-                    }
-                    .buttonStyle(.plain)
-                    .scaleEffect(selectedEmoji == emoji ? 1.05 : 1.0)
-                    .animation(.spring(duration: 0.25), value: selectedEmoji)
-                }
-            }
         }
         .padding(18)
         .background(Color.cardBackground)
@@ -350,5 +278,24 @@ private struct ProjectEditorView: View {
         .padding(18)
         .background(Color.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 18))
+    }
+}
+
+private struct ProjectIcon: View {
+    let colorHex: String
+    let size: CGFloat
+    let cornerRadius: CGFloat
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color(hex: colorHex).opacity(0.16))
+
+            Image(systemName: "folder.fill")
+                .font(.system(size: size * 0.43, weight: .semibold))
+                .foregroundStyle(Color(hex: colorHex))
+                .symbolRenderingMode(.hierarchical)
+        }
+        .frame(width: size, height: size)
     }
 }

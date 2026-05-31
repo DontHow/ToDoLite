@@ -11,7 +11,8 @@ struct TagListView: View {
                 ForEach(store.tags) { tag in
                     TagCard(
                         tag: tag,
-                        taskCount: store.todos.filter { $0.tagIds.contains(tag.id) }.count
+                        taskCount: store.todos.filter { $0.tagIds.contains(tag.id) }.count,
+                        onEdit: { editingTag = tag }
                     )
                     .contextMenu {
                         Button {
@@ -35,7 +36,7 @@ struct TagListView: View {
         .overlay {
             if store.tags.isEmpty {
                 EmptyStateView(
-                    icon: "number",
+                    icon: "tag.fill",
                     title: "暂无标签",
                     subtitle: "点击右上角 + 创建标签"
                 )
@@ -70,19 +71,11 @@ struct TagListView: View {
 private struct TagCard: View {
     let tag: TagItem
     let taskCount: Int
-    @State private var isHovering = false
+    let onEdit: () -> Void
 
     var body: some View {
         HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(hex: tag.colorHex).opacity(0.15))
-                    .frame(width: 44, height: 44)
-
-                Image(systemName: "number")
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(Color(hex: tag.colorHex))
-            }
+            TagIcon(colorHex: tag.colorHex, size: 44, cornerRadius: 12)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(tag.name)
@@ -101,28 +94,22 @@ private struct TagCard: View {
 
             Spacer()
 
-            HStack(spacing: 8) {
-                Circle()
-                    .fill(Color(hex: tag.colorHex))
-                    .frame(width: 10, height: 10)
-
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.labelSecondary)
-            }
-
-            #if os(macOS)
             Button {
                 Task { try? await TodoStore.shared.deleteTag(id: tag.id) }
             } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    Image(systemName: "trash.fill")
+                        .font(.body)
+                    Text("删除")
+                        .font(.caption.weight(.medium))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.red)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
-            .opacity(isHovering ? 1 : 0)
-            .animation(.easeInOut(duration: 0.15), value: isHovering)
-            #endif
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -136,9 +123,7 @@ private struct TagCard: View {
                 .stroke(Color.separatorColor.opacity(0.5), lineWidth: 0.5)
         )
         .contentShape(Rectangle())
-        .onHover { hovering in
-            isHovering = hovering
-        }
+        .onTapGesture(perform: onEdit)
     }
 }
 
@@ -208,15 +193,7 @@ private struct TagEditorView: View {
 
     private var previewSection: some View {
         HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(hex: selectedColor).opacity(0.15))
-                    .frame(width: 44, height: 44)
-
-                Image(systemName: "number")
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(Color(hex: selectedColor))
-            }
+            TagIcon(colorHex: selectedColor, size: 44, cornerRadius: 12)
 
             Text(name.isEmpty ? "预览" : name)
                 .font(.body.weight(.semibold))
@@ -293,5 +270,24 @@ private struct TagEditorView: View {
         .padding(18)
         .background(Color.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 18))
+    }
+}
+
+private struct TagIcon: View {
+    let colorHex: String
+    let size: CGFloat
+    let cornerRadius: CGFloat
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color(hex: colorHex).opacity(0.16))
+
+            Image(systemName: "tag.fill")
+                .font(.system(size: size * 0.42, weight: .semibold))
+                .foregroundStyle(Color(hex: colorHex))
+                .symbolRenderingMode(.hierarchical)
+        }
+        .frame(width: size, height: size)
     }
 }
