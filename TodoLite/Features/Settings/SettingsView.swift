@@ -2,6 +2,9 @@ import SwiftUI
 
 struct SettingsView: View {
     @State private var store = TodoStore.shared
+    @State private var isCheckingUpdate = false
+    @State private var updateResult: UpdateChecker.Result?
+    @State private var showUpdateAlert = false
 
     var body: some View {
         NavigationStack {
@@ -19,15 +22,48 @@ struct SettingsView: View {
                     }
 
                     settingsSection(title: "关于") {
-                        HStack {
-                            Text("版本")
-                            Spacer(minLength: 0)
-                            Text(appVersion)
-                                .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("版本")
+                                Spacer(minLength: 0)
+                                Text(appVersion)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(16)
+                            .background(Color.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                            Button {
+                                Task { await performUpdateCheck() }
+                            } label: {
+                                HStack {
+                                    Text("检查更新")
+                                    Spacer(minLength: 0)
+                                    if isCheckingUpdate {
+                                        ProgressView()
+                                            .controlSize(.small)
+                                    } else if let result = updateResult {
+                                        if result.hasUpdate {
+                                            Text("发现新版本 \(result.latestVersion)")
+                                                .foregroundStyle(.blue)
+                                        } else {
+                                            Text("已是最新")
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    } else {
+                                        Image(systemName: "chevron.right")
+                                            .font(.callout)
+                                            .foregroundStyle(Color.labelSecondary)
+                                    }
+                                }
+                                .padding(16)
+                                .background(Color.cardBackground)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(isCheckingUpdate)
                         }
-                        .padding(16)
-                        .background(Color.cardBackground)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -35,6 +71,14 @@ struct SettingsView: View {
                 .padding(.vertical, 12)
             }
             .navigationTitle("设置")
+        }
+        .alert("发现新版本", isPresented: $showUpdateAlert) {
+            Button("前往下载") { openUpdateURL() }
+            Button("取消", role: .cancel) { }
+        } message: {
+            if let result = updateResult {
+                Text("当前版本 \(result.currentVersion)，最新版本 \(result.latestVersion)")
+            }
         }
     }
 
@@ -123,6 +167,25 @@ struct SettingsView: View {
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+    }
+
+    private func performUpdateCheck() async {
+        isCheckingUpdate = true
+        let result = await UpdateChecker.shared.check()
+        isCheckingUpdate = false
+        updateResult = result
+        if result.hasUpdate {
+            showUpdateAlert = true
+        }
+    }
+
+    private func openUpdateURL() {
+        guard let url = updateResult?.downloadURL else { return }
+        #if os(macOS)
+        NSWorkspace.shared.open(url)
+        #else
+        UIApplication.shared.open(url)
+        #endif
     }
 
     private var horizontalPadding: CGFloat {
