@@ -6,7 +6,7 @@ struct ArchiveView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                TaskListView(title: "已归档", todos: store.todos.filter { $0.status == .archived })
+                TaskListView(title: "已归档", todos: store.todos.filter { $0.status == .archived }, accentTheme: .archived)
                     .padding(.horizontal, horizontalPadding)
                     .padding(.vertical, 12)
             }

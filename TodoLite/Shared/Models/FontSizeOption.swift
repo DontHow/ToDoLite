@@ -24,6 +24,17 @@ enum FontSizeOption: Int, CaseIterable, Identifiable {
     }
 
     var dynamicTypeSize: DynamicTypeSize {
+        #if os(macOS)
+        switch self {
+        case .extraSmall: return .xSmall
+        case .small: return .small
+        case .standard: return .medium
+        case .large: return .xLarge
+        case .extraLarge: return .xxLarge
+        case .xxLarge: return .xxxLarge
+        case .xxxLarge: return .accessibility3
+        }
+        #else
         switch self {
         case .extraSmall: return .xSmall
         case .small: return .small
@@ -32,6 +43,19 @@ enum FontSizeOption: Int, CaseIterable, Identifiable {
         case .extraLarge: return .xLarge
         case .xxLarge: return .xxLarge
         case .xxxLarge: return .xxxLarge
+        }
+        #endif
+    }
+
+    var scale: CGFloat {
+        switch self {
+        case .extraSmall: return 0.82
+        case .small: return 0.90
+        case .standard: return 1.0
+        case .large: return 1.10
+        case .extraLarge: return 1.20
+        case .xxLarge: return 1.32
+        case .xxxLarge: return 1.45
         }
     }
 

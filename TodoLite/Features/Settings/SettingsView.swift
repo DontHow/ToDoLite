@@ -41,6 +41,7 @@ struct SettingsView: View {
         HStack {
             Text("字体大小")
                 .font(.body.weight(.medium))
+                .lineLimit(1)
             Spacer()
             HStack(spacing: 8) {
                 Button {
@@ -48,7 +49,7 @@ struct SettingsView: View {
                     store.fontSizeLevel = max(minLevel, store.fontSizeLevel - 1)
                 } label: {
                     Image(systemName: "minus")
-                        .font(.body.weight(.semibold))
+                        .font(.system(size: 14, weight: .semibold))
                         .frame(width: 28, height: 28)
                         .background(Color.chipBackground)
                         .clipShape(Circle())
@@ -57,6 +58,8 @@ struct SettingsView: View {
 
                 Text(FontSizeOption(level: store.fontSizeLevel)?.displayName ?? "标准")
                     .font(.body.weight(.medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                     .frame(minWidth: 44, alignment: .center)
 
                 Button {
@@ -64,13 +67,14 @@ struct SettingsView: View {
                     store.fontSizeLevel = min(maxLevel, store.fontSizeLevel + 1)
                 } label: {
                     Image(systemName: "plus")
-                        .font(.body.weight(.semibold))
+                        .font(.system(size: 14, weight: .semibold))
                         .frame(width: 28, height: 28)
                         .background(Color.chipBackground)
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
             }
+            .fixedSize(horizontal: true, vertical: false)
         }
         .padding(16)
         .background(Color.cardBackground)
@@ -81,6 +85,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.system(.title3, design: .rounded, weight: .bold))
+                .lineLimit(1)
                 .padding(.horizontal, 4)
             VStack(spacing: 8) {
                 content()

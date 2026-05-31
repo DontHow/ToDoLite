@@ -15,14 +15,16 @@ enum TodoStatus: String, Codable, CaseIterable, Sendable {
         }
     }
 
-    var color: Color {
+    var theme: SectionTheme {
         switch self {
-        case .inbox: return Color(hex: "A8D8F0")
-        case .doing: return Color(hex: "F7E8DF")
-        case .done: return Color(hex: "E6F9F2")
-        case .archived: return Color(hex: "8E8E93")
+        case .inbox: return .inbox
+        case .doing: return .doing
+        case .done: return .done
+        case .archived: return .archived
         }
     }
+
+    var color: Color { theme.background }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()

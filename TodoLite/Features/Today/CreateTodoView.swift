@@ -495,10 +495,10 @@ struct CreateTodoView: View {
         } label: {
             Text(s.displayName)
                 .font(.subheadline.weight(edited.status == s ? .semibold : .regular))
-                .foregroundStyle(.primary)
+                .foregroundStyle(edited.status == s ? s.theme.onBackground : s.theme.secondaryText)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(edited.status == s ? s.color : Color.chipBackground)
+                .background(edited.status == s ? s.theme.background : s.theme.softBackground)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)

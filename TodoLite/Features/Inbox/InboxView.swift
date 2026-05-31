@@ -7,7 +7,7 @@ struct InboxView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                TaskListView(title: "收件箱", todos: store.inboxTodos)
+                TaskListView(title: "收件箱", todos: store.inboxTodos, accentTheme: .inbox)
                     .padding(.horizontal, horizontalPadding)
                     .padding(.vertical, 12)
             }

@@ -19,6 +19,7 @@ struct TaskListView: View {
     let todos: [TodoItem]
     var emptyPlaceholder: String? = nil
     var accentColor: Color? = nil
+    var accentTheme: SectionTheme? = nil
     var onDrop: ((String) -> Bool)? = nil
     var isDraggable: Bool = false
 
@@ -31,6 +32,7 @@ struct TaskListView: View {
         todos: [TodoItem],
         emptyPlaceholder: String? = nil,
         accentColor: Color? = nil,
+        accentTheme: SectionTheme? = nil,
         defaultGrouping: TaskGrouping = .none,
         onDrop: ((String) -> Bool)? = nil,
         isDraggable: Bool = false
@@ -39,6 +41,7 @@ struct TaskListView: View {
         self.todos = todos
         self.emptyPlaceholder = emptyPlaceholder
         self.accentColor = accentColor
+        self.accentTheme = accentTheme
         self.onDrop = onDrop
         self.isDraggable = isDraggable
         _grouping = State(initialValue: defaultGrouping)
@@ -62,14 +65,14 @@ struct TaskListView: View {
         HStack(spacing: 8) {
             Text(title)
                 .font(.body.weight(.bold))
-                .foregroundStyle(.primary)
+                .foregroundStyle(accentTheme?.primaryText ?? .primary)
 
             Text("\(todos.count)")
                 .font(.callout.weight(.semibold))
-                .foregroundStyle(.primary)
+                .foregroundStyle(accentTheme?.onBackground ?? .primary)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(accentColor ?? Color.chipBackground)
+                .background(accentTheme?.background ?? accentColor ?? Color.chipBackground)
                 .clipShape(Capsule())
 
             Spacer()
@@ -119,7 +122,7 @@ struct TaskListView: View {
                             HStack(spacing: 4) {
                                 Text(group.title)
                                     .font(.callout.weight(.semibold))
-                                    .foregroundStyle(Color.accentColor)
+                                    .foregroundStyle(accentTheme?.secondaryText ?? Color.accentColor)
                                 Spacer()
                             }
                             .padding(.horizontal, 4)
@@ -136,7 +139,7 @@ struct TaskListView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(isTargeted ? Color.accentColor.opacity(0.06) : Color.clear)
+                .fill(isTargeted ? (accentTheme?.softBackground ?? Color.accentColor.opacity(0.06)) : Color.clear)
         )
     }
 

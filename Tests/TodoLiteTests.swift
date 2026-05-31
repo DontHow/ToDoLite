@@ -100,9 +100,29 @@ final class TodoLiteTests: XCTestCase {
     func testStatusDisplayNames() {
         XCTAssertEqual(TodoStatus.inbox.displayName, "收件箱")
         XCTAssertEqual(TodoStatus.doing.displayName, "进行中")
-        XCTAssertEqual(TodoStatus.waiting.displayName, "等待中")
         XCTAssertEqual(TodoStatus.done.displayName, "已完成")
         XCTAssertEqual(TodoStatus.archived.displayName, "已归档")
+    }
+
+    func testSectionThemePaletteHexValues() {
+        XCTAssertEqual(SectionTheme.today.backgroundHex, "#F97316")
+        XCTAssertEqual(SectionTheme.today.onBackgroundHex, "#FFFFFF")
+        XCTAssertEqual(SectionTheme.today.primaryTextHex, "#C2410C")
+        XCTAssertEqual(SectionTheme.today.secondaryTextHex, "#EA580C")
+        XCTAssertEqual(SectionTheme.today.softBackgroundHex, "#FFF7ED")
+
+        XCTAssertEqual(SectionTheme.upcoming.backgroundHex, "#2563EB")
+        XCTAssertEqual(SectionTheme.inbox.backgroundHex, "#6366F1")
+        XCTAssertEqual(SectionTheme.doing.backgroundHex, "#0D9488")
+        XCTAssertEqual(SectionTheme.done.backgroundHex, "#16A34A")
+        XCTAssertEqual(SectionTheme.archived.backgroundHex, "#64748B")
+    }
+
+    func testTodoStatusUsesSectionThemes() {
+        XCTAssertEqual(TodoStatus.inbox.theme, .inbox)
+        XCTAssertEqual(TodoStatus.doing.theme, .doing)
+        XCTAssertEqual(TodoStatus.done.theme, .done)
+        XCTAssertEqual(TodoStatus.archived.theme, .archived)
     }
 
     // MARK: - DateResolver Edge Cases
@@ -271,13 +291,11 @@ final class TodoLiteTests: XCTestCase {
         store.todos = [
             TodoItem(title: "进行中", status: .doing),
             TodoItem(title: "已完成", status: .done),
-            TodoItem(title: "等待中", status: .waiting),
             TodoItem(title: "已归档", status: .archived),
             TodoItem(title: "收件箱", status: .inbox),
         ]
-        XCTAssertEqual(store.activeTodos.count, 3)
+        XCTAssertEqual(store.activeTodos.count, 2)
         XCTAssertTrue(store.activeTodos.contains { $0.title == "进行中" })
-        XCTAssertTrue(store.activeTodos.contains { $0.title == "等待中" })
         XCTAssertTrue(store.activeTodos.contains { $0.title == "收件箱" })
     }
 
@@ -295,13 +313,11 @@ final class TodoLiteTests: XCTestCase {
         let store = TodoStore()
         let doing = TodoItem(title: "进行中", status: .doing)
         let done = TodoItem(title: "已完成", status: .done, completedAt: Date())
-        let waiting = TodoItem(title: "等待中", status: .waiting)
 
-        store.todos = [doing, done, waiting]
+        store.todos = [doing, done]
 
         XCTAssertEqual(store.todos[0].status, .doing)
         XCTAssertEqual(store.todos[1].status, .done)
-        XCTAssertEqual(store.todos[2].status, .waiting)
 
         // doing -> done
         var m1 = store.todos[0]
@@ -326,18 +342,6 @@ final class TodoLiteTests: XCTestCase {
         }
         XCTAssertEqual(m2.status, .doing)
         XCTAssertNil(m2.completedAt)
-
-        // waiting -> done
-        var m3 = store.todos[2]
-        if m3.status == .done {
-            m3.status = .doing
-            m3.completedAt = nil
-        } else {
-            m3.status = .done
-            m3.completedAt = Date()
-        }
-        XCTAssertEqual(m3.status, .done)
-        XCTAssertNotNil(m3.completedAt)
     }
 
     func testArchiveTodo() {
@@ -362,11 +366,11 @@ final class TodoLiteTests: XCTestCase {
 
         let jsonBlocked = #"{"id":"2","title":"t","description":"","status":"blocked","priority":"medium","tagIds":[],"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
         let decodedBlocked = try decoder.decode(TodoItem.self, from: jsonBlocked)
-        XCTAssertEqual(decodedBlocked.status, .waiting)
+        XCTAssertEqual(decodedBlocked.status, .doing)
 
         let jsonSomeday = #"{"id":"3","title":"t","description":"","status":"someday","priority":"medium","tagIds":[],"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
         let decodedSomeday = try decoder.decode(TodoItem.self, from: jsonSomeday)
-        XCTAssertEqual(decodedSomeday.status, .waiting)
+        XCTAssertEqual(decodedSomeday.status, .doing)
 
         let jsonCancelled = #"{"id":"4","title":"t","description":"","status":"cancelled","priority":"medium","tagIds":[],"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","version":1}"#.data(using: .utf8)!
         let decodedCancelled = try decoder.decode(TodoItem.self, from: jsonCancelled)

@@ -8,12 +8,9 @@ struct ContentView: View {
         case today, inbox, board, search, settings, done, archive, projects, tags
     }
 
-    var body: some View {
-        let fontSize = FontSizeOption(level: store.fontSizeLevel)?.dynamicTypeSize ?? .medium
-        #if os(macOS)
-        NavigationSplitView {
-            Sidebar(selection: $selectedTab)
-        } detail: {
+    private var detailView: some View {
+        let scale = FontSizeOption(level: store.fontSizeLevel)?.scale ?? 1.0
+        return Group {
             switch selectedTab {
             case .today: TodayView()
             case .inbox: InboxView()
@@ -26,7 +23,17 @@ struct ContentView: View {
             case .tags: TagListView()
             }
         }
-        .dynamicTypeSize(fontSize)
+        .scaleEffect(scale, anchor: .topLeading)
+    }
+
+    var body: some View {
+        let fontSize = FontSizeOption(level: store.fontSizeLevel)?.dynamicTypeSize ?? .medium
+        #if os(macOS)
+        NavigationSplitView {
+            Sidebar(selection: $selectedTab)
+        } detail: {
+            detailView
+        }
         .onKeyPress(characters: .init(charactersIn: "1")) { press in
             guard press.modifiers == .command else { return .ignored }
             selectedTab = .today

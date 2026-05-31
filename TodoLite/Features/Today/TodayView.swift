@@ -43,28 +43,28 @@ struct TodayView: View {
     @ViewBuilder
     private var focusSection: some View {
         if !store.focusTodos.isEmpty {
-            TaskListView(title: "关注", todos: store.focusTodos, accentColor: .today, defaultGrouping: .byProject)
+            TaskListView(title: "关注", todos: store.focusTodos, accentTheme: .today, defaultGrouping: .byProject)
         }
     }
 
     @ViewBuilder
     private var suggestedSection: some View {
         if !store.suggestedTodos.isEmpty {
-            TaskListView(title: "建议", todos: store.suggestedTodos, accentColor: .today, defaultGrouping: .byProject)
+            TaskListView(title: "建议", todos: store.suggestedTodos, accentTheme: .today, defaultGrouping: .byProject)
         }
     }
 
     @ViewBuilder
     private var overdueSection: some View {
         if !store.overdueTodos.isEmpty {
-            TaskListView(title: "逾期", todos: store.overdueTodos, accentColor: .overdue, defaultGrouping: .byProject)
+            TaskListView(title: "逾期", todos: store.overdueTodos, accentTheme: .overdue, defaultGrouping: .byProject)
         }
     }
 
     @ViewBuilder
     private var upcomingSection: some View {
         if !store.upcomingTodos.isEmpty {
-            TaskListView(title: "即将到来", todos: store.upcomingTodos, accentColor: .upcoming, defaultGrouping: .byProject)
+            TaskListView(title: "即将到来", todos: store.upcomingTodos, accentTheme: .upcoming, defaultGrouping: .byProject)
         }
     }
 

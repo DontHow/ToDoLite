@@ -20,10 +20,10 @@ struct DoneView: View {
                                 HStack {
                                     Text(group.title)
                                         .font(.system(.callout, design: .rounded, weight: .semibold))
-                                        .foregroundStyle(.primary)
+                                        .foregroundStyle(SectionTheme.done.secondaryText)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
-                                        .background(Color(.tertiarySystemFill))
+                                        .background(SectionTheme.done.softBackground)
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
 
                                     Spacer()
@@ -116,8 +116,8 @@ struct DoneView: View {
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(Color.accentColor.opacity(0.12))
-            .foregroundStyle(Color.accentColor)
+            .background(SectionTheme.done.softBackground)
+            .foregroundStyle(SectionTheme.done.secondaryText)
             .clipShape(RoundedRectangle(cornerRadius: 6))
         }
         .buttonStyle(.plain)

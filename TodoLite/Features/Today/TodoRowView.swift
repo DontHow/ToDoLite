@@ -32,7 +32,7 @@ struct TodoRowView: View {
             Image(systemName: todo.status == .done ? "checkmark.circle.fill" : "circle")
                 .font(.body)
                 .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(todo.status == .done ? .green : Color.labelSecondary)
+                .foregroundStyle(todo.status == .done ? TodoStatus.done.theme.primaryText : Color.labelSecondary)
         }
         .buttonStyle(ScaleButtonStyle())
         .padding(.top, 1)
@@ -74,10 +74,10 @@ struct TodoRowView: View {
                 Text("今日")
             }
             .font(.caption.weight(.medium))
-            .foregroundStyle(.orange)
+            .foregroundStyle(SectionTheme.today.secondaryText)
             .padding(.horizontal, 5)
             .padding(.vertical, 1)
-            .background(Color.today)
+            .background(SectionTheme.today.softBackground)
             .clipShape(Capsule())
         }
     }
@@ -118,7 +118,7 @@ struct TodoRowView: View {
                 Text(completedAt.formatted(.dateTime.month().day()))
             }
             .font(.caption)
-            .foregroundStyle(.green)
+            .foregroundStyle(SectionTheme.done.secondaryText)
             .layoutPriority(0)
         } else if let due = todo.dueAt {
             let calendar = Calendar.current
@@ -133,10 +133,10 @@ struct TodoRowView: View {
                 Text(relativeDateString(due))
             }
             .font(.caption)
-            .foregroundStyle(isOverdue ? .red : (isUpcoming ? .blue : .orange))
+            .foregroundStyle(isOverdue ? .red : (isUpcoming ? SectionTheme.upcoming.secondaryText : SectionTheme.today.secondaryText))
             .padding(.horizontal, 5)
             .padding(.vertical, 1)
-            .background(isOverdue ? Color.overdue : (isUpcoming ? Color.upcoming : Color.today))
+            .background(isOverdue ? Color.overdue : (isUpcoming ? SectionTheme.upcoming.softBackground : SectionTheme.today.softBackground))
             .clipShape(Capsule())
             .layoutPriority(0)
         }
