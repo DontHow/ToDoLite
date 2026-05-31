@@ -25,8 +25,8 @@ targets:
     info:
       path: TodoLite/Resources/Info.plist
       properties:
-        CFBundleVersion: "7"
-        CFBundleShortVersionString: "1.7"
+        CFBundleVersion: "8"
+        CFBundleShortVersionString: "1.8"
         LSRequiresIPhoneOS: YES
     entitlements:
       path: TodoLite/Resources/TodoLite.entitlements
@@ -62,8 +62,8 @@ targets:
     info:
       path: TodoLite/Resources/Info-macOS.plist
       properties:
-        CFBundleVersion: "7"
-        CFBundleShortVersionString: "1.7"
+        CFBundleVersion: "8"
+        CFBundleShortVersionString: "1.8"
         LSMinimumSystemVersion: "14.0"
     entitlements:
       path: TodoLite/Resources/TodoLite-macOS.entitlements
@@ -91,8 +91,8 @@ targets:
     info:
       path: TodoLiteWidget/Info.plist
       properties:
-        CFBundleVersion: "7"
-        CFBundleShortVersionString: "1.7"
+        CFBundleVersion: "8"
+        CFBundleShortVersionString: "1.8"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:
