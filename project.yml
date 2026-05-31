@@ -1,4 +1,4 @@
-name: 办它
+name: TodoLite
 targets:
   TodoLite-iOS:
     type: application

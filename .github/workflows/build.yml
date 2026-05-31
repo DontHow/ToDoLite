@@ -18,7 +18,7 @@ jobs:
 
       - name: Build iOS
         run: |
-          xcodebuild -project 办它.xcodeproj \
+          xcodebuild -project TodoLite.xcodeproj \
             -scheme TodoLite-iOS \
             -destination 'platform=iOS Simulator,name=iPhone 16' \
             clean build
@@ -30,7 +30,7 @@ jobs:
 
       - name: Build macOS
         run: |
-          xcodebuild -project 办它.xcodeproj \
+          xcodebuild -project TodoLite.xcodeproj \
             -scheme TodoLite-macOS \
             -configuration Release \
             -destination 'platform=macOS' \
@@ -40,7 +40,7 @@ jobs:
       - name: Analyze
         if: github.event_name == 'pull_request'
         run: |
-          xcodebuild -project 办它.xcodeproj \
+          xcodebuild -project TodoLite.xcodeproj \
             -scheme TodoLite-macOS \
             -destination 'platform=macOS' \
             analyze

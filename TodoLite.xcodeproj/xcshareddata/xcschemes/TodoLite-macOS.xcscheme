@@ -15,10 +15,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "22FBEA5152BBA616258320DD"
+               BlueprintIdentifier = "D13239D8441A57809A01032F"
                BuildableName = "TodoLite-macOS.app"
                BlueprintName = "TodoLite-macOS"
-               ReferencedContainer = "container:办它.xcodeproj">
+               ReferencedContainer = "container:TodoLite.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -32,10 +32,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "22FBEA5152BBA616258320DD"
+            BlueprintIdentifier = "D13239D8441A57809A01032F"
             BuildableName = "TodoLite-macOS.app"
             BlueprintName = "TodoLite-macOS"
-            ReferencedContainer = "container:办它.xcodeproj">
+            ReferencedContainer = "container:TodoLite.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -55,10 +55,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "22FBEA5152BBA616258320DD"
+            BlueprintIdentifier = "D13239D8441A57809A01032F"
             BuildableName = "TodoLite-macOS.app"
             BlueprintName = "TodoLite-macOS"
-            ReferencedContainer = "container:办它.xcodeproj">
+            ReferencedContainer = "container:TodoLite.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,10 +72,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "22FBEA5152BBA616258320DD"
+            BlueprintIdentifier = "D13239D8441A57809A01032F"
             BuildableName = "TodoLite-macOS.app"
             BlueprintName = "TodoLite-macOS"
-            ReferencedContainer = "container:办它.xcodeproj">
+            ReferencedContainer = "container:TodoLite.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
