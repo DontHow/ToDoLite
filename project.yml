@@ -114,3 +114,9 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.donghao.TodoLiteTests
         SWIFT_VERSION: "5.9"
         GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  TodoLite-macOS:
+    build:
+      targets:
+        TodoLite-macOS: all
