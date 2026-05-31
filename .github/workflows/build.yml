@@ -1,0 +1,40 @@
+name: Build and Analyze
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build iOS
+        run: |
+          xcodebuild -project TodoLite.xcodeproj \
+            -scheme TodoLite-iOS \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            clean build
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build macOS
+        run: |
+          xcodebuild -project TodoLite.xcodeproj \
+            -scheme TodoLite-macOS \
+            -destination 'platform=macOS' \
+            clean build
+
+      - name: Analyze
+        run: |
+          xcodebuild -project TodoLite.xcodeproj \
+            -scheme TodoLite-macOS \
+            -destination 'platform=macOS' \
+            analyze
