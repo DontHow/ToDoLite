@@ -65,6 +65,7 @@
 		7AC965994D470C85C233FA19 /* LLMConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCAD2DA251886161B71951F5 /* LLMConfig.swift */; };
 		7B5633322B768ECA65777436 /* TodoListCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51B86C342398905573268BD /* TodoListCard.swift */; };
 		7C65DE99E457340006B733AC /* CardButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62BB2BA40AA2249CED5099C7 /* CardButtonStyle.swift */; };
+		7CBBEE78C30E7AD9CEF9B9D9 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 202A1C844237333EBEE3FA0D /* UpdateChecker.swift */; };
 		7D4863024A5EB5DD293A9C89 /* WeeklyReportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD633B803DEB5922ED63D3C9 /* WeeklyReportSheet.swift */; };
 		807FCB49F3E6C5498054EA09 /* LLMParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44D839C94A9DCCAF68DC0AB6 /* LLMParser.swift */; };
 		822C9F97EC0A721FE2B766C2 /* TodoLiteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB88B942AA60A9580D528D1 /* TodoLiteApp.swift */; };
@@ -112,6 +113,7 @@
 		E054D7776F165CFA00BA86BA /* TodoListCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51B86C342398905573268BD /* TodoListCard.swift */; };
 		E0ECFA759AEA42876120B85D /* InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968D595707EE1B458C51B894 /* InboxView.swift */; };
 		E3B3D6788A7564434E41D0E8 /* TagListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A722664555B612AE98003AA /* TagListView.swift */; };
+		E4778CB2C69AFCDEF26E0A47 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 202A1C844237333EBEE3FA0D /* UpdateChecker.swift */; };
 		E50D03402D61E0174DED2C1F /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6BEAEBB56E40F24301F1D70 /* SwiftUI.framework */; };
 		E8431365B7468B80F1CC3D8F /* CreateTodoView+DetailForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F022279956EBC475E421C5 /* CreateTodoView+DetailForm.swift */; };
 		EA6D7E6BCA11C12A1B689EA9 /* FocusSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB3B33E28B66C13723E9C48F /* FocusSet.swift */; };
@@ -149,6 +151,7 @@
 		18EE9C51AE20DF1BAC0069E1 /* CreateTodoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTodoView.swift; sourceTree = "<group>"; };
 		1B08C9B0C564BA3D4A99D509 /* Widget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Widget.entitlements; sourceTree = "<group>"; };
 		1F3134388E366CF149E69241 /* TodoParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoParser.swift; sourceTree = "<group>"; };
+		202A1C844237333EBEE3FA0D /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		221BD1715E3199FD481D57E7 /* TodoLiteTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TodoLiteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2610997D7CB71C2EACE11126 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		2BEE5F5940212BD4F58BDD6A /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
@@ -314,6 +317,7 @@
 				6FBD66E3C4EB29534F26799F /* Color+Hex.swift */,
 				C4EDBB35E1745B841F9B42FC /* EmptyStateView.swift */,
 				BFA70C5CDE7A460983C06430 /* HolidayService.swift */,
+				202A1C844237333EBEE3FA0D /* UpdateChecker.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -706,6 +710,7 @@
 				9E881BD9F279FE939C2B2F0B /* TodoRowView.swift in Sources */,
 				31F545B01820742C6430F829 /* TodoStatus.swift in Sources */,
 				23105A11D7CF1F62230DECF0 /* TodoStore.swift in Sources */,
+				7CBBEE78C30E7AD9CEF9B9D9 /* UpdateChecker.swift in Sources */,
 				7D4863024A5EB5DD293A9C89 /* WeeklyReportSheet.swift in Sources */,
 				A37EFC6A2710CF88253735A4 /* WidgetDataStore.swift in Sources */,
 				6ADB556256F9CFC61EE9C9AD /* iCloudSyncManager.swift in Sources */,
@@ -786,6 +791,7 @@
 				F2669AE689650617031B605B /* TodoRowView.swift in Sources */,
 				902A9AE461E75C35110F48B9 /* TodoStatus.swift in Sources */,
 				41AD8599E5642E278851E12C /* TodoStore.swift in Sources */,
+				E4778CB2C69AFCDEF26E0A47 /* UpdateChecker.swift in Sources */,
 				02CE4774BE5F815FF10BD1BB /* WeeklyReportSheet.swift in Sources */,
 				A6598B1F46FE938130DC0A70 /* WidgetDataStore.swift in Sources */,
 				F4709BE0EB42E00D6FC34556 /* iCloudSyncManager.swift in Sources */,
