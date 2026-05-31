@@ -18,7 +18,7 @@ jobs:
 
       - name: Build iOS
         run: |
-          xcodebuild -project TodoLite.xcodeproj \
+          xcodebuild -project 办它.xcodeproj \
             -scheme TodoLite-iOS \
             -destination 'platform=iOS Simulator,name=iPhone 16' \
             clean build
@@ -30,7 +30,7 @@ jobs:
 
       - name: Build macOS
         run: |
-          xcodebuild -project TodoLite.xcodeproj \
+          xcodebuild -project 办它.xcodeproj \
             -scheme TodoLite-macOS \
             -configuration Release \
             -destination 'platform=macOS' \
@@ -40,7 +40,7 @@ jobs:
       - name: Analyze
         if: github.event_name == 'pull_request'
         run: |
-          xcodebuild -project TodoLite.xcodeproj \
+          xcodebuild -project 办它.xcodeproj \
             -scheme TodoLite-macOS \
             -destination 'platform=macOS' \
             analyze
@@ -48,10 +48,10 @@ jobs:
       - name: Package macOS
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          APP_SRC="DerivedData/Build/Products/Release/TodoLite-macOS.app"
-          hdiutil create -size 10m -volname "办他" -fs HFS+ -o TodoLite-temp.dmg
+          APP_SRC="DerivedData/Build/Products/Release/办它.app"
+          hdiutil create -size 10m -volname "办它" -fs HFS+ -o TodoLite-temp.dmg
           MOUNT=$(hdiutil attach TodoLite-temp.dmg | grep -o '/Volumes/.*')
-          cp -R "$APP_SRC" "$MOUNT/TodoLite.app"
+          cp -R "$APP_SRC" "$MOUNT/办它.app"
           ln -s /Applications "$MOUNT/Applications"
           hdiutil detach "$MOUNT"
           hdiutil convert TodoLite-temp.dmg -format UDZO -o TodoLite.dmg
