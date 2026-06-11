@@ -31,7 +31,8 @@ struct CreateTodoView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottom) {
+            Group {
+                #if os(iOS)
                 ScrollView {
                     VStack(spacing: 10) {
                         if todo == nil && useQuickEntry {
@@ -43,17 +44,42 @@ struct CreateTodoView: View {
                         } else {
                             detailForm
                         }
-
-                        Spacer().frame(height: todo == nil ? 100 : 24)
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
                 }
                 .scrollDismissesKeyboard(.interactively)
-
-                if todo == nil {
-                    saveButtonBar
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    if todo == nil {
+                        saveButtonBar
+                    }
                 }
+                #else
+                ZStack(alignment: .bottom) {
+                    ScrollView {
+                        VStack(spacing: 10) {
+                            if todo == nil && useQuickEntry {
+                                modeToggle
+                            }
+
+                            if todo == nil && useQuickEntry {
+                                quickEntryArea
+                            } else {
+                                detailForm
+                            }
+
+                            Spacer().frame(height: todo == nil ? 100 : 24)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                    }
+                    .scrollDismissesKeyboard(.interactively)
+
+                    if todo == nil {
+                        saveButtonBar
+                    }
+                }
+                #endif
             }
             .navigationTitle(todo == nil ? "新建任务" : "编辑任务")
             #if os(iOS)

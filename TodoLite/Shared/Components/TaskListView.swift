@@ -305,18 +305,25 @@ extension TaskGrouping {
         let withProject = grouped
             .filter { $0.key != nil }
             .sorted { pair0, pair1 in
-                let name0 = projects.first(where: { $0.id == pair0.key })?.name ?? ""
-                let name1 = projects.first(where: { $0.id == pair1.key })?.name ?? ""
-                return name0 < name1
+                let minDue0 = pair0.value.compactMap { $0.dueAt }.min()
+                let minDue1 = pair1.value.compactMap { $0.dueAt }.min()
+                if let d0 = minDue0, let d1 = minDue1 { return d0 < d1 }
+                return minDue0 != nil
             }
 
         for (pid, ptodos) in withProject {
             let name = projects.first(where: { $0.id == pid })?.name ?? "未命名项目"
-            groups.append(TaskGroup(title: name, todos: ptodos))
+            groups.append(TaskGroup(title: name, todos: ptodos.sorted { a, b in
+                if let da = a.dueAt, let db = b.dueAt { return da < db }
+                return a.dueAt != nil
+            }))
         }
 
         if let ungrouped = grouped[nil], !ungrouped.isEmpty {
-            groups.append(TaskGroup(title: "未分配", todos: ungrouped))
+            groups.append(TaskGroup(title: "未分配", todos: ungrouped.sorted { a, b in
+                if let da = a.dueAt, let db = b.dueAt { return da < db }
+                return a.dueAt != nil
+            }))
         }
 
         return groups
