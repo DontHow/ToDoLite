@@ -25,7 +25,7 @@ actor LLMService {
     static let shared = LLMService()
 
     func chat(messages: [LLMChatMessage], config: LLMConfig) async throws -> String {
-        let url = URL(string: config.baseURL.trimmingCharacters(in: .whitespaces).trimmingCharacters(in: CharacterSet(charactersIn: "/")) + "/chat/completions")!
+        let url = try Self.endpointURL(baseURL: config.baseURL)
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -50,9 +50,30 @@ actor LLMService {
         }
         return content
     }
+
+    nonisolated static func endpointURL(baseURL: String) throws -> URL {
+        let trimmed = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard var components = URLComponents(string: trimmed),
+              let scheme = components.scheme?.lowercased(),
+              ["http", "https"].contains(scheme),
+              let host = components.host,
+              !host.isEmpty else {
+            throw LLMError.invalidBaseURL
+        }
+
+        let basePath = components.path.split(separator: "/").joined(separator: "/")
+        components.path = "/" + [basePath, "chat/completions"]
+            .filter { !$0.isEmpty }
+            .joined(separator: "/")
+        guard let url = components.url else {
+            throw LLMError.invalidBaseURL
+        }
+        return url
+    }
 }
 
 enum LLMError: Error {
+    case invalidBaseURL
     case httpError(statusCode: Int, body: String)
     case noContent
 }

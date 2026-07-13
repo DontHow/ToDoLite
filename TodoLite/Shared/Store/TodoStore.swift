@@ -186,13 +186,34 @@ final class TodoStore {
 
     func addToFocus(id: String) async throws {
         guard !focusSet.taskIds.contains(id) else { return }
+        let previous = focusSet
         focusSet.taskIds.append(id)
-        try await focusRepo.save(focusSet)
+        do {
+            try await focusRepo.save(focusSet)
+            WidgetDataStore.sync(todos: todos, focusSet: focusSet)
+        } catch {
+            focusSet = previous
+            throw error
+        }
     }
 
     func removeFromFocus(id: String) async throws {
+        let previous = focusSet
         focusSet.taskIds.removeAll { $0 == id }
-        try await focusRepo.save(focusSet)
+        do {
+            try await focusRepo.save(focusSet)
+            WidgetDataStore.sync(todos: todos, focusSet: focusSet)
+        } catch {
+            focusSet = previous
+            throw error
+        }
+    }
+
+    func refreshFocusIfNeeded() async {
+        let today = FocusSet.todayString()
+        guard focusSet.date != today else { return }
+        focusSet = await focusRepo.load()
+        WidgetDataStore.sync(todos: todos, focusSet: focusSet)
     }
 
     // MARK: - Project CRUD
@@ -208,11 +229,13 @@ final class TodoStore {
         if let idx = projects.firstIndex(where: { $0.id == project.id }) {
             projects[idx] = project
         }
+        await indexer.rebuild(todos: todos, projects: projects, tags: tags)
     }
 
     func deleteProject(id: String) async throws {
         try await projectRepo.delete(id: id)
         projects.removeAll { $0.id == id }
+        await indexer.rebuild(todos: todos, projects: projects, tags: tags)
     }
 
     // MARK: - Tag CRUD
@@ -228,11 +251,66 @@ final class TodoStore {
         if let idx = tags.firstIndex(where: { $0.id == tag.id }) {
             tags[idx] = tag
         }
+        await indexer.rebuild(todos: todos, projects: projects, tags: tags)
     }
 
     func deleteTag(id: String) async throws {
         try await tagRepo.delete(id: id)
         tags.removeAll { $0.id == id }
+        await indexer.rebuild(todos: todos, projects: projects, tags: tags)
+    }
+
+    // MARK: - External Sync
+
+    func applyExternalTodo(_ todo: TodoItem) async {
+        if let idx = todos.firstIndex(where: { $0.id == todo.id }) {
+            guard todos[idx].version < todo.version else { return }
+            todos[idx] = todo
+        } else {
+            todos.append(todo)
+        }
+        await indexer.index(todo: todo, projects: projects, tags: tags)
+        WidgetDataStore.sync(todos: todos, focusSet: focusSet)
+    }
+
+    func removeExternalTodo(id: String) async {
+        todos.removeAll { $0.id == id }
+        await indexer.remove(todoId: id)
+        WidgetDataStore.sync(todos: todos, focusSet: focusSet)
+    }
+
+    func applyExternalProject(_ project: Project) async {
+        if let idx = projects.firstIndex(where: { $0.id == project.id }) {
+            projects[idx] = project
+        } else {
+            projects.append(project)
+        }
+        await indexer.rebuild(todos: todos, projects: projects, tags: tags)
+    }
+
+    func removeExternalProject(id: String) async {
+        projects.removeAll { $0.id == id }
+        await indexer.rebuild(todos: todos, projects: projects, tags: tags)
+    }
+
+    func applyExternalTag(_ tag: TagItem) async {
+        if let idx = tags.firstIndex(where: { $0.id == tag.id }) {
+            tags[idx] = tag
+        } else {
+            tags.append(tag)
+        }
+        await indexer.rebuild(todos: todos, projects: projects, tags: tags)
+    }
+
+    func removeExternalTag(id: String) async {
+        tags.removeAll { $0.id == id }
+        await indexer.rebuild(todos: todos, projects: projects, tags: tags)
+    }
+
+    func applyExternalFocus(_ newFocusSet: FocusSet) {
+        guard newFocusSet.date == FocusSet.todayString() else { return }
+        focusSet = newFocusSet
+        WidgetDataStore.sync(todos: todos, focusSet: focusSet)
     }
 
     // MARK: - LLM Config

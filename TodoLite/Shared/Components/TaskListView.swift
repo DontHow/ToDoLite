@@ -202,6 +202,7 @@ extension TaskGrouping {
 
         var todayTodos: [TodoItem] = []
         var tomorrowTodos: [TodoItem] = []
+        var overdueTodos: [TodoItem] = []
         var thisWeekTodos: [TodoItem] = []
         var futureTodos: [TodoItem] = []
         var noDueTodos: [TodoItem] = []
@@ -212,7 +213,9 @@ extension TaskGrouping {
                 continue
             }
             let dueDay = calendar.startOfDay(for: due)
-            if dueDay == today {
+            if dueDay < today {
+                overdueTodos.append(todo)
+            } else if dueDay == today {
                 todayTodos.append(todo)
             } else if dueDay == tomorrow {
                 tomorrowTodos.append(todo)
@@ -224,6 +227,7 @@ extension TaskGrouping {
         }
 
         var groups: [TaskGroup] = []
+        if !overdueTodos.isEmpty { groups.append(TaskGroup(title: "逾期", todos: overdueTodos)) }
         if !todayTodos.isEmpty { groups.append(TaskGroup(title: "今天", todos: todayTodos)) }
         if !tomorrowTodos.isEmpty { groups.append(TaskGroup(title: "明天", todos: tomorrowTodos)) }
         if !thisWeekTodos.isEmpty { groups.append(TaskGroup(title: "本周", todos: thisWeekTodos)) }

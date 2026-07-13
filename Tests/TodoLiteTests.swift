@@ -95,6 +95,20 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertNil(DateResolver.resolve("notadate"))
     }
 
+    func testDateResolverRejectsInvalidCalendarDate() {
+        XCTAssertNil(DateResolver.resolve("2026-02-30"))
+        XCTAssertNil(DateResolver.resolve("13/40"))
+    }
+
+    func testLLMEndpointURLValidation() throws {
+        XCTAssertEqual(
+            try LLMService.endpointURL(baseURL: " https://api.openai.com/v1/ ").absoluteString,
+            "https://api.openai.com/v1/chat/completions"
+        )
+        XCTAssertThrowsError(try LLMService.endpointURL(baseURL: "http://"))
+        XCTAssertThrowsError(try LLMService.endpointURL(baseURL: "api.openai.com/v1"))
+    }
+
     // MARK: - TodoStatus DisplayName
 
     func testStatusDisplayNames() {
@@ -307,6 +321,39 @@ final class TodoLiteTests: XCTestCase {
             TodoItem(title: "收件箱2", status: .inbox),
         ]
         XCTAssertEqual(store.inboxTodos.count, 2)
+    }
+
+    func testDueDateGroupingSeparatesOverdueTodos() {
+        let calendar = Calendar.current
+        let overdue = TodoItem(
+            title: "逾期任务",
+            dueAt: calendar.date(byAdding: .day, value: -30, to: Date())
+        )
+        let today = TodoItem(title: "今日任务", dueAt: Date())
+
+        let groups = TaskGrouping.dueDate.apply(to: [overdue, today], projects: [])
+
+        XCTAssertEqual(groups.first?.title, "逾期")
+        XCTAssertEqual(groups.first?.todos, [overdue])
+        XCTAssertEqual(groups.dropFirst().first?.title, "今天")
+    }
+
+    func testSearchIndexerSupportsStringTodoIds() async {
+        let todo = TodoItem(id: UUID().uuidString, title: "唯一搜索关键词")
+
+        await SearchIndexer.shared.rebuild(todos: [todo], projects: [], tags: [])
+        let results = await SearchIndexer.shared.search(query: "唯一搜索")
+
+        XCTAssertEqual(results, [todo.id])
+    }
+
+    func testSearchIndexerTreatsPunctuationAsLiteralText() async {
+        let todo = TodoItem(id: UUID().uuidString, title: "修复 sync-error")
+
+        await SearchIndexer.shared.rebuild(todos: [todo], projects: [], tags: [])
+        let results = await SearchIndexer.shared.search(query: "sync-error")
+
+        XCTAssertEqual(results, [todo.id])
     }
 
     func testToggleCompleteStateMachine() {

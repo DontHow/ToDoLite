@@ -20,11 +20,10 @@ actor SearchIndexer {
         try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
         dbPath = dir.appendingPathComponent("search_index.sqlite")
         guard sqlite3_open(dbPath.path, &db) == SQLITE_OK else { return }
+        sqlite3_exec(db, "DROP TABLE IF EXISTS todo_fts;", nil, nil, nil)
         let createSQL = """
             CREATE VIRTUAL TABLE IF NOT EXISTS todo_fts USING fts5(
-                title, description, project, tags,
-                content='',
-                contentless_delete=1
+                todoId UNINDEXED, title, description, project, tags
             );
             """
         sqlite3_exec(db, createSQL, nil, nil, nil)
@@ -37,15 +36,11 @@ actor SearchIndexer {
         let tagNames = todo.tagIds.compactMap { id in tags.first { $0.id == id }?.name }.joined(separator: " ")
 
         let sql = """
-            INSERT INTO todo_fts(docid, title, description, project, tags)
+            INSERT INTO todo_fts(todoId, title, description, project, tags)
             VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(docid) DO UPDATE SET
-                title=excluded.title,
-                description=excluded.description,
-                project=excluded.project,
-                tags=excluded.tags;
             """
 
+        remove(todoId: todo.id)
         var stmt: OpaquePointer?
         guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else { return }
         sqlite3_bind_text(stmt, 1, todo.id, -1, SQLITE_TRANSIENT)
@@ -58,7 +53,7 @@ actor SearchIndexer {
     }
 
     func remove(todoId: String) {
-        let sql = "DELETE FROM todo_fts WHERE docid = ?;"
+        let sql = "DELETE FROM todo_fts WHERE todoId = ?;"
         var stmt: OpaquePointer?
         guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else { return }
         sqlite3_bind_text(stmt, 1, todoId, -1, SQLITE_TRANSIENT)
@@ -76,16 +71,19 @@ actor SearchIndexer {
     // MARK: - Search
 
     func search(query: String) -> [String] {
-        let sanitized = query
-            .replacingOccurrences(of: "\"", with: "")
-            .replacingOccurrences(of: "'", with: "")
-            .trimmingCharacters(in: .whitespaces)
-        guard !sanitized.isEmpty else { return [] }
+        let terms = query
+            .split(whereSeparator: { $0.isWhitespace })
+            .map { term in
+                let escaped = term.replacingOccurrences(of: "\"", with: "\"\"")
+                return "\"\(escaped)\"*"
+            }
+        guard !terms.isEmpty else { return [] }
+        let matchQuery = terms.joined(separator: " ")
 
-        let sql = "SELECT docid FROM todo_fts WHERE todo_fts MATCH ?;"
+        let sql = "SELECT todoId FROM todo_fts WHERE todo_fts MATCH ?;"
         var stmt: OpaquePointer?
         guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else { return [] }
-        sqlite3_bind_text(stmt, 1, sanitized + "*", -1, SQLITE_TRANSIENT)
+        sqlite3_bind_text(stmt, 1, matchQuery, -1, SQLITE_TRANSIENT)
 
         var ids: [String] = []
         while sqlite3_step(stmt) == SQLITE_ROW {

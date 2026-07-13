@@ -49,6 +49,7 @@ struct SearchView: View {
             let ids = await indexer.search(query: text)
             let matched = ids.compactMap { id in store.todos.first { $0.id == id } }
             await MainActor.run {
+                guard query == text else { return }
                 searchResults = matched
             }
         }

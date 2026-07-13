@@ -55,6 +55,7 @@ final class iCloudSyncManager {
 
     @objc private func queryDidUpdate(_ notification: Notification) {
         query.disableUpdates()
+        processRemovedItems(from: notification)
         processQueryResults()
         query.enableUpdates()
     }
@@ -88,6 +89,9 @@ final class iCloudSyncManager {
                     case "tags":
                         let tag = try await FileSystemManager.shared.read(TagItem.self, filename: filename, directory: .tags)
                         await updateTagInStore(tag)
+                    case "meta" where filename == FocusRepository.filename(for: Date()):
+                        let focus = try await FileSystemManager.shared.read(FocusSet.self, filename: filename, directory: .meta)
+                        await updateFocusInStore(focus)
                     default:
                         break
                     }
@@ -98,34 +102,63 @@ final class iCloudSyncManager {
         }
     }
 
+    private func processRemovedItems(from notification: Notification) {
+        guard let items = notification.userInfo?[NSMetadataQueryUpdateRemovedItemsKey] as? [NSMetadataItem] else {
+            return
+        }
+
+        for item in items {
+            guard let url = item.value(forAttribute: NSMetadataItemURLKey) as? URL else { continue }
+            let filename = url.lastPathComponent
+            let directory = url.deletingLastPathComponent().lastPathComponent
+
+            Task {
+                switch directory {
+                case "tasks":
+                    if let id = Self.id(from: filename, prefix: "task_") {
+                        await store.removeExternalTodo(id: id)
+                    }
+                case "projects":
+                    if let id = Self.id(from: filename, prefix: "project_") {
+                        await store.removeExternalProject(id: id)
+                    }
+                case "tags":
+                    if let id = Self.id(from: filename, prefix: "tag_") {
+                        await store.removeExternalTag(id: id)
+                    }
+                case "meta" where filename == FocusRepository.filename(for: Date()):
+                    store.applyExternalFocus(FocusSet())
+                default:
+                    break
+                }
+            }
+        }
+    }
+
+    private static func id(from filename: String, prefix: String) -> String? {
+        guard filename.hasPrefix(prefix), filename.hasSuffix(".json") else { return nil }
+        return String(filename.dropFirst(prefix.count).dropLast(5))
+    }
+
     // MARK: - Store Updates
 
     @MainActor
-    private func updateTodoInStore(_ todo: TodoItem) {
-        if let idx = store.todos.firstIndex(where: { $0.id == todo.id }) {
-            if store.todos[idx].version < todo.version {
-                store.todos[idx] = todo
-            }
-        } else {
-            store.todos.append(todo)
-        }
+    private func updateTodoInStore(_ todo: TodoItem) async {
+        await store.applyExternalTodo(todo)
     }
 
     @MainActor
-    private func updateProjectInStore(_ project: Project) {
-        if let idx = store.projects.firstIndex(where: { $0.id == project.id }) {
-            store.projects[idx] = project
-        } else {
-            store.projects.append(project)
-        }
+    private func updateProjectInStore(_ project: Project) async {
+        await store.applyExternalProject(project)
     }
 
     @MainActor
-    private func updateTagInStore(_ tag: TagItem) {
-        if let idx = store.tags.firstIndex(where: { $0.id == tag.id }) {
-            store.tags[idx] = tag
-        } else {
-            store.tags.append(tag)
-        }
+    private func updateTagInStore(_ tag: TagItem) async {
+        await store.applyExternalTag(tag)
+    }
+
+    @MainActor
+    private func updateFocusInStore(_ focusSet: FocusSet) {
+        store.applyExternalFocus(focusSet)
     }
 }

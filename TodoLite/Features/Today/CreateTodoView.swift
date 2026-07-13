@@ -127,25 +127,33 @@ struct CreateTodoView: View {
                 errorMessage = "保存失败: \(error.localizedDescription)"
             }
         } else if useQuickEntry, let draft = parsedDraft {
-            try? await store.createTodoWithParsed(
-                title: draft.title,
-                description: draft.description,
-                status: .inbox,
-                projectName: draft.projectName,
-                tagNames: draft.tagNames,
-                dueAt: draft.dueAt ?? defaultDueDate()
-            )
-            dismiss()
+            do {
+                try await store.createTodoWithParsed(
+                    title: draft.title,
+                    description: draft.description,
+                    status: .inbox,
+                    projectName: draft.projectName,
+                    tagNames: draft.tagNames,
+                    dueAt: draft.dueAt ?? defaultDueDate()
+                )
+                dismiss()
+            } catch {
+                errorMessage = "创建失败: \(error.localizedDescription)"
+            }
         } else {
-            try? await store.createTodo(
-                title: edited.title,
-                description: edited.description,
-                status: edited.status,
-                projectId: edited.projectId,
-                tagIds: edited.tagIds,
-                dueAt: edited.dueAt
-            )
-            dismiss()
+            do {
+                try await store.createTodo(
+                    title: edited.title,
+                    description: edited.description,
+                    status: edited.status,
+                    projectId: edited.projectId,
+                    tagIds: edited.tagIds,
+                    dueAt: edited.dueAt
+                )
+                dismiss()
+            } catch {
+                errorMessage = "创建失败: \(error.localizedDescription)"
+            }
         }
     }
 }

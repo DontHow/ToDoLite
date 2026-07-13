@@ -19,7 +19,7 @@ actor FocusRepository {
         try await fs.write(focusSet, filename: filename, directory: .meta)
     }
 
-    private static func filename(for date: Date) -> String {
+    static func filename(for date: Date) -> String {
         "focus_\(FocusSet.todayString(for: date)).json"
     }
 

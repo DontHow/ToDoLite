@@ -45,6 +45,9 @@ enum DateResolver {
             ]
             let formatter = DateFormatter()
             formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.calendar = calendar
+            formatter.timeZone = calendar.timeZone
+            formatter.isLenient = false
             for format in formats {
                 formatter.dateFormat = format
                 if let date = formatter.date(from: lower) {

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var selectedTab: Tab = .today
     @State private var store = TodoStore.shared
 
@@ -26,6 +27,7 @@ struct ContentView: View {
 
     var body: some View {
         let fontSize = FontSizeOption(level: store.fontSizeLevel)?.dynamicTypeSize ?? .medium
+        Group {
         #if os(macOS)
         NavigationSplitView {
             Sidebar(selection: $selectedTab)
@@ -77,5 +79,13 @@ struct ContentView: View {
         }
         .dynamicTypeSize(fontSize)
         #endif
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            Task { await store.refreshFocusIfNeeded() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+            Task { await store.refreshFocusIfNeeded() }
+        }
     }
 }
