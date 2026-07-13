@@ -15,10 +15,10 @@ extension CreateTodoView {
             } label: {
                 HStack(spacing: 10) {
                     Image(systemName: "archivebox.fill")
-                        .font(.body)
+                        .appFont(.body)
                         .symbolRenderingMode(.hierarchical)
                     Text("归档任务")
-                        .font(.body.weight(.medium))
+                        .appFont(.body, weight: .medium)
                     Spacer()
                 }
                 .foregroundStyle(.orange)
@@ -39,10 +39,10 @@ extension CreateTodoView {
             } label: {
                 HStack(spacing: 10) {
                     Image(systemName: "trash.fill")
-                        .font(.body)
+                        .appFont(.body)
                         .symbolRenderingMode(.hierarchical)
                     Text("删除任务")
-                        .font(.body.weight(.medium))
+                        .appFont(.body, weight: .medium)
                     Spacer()
                 }
                 .foregroundStyle(.red)
@@ -62,9 +62,9 @@ extension CreateTodoView {
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: todo == nil ? "plus.circle.fill" : "checkmark.circle.fill")
-                    .font(.title3)
+                    .appFont(.title3)
                 Text(todo == nil ? "创建任务" : "保存")
-                    .font(.headline)
+                    .appFont(.headline)
             }
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)

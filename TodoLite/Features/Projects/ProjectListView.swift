@@ -79,13 +79,13 @@ private struct ProjectCard: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(project.name)
-                    .font(.body.weight(.semibold))
+                    .appFont(.body, weight: .semibold)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 
                 HStack(spacing: 6) {
                     Text("\(taskCount) 任务")
-                        .font(.caption.weight(.medium))
+                        .appFont(.caption, weight: .medium)
                         .foregroundStyle(Color.labelSecondary)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
@@ -101,9 +101,9 @@ private struct ProjectCard: View {
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "trash.fill")
-                        .font(.body)
+                        .appFont(.body)
                     Text("删除")
-                        .font(.caption.weight(.medium))
+                        .appFont(.caption, weight: .medium)
                 }
                 .foregroundStyle(.white)
                 .padding(.horizontal, 10)
@@ -199,7 +199,7 @@ private struct ProjectEditorView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(name.isEmpty ? "预览" : name)
-                    .font(.body.weight(.semibold))
+                    .appFont(.body, weight: .semibold)
                     .foregroundStyle(name.isEmpty ? Color.labelSecondary : .primary)
                     .lineLimit(1)
 
@@ -225,14 +225,14 @@ private struct ProjectEditorView: View {
             HStack(spacing: 10) {
                 Image(systemName: "textformat")
                     .foregroundStyle(.primary)
-                    .font(.body)
+                    .appFont(.body)
                     .symbolRenderingMode(.hierarchical)
                 Text("名称")
-                    .font(.callout.weight(.medium))
+                    .appFont(.callout, weight: .medium)
             }
 
             TextField("输入项目名称", text: $name)
-                .font(.body.weight(.semibold))
+                .appFont(.body, weight: .semibold)
         }
         .padding(18)
         .background(Color.cardBackground)
@@ -244,10 +244,10 @@ private struct ProjectEditorView: View {
             HStack(spacing: 10) {
                 Image(systemName: "paintpalette")
                     .foregroundStyle(.primary)
-                    .font(.body)
+                    .appFont(.body)
                     .symbolRenderingMode(.hierarchical)
                 Text("颜色")
-                    .font(.callout.weight(.medium))
+                    .appFont(.callout, weight: .medium)
             }
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 44))], spacing: 12) {
@@ -264,7 +264,7 @@ private struct ProjectEditorView: View {
 
                             if selectedColor == hex {
                                 Image(systemName: "checkmark")
-                                    .font(.caption.weight(.bold))
+                                    .appFont(.caption, weight: .bold)
                                     .foregroundStyle(.white)
                             }
                         }

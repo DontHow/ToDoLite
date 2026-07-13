@@ -5,6 +5,7 @@ struct SettingsView: View {
     @State private var isCheckingUpdate = false
     @State private var updateResult: UpdateChecker.Result?
     @State private var showUpdateAlert = false
+    @AppStorage(UpdateChecker.automaticChecksEnabledKey) private var automaticUpdateChecksEnabled = true
 
     var body: some View {
         NavigationStack {
@@ -33,6 +34,18 @@ struct SettingsView: View {
                             .background(Color.cardBackground)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
 
+                            Toggle(isOn: $automaticUpdateChecksEnabled) {
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text("自动检查更新")
+                                    Text("每天最多检查一次，有新版本时提醒")
+                                        .appFont(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .padding(16)
+                            .background(Color.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+
                             Button {
                                 Task { await performUpdateCheck() }
                             } label: {
@@ -52,7 +65,7 @@ struct SettingsView: View {
                                         }
                                     } else {
                                         Image(systemName: "chevron.right")
-                                            .font(.callout)
+                                            .appFont(.callout)
                                             .foregroundStyle(Color.labelSecondary)
                                     }
                                 }
@@ -85,7 +98,7 @@ struct SettingsView: View {
     private var fontSizeRow: some View {
         HStack {
             Text("字体大小")
-                .font(.body.weight(.medium))
+                .appFont(.body, weight: .medium)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .layoutPriority(1)
@@ -106,7 +119,7 @@ struct SettingsView: View {
                 .buttonStyle(.plain)
 
                 Text(FontSizeOption(level: store.fontSizeLevel)?.displayName ?? "标准")
-                    .font(.body.weight(.medium))
+                    .appFont(.body, weight: .medium)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                     .frame(minWidth: 36, alignment: .center)
@@ -133,7 +146,7 @@ struct SettingsView: View {
     private func settingsSection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.system(.title3, design: .rounded, weight: .bold))
+                .appFont(.title3, design: .rounded, weight: .bold)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .padding(.horizontal, 4)
@@ -148,14 +161,14 @@ struct SettingsView: View {
     private func settingsRow(icon: String, iconColor: Color, label: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.body)
+                .appFont(.body)
                 .foregroundStyle(iconColor)
                 .symbolRenderingMode(.hierarchical)
             Text(label)
-                .font(.body.weight(.medium))
+                .appFont(.body, weight: .medium)
             Spacer()
             Image(systemName: "chevron.right")
-                .font(.callout)
+                .appFont(.callout)
                 .foregroundStyle(Color.labelSecondary)
         }
         .frame(maxWidth: .infinity)

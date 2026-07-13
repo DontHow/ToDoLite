@@ -356,6 +356,23 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertEqual(results, [todo.id])
     }
 
+    func testAutomaticUpdateCheckThrottle() {
+        let now = Date()
+
+        XCTAssertFalse(UpdateChecker.shouldCheckAutomatically(isEnabled: false, lastCheck: nil, now: now))
+        XCTAssertTrue(UpdateChecker.shouldCheckAutomatically(isEnabled: true, lastCheck: nil, now: now))
+        XCTAssertFalse(UpdateChecker.shouldCheckAutomatically(
+            isEnabled: true,
+            lastCheck: now.addingTimeInterval(-60 * 60),
+            now: now
+        ))
+        XCTAssertTrue(UpdateChecker.shouldCheckAutomatically(
+            isEnabled: true,
+            lastCheck: now.addingTimeInterval(-25 * 60 * 60),
+            now: now
+        ))
+    }
+
     func testToggleCompleteStateMachine() {
         let store = TodoStore()
         let doing = TodoItem(title: "进行中", status: .doing)

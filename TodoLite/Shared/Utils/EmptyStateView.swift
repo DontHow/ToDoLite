@@ -12,10 +12,10 @@ struct EmptyStateView: View {
                 .foregroundStyle(.secondary)
                 .symbolRenderingMode(.hierarchical)
             Text(title)
-                .font(.headline)
+                .appFont(.headline)
                 .foregroundStyle(.primary)
             Text(subtitle)
-                .font(.subheadline)
+                .appFont(.subheadline)
                 .foregroundStyle(Color.labelSecondary)
                 .multilineTextAlignment(.center)
         }

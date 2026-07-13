@@ -11,17 +11,17 @@ extension CreateTodoView {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("输入任务...")
                             .foregroundStyle(.tertiary)
-                            .font(.title3)
+                            .appFont(.title3)
                         Text("@项目 #标签 ^日期")
                             .foregroundStyle(.quaternary)
-                            .font(.callout)
+                            .appFont(.callout)
                     }
                     .padding(20)
                     .allowsHitTesting(false)
                 }
 
                 TextEditor(text: $edited.title)
-                    .font(.title3)
+                    .appFont(.title3)
                     .scrollContentBackground(.hidden)
                     .padding(16)
                     .frame(minHeight: 120)
@@ -55,13 +55,13 @@ extension CreateTodoView {
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "sparkles")
-                        .font(.subheadline)
+                        .appFont(.subheadline)
                     if isParsingLLM {
                         ProgressView()
                             .controlSize(.small)
                     } else {
                         Text("AI 解析")
-                            .font(.subheadline.weight(.medium))
+                            .appFont(.subheadline, weight: .medium)
                     }
                 }
                 .foregroundStyle(.white)
@@ -75,7 +75,7 @@ extension CreateTodoView {
 
             if let error = llmError {
                 Text(error)
-                    .font(.caption)
+                    .appFont(.caption)
                     .foregroundStyle(.red)
                     .lineLimit(1)
             }
@@ -168,7 +168,7 @@ extension CreateTodoView {
             }
             if filtered.isEmpty {
                 Text("无匹配项目")
-                    .font(.caption)
+                    .appFont(.caption)
                     .foregroundStyle(Color.labelSecondary)
                     .padding(.vertical, 4)
             }
@@ -187,7 +187,7 @@ extension CreateTodoView {
             }
             if filtered.isEmpty {
                 Text("无匹配标签")
-                    .font(.caption)
+                    .appFont(.caption)
                     .foregroundStyle(Color.labelSecondary)
                     .padding(.vertical, 4)
             }
@@ -213,11 +213,11 @@ extension CreateTodoView {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.caption)
+                    .appFont(.caption)
                     .foregroundStyle(color)
                     .symbolRenderingMode(.hierarchical)
                 Text(title)
-                    .font(.caption.weight(.semibold))
+                    .appFont(.caption, weight: .semibold)
                     .foregroundStyle(Color.labelSecondary)
             }
             FlowLayout(spacing: 8) {
@@ -229,7 +229,7 @@ extension CreateTodoView {
     func suggestionChip(text: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(text)
-                .font(.subheadline.weight(.medium))
+                .appFont(.subheadline, weight: .medium)
                 .foregroundStyle(.primary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
@@ -242,7 +242,7 @@ extension CreateTodoView {
     func quickPreviewCard(_ draft: TodoDraft) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             Text(draft.title)
-                .font(.headline)
+                .appFont(.headline)
                 .foregroundStyle(.primary)
 
             FlowLayout(spacing: 8) {

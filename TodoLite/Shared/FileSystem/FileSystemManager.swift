@@ -25,12 +25,18 @@ actor FileSystemManager {
     private let configDirName = "config"
 
     private var containerURL: URL?
+    private let localDocumentsURL: URL?
+    private let usesICloud: Bool
 
     init() {
+        let localURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        localDocumentsURL = localURL
         if let url = FileManager.default.url(forUbiquityContainerIdentifier: nil) {
             containerURL = url.appendingPathComponent("Documents", isDirectory: true)
+            usesICloud = true
         } else {
-            containerURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+            containerURL = localURL
+            usesICloud = false
         }
     }
 
@@ -92,6 +98,8 @@ actor FileSystemManager {
         for dir in dirs {
             try await createDirectoryIfNeeded(at: dir)
         }
+
+        try await migrateLocalFallbackDataIfNeeded()
     }
 
     private func createDirectoryIfNeeded(at url: URL) async throws {
@@ -100,6 +108,69 @@ actor FileSystemManager {
             return
         }
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+    }
+
+    // MARK: - Local Fallback Migration
+
+    private func migrateLocalFallbackDataIfNeeded() async throws {
+        guard usesICloud, let localDocumentsURL else { return }
+
+        let localAppURL = localDocumentsURL.appendingPathComponent(appDirName, isDirectory: true)
+        guard FileManager.default.fileExists(atPath: localAppURL.path) else { return }
+
+        let sourceDirectoryNames = [tasksDirName, projectsDirName, tagsDirName, metaDirName, configDirName]
+        let cloudHasSourceData = try sourceDirectoryNames.contains { name in
+            let directory = try appDirectory().appendingPathComponent(name, isDirectory: true)
+            return try !FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil).isEmpty
+        }
+        guard !cloudHasSourceData else { return }
+
+        let allDirectoryNames = [
+            tasksDirName, projectsDirName, tagsDirName, trashDirName,
+            archiveDirName, conflictsDirName, metaDirName, configDirName,
+        ]
+
+        for name in allDirectoryNames {
+            let sourceDirectory = localAppURL.appendingPathComponent(name, isDirectory: true)
+            guard FileManager.default.fileExists(atPath: sourceDirectory.path) else { continue }
+
+            let destinationDirectory = try appDirectory().appendingPathComponent(name, isDirectory: true)
+            let files = try FileManager.default.contentsOfDirectory(
+                at: sourceDirectory,
+                includingPropertiesForKeys: [.isRegularFileKey]
+            )
+
+            for sourceURL in files {
+                let values = try sourceURL.resourceValues(forKeys: [.isRegularFileKey])
+                guard values.isRegularFile == true else { continue }
+                let destinationURL = destinationDirectory.appendingPathComponent(sourceURL.lastPathComponent)
+                guard !FileManager.default.fileExists(atPath: destinationURL.path) else { continue }
+                let data = try Data(contentsOf: sourceURL)
+                try await writeCoordinated(data, to: destinationURL)
+            }
+        }
+    }
+
+    private func writeCoordinated(_ data: Data, to fileURL: URL) async throws {
+        let coordinator = NSFileCoordinator()
+        do {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                var coordinationError: NSError?
+                coordinator.coordinate(writingItemAt: fileURL, options: .forReplacing, error: &coordinationError) { url in
+                    do {
+                        try data.write(to: url, options: .atomic)
+                        continuation.resume()
+                    } catch {
+                        continuation.resume(throwing: error)
+                    }
+                }
+                if let coordinationError {
+                    continuation.resume(throwing: coordinationError)
+                }
+            }
+        } catch {
+            throw FileSystemError.writeFailed
+        }
     }
 
     // MARK: - Write

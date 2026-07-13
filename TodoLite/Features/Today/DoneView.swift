@@ -19,7 +19,7 @@ struct DoneView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
                                     Text(group.title)
-                                        .font(.system(.callout, design: .rounded, weight: .semibold))
+                                        .appFont(.callout, design: .rounded, weight: .semibold)
                                         .foregroundStyle(SectionTheme.done.secondaryText)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
@@ -110,9 +110,9 @@ struct DoneView: View {
         } label: {
             HStack(spacing: 4) {
                 Image(systemName: "sparkles")
-                    .font(.caption)
+                    .appFont(.caption)
                 Text("生成周报")
-                    .font(.caption)
+                    .appFont(.caption)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 5)

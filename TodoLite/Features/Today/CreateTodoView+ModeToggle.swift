@@ -28,9 +28,9 @@ extension CreateTodoView {
         Button(action: action) {
             HStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.subheadline)
+                    .appFont(.subheadline)
                 Text(label)
-                    .font(.subheadline.weight(isActive ? .semibold : .regular))
+                    .appFont(.subheadline, weight: isActive ? .semibold : .regular)
             }
             .foregroundStyle(isActive ? .white : .primary)
             .frame(maxWidth: .infinity)

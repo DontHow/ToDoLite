@@ -83,14 +83,14 @@ extension CreateTodoView {
                 sectionHeader(icon: "square.and.pencil", color: .accentColor, title: "核心信息")
 
                 TextField("任务标题", text: $edited.title)
-                    .font(.title3.weight(.semibold))
+                    .appFont(.title3, weight: .semibold)
                     .focused($detailTitleFocused)
 
                 Divider()
 
                 TextField("添加描述...", text: $edited.description, axis: .vertical)
                     .lineLimit(5...9)
-                    .font(.body)
+                    .appFont(.body)
                     .foregroundStyle(Color.labelSecondary)
                     .frame(minHeight: 100, alignment: .topLeading)
             }
@@ -123,10 +123,10 @@ extension CreateTodoView {
                 HStack(spacing: 10) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
-                        .font(.body)
+                        .appFont(.body)
                         .symbolRenderingMode(.hierarchical)
                     Text("完成于 \(completedAt.formatted(.dateTime.year().month().day().hour().minute()))")
-                        .font(.body)
+                        .appFont(.body)
                         .foregroundStyle(Color.labelSecondary)
                     Spacer()
                 }

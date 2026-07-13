@@ -2,6 +2,9 @@ import Foundation
 
 actor UpdateChecker {
     static let shared = UpdateChecker()
+    static let automaticChecksEnabledKey = "automaticUpdateChecksEnabled"
+    static let lastAutomaticCheckKey = "lastAutomaticUpdateCheck"
+    static let automaticCheckInterval: TimeInterval = 24 * 60 * 60
 
     struct Result {
         let hasUpdate: Bool
@@ -24,6 +27,30 @@ actor UpdateChecker {
             downloadURL: latest.htmlURL,
             releaseNotes: latest.body
         )
+    }
+
+    func checkAutomaticallyIfNeeded(now: Date = Date()) async -> Result? {
+        let defaults = UserDefaults.standard
+        let isEnabled = defaults.object(forKey: Self.automaticChecksEnabledKey) == nil
+            ? true
+            : defaults.bool(forKey: Self.automaticChecksEnabledKey)
+        let lastCheck = defaults.object(forKey: Self.lastAutomaticCheckKey) as? Date
+        guard Self.shouldCheckAutomatically(isEnabled: isEnabled, lastCheck: lastCheck, now: now) else {
+            return nil
+        }
+
+        defaults.set(now, forKey: Self.lastAutomaticCheckKey)
+        return await check()
+    }
+
+    nonisolated static func shouldCheckAutomatically(
+        isEnabled: Bool,
+        lastCheck: Date?,
+        now: Date = Date()
+    ) -> Bool {
+        guard isEnabled else { return false }
+        guard let lastCheck else { return true }
+        return now.timeIntervalSince(lastCheck) >= automaticCheckInterval
     }
 
     private struct LatestRelease: Sendable {

@@ -19,10 +19,10 @@ extension CreateTodoView {
         HStack(spacing: 10) {
             Image(systemName: icon)
                 .foregroundStyle(color)
-                .font(.body)
+                .appFont(.body)
                 .symbolRenderingMode(.hierarchical)
             Text(title)
-                .font(.callout.weight(.medium))
+                .appFont(.callout, weight: .medium)
             Spacer()
         }
     }
@@ -35,7 +35,7 @@ extension CreateTodoView {
             }
         } label: {
             Text(title)
-                .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                .appFont(.subheadline, weight: isSelected ? .semibold : .regular)
                 .foregroundStyle(isSelected ? .white : .primary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
@@ -47,7 +47,7 @@ extension CreateTodoView {
 
     var customDateButton: some View {
         Text("自定义")
-            .font(.subheadline)
+            .appFont(.subheadline)
             .foregroundStyle(Color.labelSecondary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
@@ -66,10 +66,10 @@ extension CreateTodoView {
     func searchField(text: Binding<String>, placeholder: String) -> some View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
-                .font(.caption)
+                .appFont(.caption)
                 .foregroundStyle(Color.labelSecondary)
             TextField(placeholder, text: text)
-                .font(.subheadline)
+                .appFont(.subheadline)
                 .textFieldStyle(.plain)
         }
         .padding(.horizontal, 12)
@@ -80,7 +80,7 @@ extension CreateTodoView {
 
     func emptySelectorText(_ text: String) -> some View {
         Text(text)
-            .font(.subheadline)
+            .appFont(.subheadline)
             .foregroundStyle(Color.labelSecondary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 12)

@@ -13,10 +13,10 @@ struct LLMConfigView: View {
                     HStack(spacing: 10) {
                         Image(systemName: "server.rack")
                             .foregroundStyle(.blue)
-                            .font(.body)
+                            .appFont(.body)
                             .symbolRenderingMode(.hierarchical)
                         Text("API 设置")
-                            .font(.system(.title3, design: .rounded, weight: .bold))
+                            .appFont(.title3, design: .rounded, weight: .bold)
                         Spacer()
                     }
 
@@ -44,10 +44,10 @@ struct LLMConfigView: View {
                     HStack(spacing: 10) {
                         Image(systemName: "cube")
                             .foregroundStyle(.purple)
-                            .font(.body)
+                            .appFont(.body)
                             .symbolRenderingMode(.hierarchical)
                         Text("模型")
-                            .font(.system(.title3, design: .rounded, weight: .bold))
+                            .appFont(.title3, design: .rounded, weight: .bold)
                         Spacer()
                     }
 
@@ -69,7 +69,7 @@ struct LLMConfigView: View {
                                 .controlSize(.small)
                         } else {
                             Text("保存")
-                                .font(.headline)
+                                .appFont(.headline)
                         }
                         Spacer()
                     }

@@ -29,9 +29,9 @@ struct WeeklyReportSheet: View {
                                 .font(.system(size: 40))
                                 .foregroundStyle(.orange)
                             Text("生成失败")
-                                .font(.headline)
+                                .appFont(.headline)
                             Text(error)
-                                .font(.callout)
+                                .appFont(.callout)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
                         }
@@ -41,17 +41,17 @@ struct WeeklyReportSheet: View {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
                                 Text(weekTitle)
-                                    .font(.system(.title3, design: .rounded, weight: .bold))
+                                    .appFont(.title3, design: .rounded, weight: .bold)
                                 Spacer()
                                 Button(action: copyToClipboard) {
                                     Image(systemName: "doc.on.doc")
-                                        .font(.body)
+                                        .appFont(.body)
                                 }
                                 .buttonStyle(.borderless)
                             }
 
                             Text(reportText)
-                                .font(.body)
+                                .appFont(.body)
                                 .lineSpacing(4)
                                 .textSelection(.enabled)
                         }

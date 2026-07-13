@@ -11,10 +11,10 @@ struct OptionRow<Content: View>: View {
             HStack(spacing: 10) {
                 Image(systemName: icon)
                     .foregroundStyle(iconColor)
-                    .font(.body)
+                    .appFont(.body)
                     .symbolRenderingMode(.hierarchical)
                 Text(label)
-                    .font(.callout.weight(.medium))
+                    .appFont(.callout, weight: .medium)
                 Spacer()
             }
             content

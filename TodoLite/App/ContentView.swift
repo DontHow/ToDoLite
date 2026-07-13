@@ -4,6 +4,8 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var selectedTab: Tab = .today
     @State private var store = TodoStore.shared
+    @State private var automaticUpdateResult: UpdateChecker.Result?
+    @State private var showAutomaticUpdateAlert = false
 
     enum Tab: Hashable {
         case today, inbox, board, search, settings, done, archive, projects, tags
@@ -26,7 +28,7 @@ struct ContentView: View {
     }
 
     var body: some View {
-        let fontSize = FontSizeOption(level: store.fontSizeLevel)?.dynamicTypeSize ?? .medium
+        let fontSizeOption = FontSizeOption(level: store.fontSizeLevel) ?? .standard
         Group {
         #if os(macOS)
         NavigationSplitView {
@@ -34,7 +36,6 @@ struct ContentView: View {
         } detail: {
             detailView
         }
-        .dynamicTypeSize(fontSize)
         .onKeyPress(characters: .init(charactersIn: "1")) { press in
             guard press.modifiers == .command else { return .ignored }
             selectedTab = .today
@@ -77,15 +78,47 @@ struct ContentView: View {
                 .tabItem { Label("设置", systemImage: "gearshape.fill") }
                 .tag(Tab.settings)
         }
-        .dynamicTypeSize(fontSize)
         #endif
         }
+        .dynamicTypeSize(fontSizeOption.dynamicTypeSize)
+        .appFontScale(fontSizeOption.scale)
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
-            Task { await store.refreshFocusIfNeeded() }
+            Task {
+                await store.refreshFocusIfNeeded()
+                await checkForUpdatesAutomatically()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
             Task { await store.refreshFocusIfNeeded() }
         }
+        .task {
+            await checkForUpdatesAutomatically()
+        }
+        .alert("发现新版本", isPresented: $showAutomaticUpdateAlert) {
+            Button("前往下载") { openAutomaticUpdateURL() }
+            Button("稍后", role: .cancel) { }
+        } message: {
+            if let result = automaticUpdateResult {
+                Text("当前版本 \(result.currentVersion)，最新版本 \(result.latestVersion)")
+            }
+        }
+    }
+
+    private func checkForUpdatesAutomatically() async {
+        guard let result = await UpdateChecker.shared.checkAutomaticallyIfNeeded(), result.hasUpdate else {
+            return
+        }
+        automaticUpdateResult = result
+        showAutomaticUpdateAlert = true
+    }
+
+    private func openAutomaticUpdateURL() {
+        guard let url = automaticUpdateResult?.downloadURL else { return }
+        #if os(macOS)
+        NSWorkspace.shared.open(url)
+        #else
+        UIApplication.shared.open(url)
+        #endif
     }
 }

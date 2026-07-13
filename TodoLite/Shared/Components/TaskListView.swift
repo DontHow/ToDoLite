@@ -83,11 +83,11 @@ struct TaskListView: View {
     private var header: some View {
         HStack(spacing: 8) {
             Text(title)
-                .font(.body.weight(.bold))
+                .appFont(.body, weight: .bold)
                 .foregroundStyle(accentTheme?.primaryText ?? .primary)
 
             Text("\(todos.count)")
-                .font(.callout.weight(.semibold))
+                .appFont(.callout, weight: .semibold)
                 .foregroundStyle(accentTheme?.onBackground ?? .primary)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
@@ -112,9 +112,9 @@ struct TaskListView: View {
             } label: {
                 HStack(spacing: 3) {
                     Image(systemName: "arrow.up.arrow.down")
-                        .font(.caption2)
+                        .appFont(.caption2)
                     Text(grouping.rawValue)
-                        .font(.caption2)
+                        .appFont(.caption2)
                 }
                 .foregroundStyle(Color.labelSecondary)
                 .padding(.horizontal, 6)
@@ -140,7 +140,7 @@ struct TaskListView: View {
                         if grouping != .none {
                             HStack(spacing: 4) {
                                 Text(group.title)
-                                    .font(.callout.weight(.semibold))
+                                    .appFont(.callout, weight: .semibold)
                                     .foregroundStyle(accentTheme?.secondaryText ?? Color.accentColor)
                                 Spacer()
                             }
@@ -168,7 +168,7 @@ struct TaskListView: View {
             .frame(maxWidth: .infinity, minHeight: 48)
             .overlay(
                 Text(text)
-                    .font(.callout)
+                    .appFont(.callout)
                     .foregroundStyle(Color.labelSecondary)
             )
     }

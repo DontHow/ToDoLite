@@ -30,7 +30,7 @@ struct TodoRowView: View {
             }
         }) {
             Image(systemName: todo.status == .done ? "checkmark.circle.fill" : "circle")
-                .font(.body)
+                .appFont(.body)
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(todo.status == .done ? TodoStatus.done.theme.primaryText : Color.labelSecondary)
         }
@@ -42,7 +42,7 @@ struct TodoRowView: View {
 
     private var titleText: some View {
         Text(todo.title)
-            .font(.body.weight(.semibold))
+            .appFont(.body, weight: .semibold)
             .strikethrough(todo.status == .done)
             .foregroundStyle(todo.status == .done ? Color.labelSecondary : .primary)
             .lineLimit(2)
@@ -73,7 +73,7 @@ struct TodoRowView: View {
                     .imageScale(.small)
                 Text("今日")
             }
-            .font(.caption.weight(.medium))
+            .appFont(.caption, weight: .medium)
             .foregroundStyle(SectionTheme.today.secondaryText)
             .padding(.horizontal, 5)
             .padding(.vertical, 1)
@@ -90,7 +90,7 @@ struct TodoRowView: View {
                     .imageScale(.small)
                 Text(project.name)
             }
-            .font(.caption)
+            .appFont(.caption)
             .foregroundStyle(Color.labelSecondary)
         }
     }
@@ -100,7 +100,7 @@ struct TodoRowView: View {
         let tagList = todo.tagIds.compactMap { id in store.tags.first(where: { $0.id == id }) }
         ForEach(tagList) { tag in
             Text(tag.name)
-                .font(.caption.weight(.medium))
+                .appFont(.caption, weight: .medium)
                 .foregroundStyle(Color(hex: tag.colorHex))
                 .padding(.horizontal, 5)
                 .padding(.vertical, 1)
@@ -117,7 +117,7 @@ struct TodoRowView: View {
                     .imageScale(.small)
                 Text(completedAt.formatted(.dateTime.month().day()))
             }
-            .font(.caption)
+            .appFont(.caption)
             .foregroundStyle(SectionTheme.done.secondaryText)
             .layoutPriority(0)
         } else if let due = todo.dueAt {
@@ -132,7 +132,7 @@ struct TodoRowView: View {
                     .imageScale(.small)
                 Text(relativeDateString(due))
             }
-            .font(.caption)
+            .appFont(.caption)
             .foregroundStyle(isOverdue ? .red : (isUpcoming ? SectionTheme.upcoming.secondaryText : SectionTheme.today.secondaryText))
             .padding(.horizontal, 5)
             .padding(.vertical, 1)

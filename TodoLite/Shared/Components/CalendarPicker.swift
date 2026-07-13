@@ -64,7 +64,7 @@ struct CalendarPicker: View {
                 shiftMonth(by: -1)
             } label: {
                 Image(systemName: "chevron.left")
-                    .font(.body.weight(.semibold))
+                    .appFont(.body, weight: .semibold)
                     .foregroundStyle(.primary)
                     .frame(width: 32, height: 32)
                     .background(Color.chipBackground)
@@ -75,7 +75,7 @@ struct CalendarPicker: View {
             Spacer()
 
             Text(monthYearText)
-                .font(.headline.weight(.semibold))
+                .appFont(.headline, weight: .semibold)
 
             if !isDisplayingCurrentMonth {
                 Button {
@@ -84,7 +84,7 @@ struct CalendarPicker: View {
                     }
                 } label: {
                     Text("今")
-                        .font(.caption.weight(.semibold))
+                        .appFont(.caption, weight: .semibold)
                         .foregroundStyle(.white)
                         .frame(width: 32, height: 32)
                         .background(Color.accentColor)
@@ -100,7 +100,7 @@ struct CalendarPicker: View {
                 shiftMonth(by: 1)
             } label: {
                 Image(systemName: "chevron.right")
-                    .font(.body.weight(.semibold))
+                    .appFont(.body, weight: .semibold)
                     .foregroundStyle(.primary)
                     .frame(width: 32, height: 32)
                     .background(Color.chipBackground)
@@ -118,7 +118,7 @@ struct CalendarPicker: View {
         HStack(spacing: 0) {
             ForEach(weekdays, id: \.self) { day in
                 Text(day)
-                    .font(.caption.weight(.medium))
+                    .appFont(.caption, weight: .medium)
                     .foregroundStyle(Color.labelSecondary)
                     .frame(maxWidth: .infinity)
             }
@@ -158,7 +158,7 @@ struct CalendarPicker: View {
 
                 VStack(spacing: 0) {
                     Text("\(dayNumber)")
-                        .font(.body.weight(isSelected || isToday ? .semibold : .regular))
+                        .appFont(.body, weight: isSelected || isToday ? .semibold : .regular)
                         .foregroundStyle(dayCellForeground(isSelected: isSelected, isToday: isToday, isWeekend: isWeekend, holiday: holidayInfo))
 
                     if let holidayInfo {

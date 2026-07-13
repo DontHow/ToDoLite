@@ -8,9 +8,9 @@ struct TagChip: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: icon)
-                .font(.caption2)
+                .appFont(.caption2)
             Text(text)
-                .font(.caption.weight(.medium))
+                .appFont(.caption, weight: .medium)
         }
         .foregroundStyle(.white)
         .padding(.horizontal, 10)
