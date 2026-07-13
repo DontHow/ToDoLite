@@ -20,7 +20,7 @@ jobs:
         run: |
           xcodebuild -project TodoLite.xcodeproj \
             -scheme TodoLite-iOS \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'generic/platform=iOS Simulator' \
             clean build
 
   build-macos:
