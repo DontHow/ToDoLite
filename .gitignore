@@ -14,3 +14,6 @@ Package.resolved
 # xcodegen
 *.xcodeproj/project.xcworkspace/
 *.xcodeproj/xcuserdata/
+
+GitHub-Actions-Secret
+*.p8

@@ -1,4 +1,4 @@
-name: Build and Analyze
+name: Build and Release
 
 on:
   push:
@@ -25,8 +25,17 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
+    env:
+      APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+      APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+      APPSTORE_API_PRIVATE_KEY_BASE64: ${{ secrets.APPSTORE_API_PRIVATE_KEY_BASE64 }}
+      MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+      MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+      MACOS_PROVISIONING_PROFILE: ${{ secrets.MACOS_PROVISIONING_PROFILE }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Build macOS
         run: |
@@ -34,7 +43,7 @@ jobs:
             -scheme TodoLite-macOS \
             -configuration Release \
             -destination 'platform=macOS' \
-            -derivedDataPath DerivedData \
+            CONFIGURATION_BUILD_DIR="$RUNNER_TEMP/TodoLiteReleaseBuild" \
             clean build
 
       - name: Analyze
@@ -45,37 +54,191 @@ jobs:
             -destination 'platform=macOS' \
             analyze
 
-      - name: Package macOS
+      - name: Validate release credentials
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          APP_SRC="DerivedData/Build/Products/Release/办它.app"
-          hdiutil create -size 10m -volname "办它" -fs HFS+ -o TodoLite-temp.dmg
-          MOUNT=$(hdiutil attach TodoLite-temp.dmg | grep -o '/Volumes/.*')
-          cp -R "$APP_SRC" "$MOUNT/办它.app"
-          ln -s /Applications "$MOUNT/Applications"
-          hdiutil detach "$MOUNT"
-          hdiutil convert TodoLite-temp.dmg -format UDZO -o TodoLite.dmg
-          rm -f TodoLite-temp.dmg
+          VERSION="${GITHUB_REF_NAME#v}"
+          APP_PLIST="$RUNNER_TEMP/TodoLiteReleaseBuild/办它.app/Contents/Info.plist"
+          BUNDLE_VERSION=$(/usr/libexec/PlistBuddy -c \
+            'Print :CFBundleShortVersionString' "$APP_PLIST")
+          if [[ "$BUNDLE_VERSION" != "$VERSION" ]]; then
+            echo "Tag version $VERSION does not match app version $BUNDLE_VERSION" >&2
+            exit 1
+          fi
 
-      - name: Upload artifact
+          missing=()
+          for name in \
+            APPSTORE_API_KEY_ID \
+            APPSTORE_ISSUER_ID \
+            APPSTORE_API_PRIVATE_KEY_BASE64 \
+            MACOS_CERTIFICATE \
+            MACOS_CERTIFICATE_PASSWORD \
+            MACOS_PROVISIONING_PROFILE
+          do
+            if [[ -z "${!name}" ]]; then
+              missing+=("$name")
+            fi
+          done
+
+          if (( ${#missing[@]} > 0 )); then
+            echo "Missing required GitHub Actions secrets: ${missing[*]}" >&2
+            exit 1
+          fi
+
+      - name: Import signing certificate and provisioning profile
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          KEYCHAIN_PASSWORD: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          CERTIFICATE_PATH="$RUNNER_TEMP/developer-id.p12"
+          PROFILE_PATH="$RUNNER_TEMP/TodoLite.provisionprofile"
+          API_KEY_PATH="$RUNNER_TEMP/AuthKey_$APPSTORE_API_KEY_ID.p8"
+          KEYCHAIN_PATH="$RUNNER_TEMP/release-signing.keychain-db"
+
+          umask 077
+          printf '%s' "$MACOS_CERTIFICATE" | base64 -D > "$CERTIFICATE_PATH"
+          printf '%s' "$MACOS_PROVISIONING_PROFILE" | base64 -D > "$PROFILE_PATH"
+          printf '%s' "$APPSTORE_API_PRIVATE_KEY_BASE64" | base64 -D > "$API_KEY_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" \
+            -P "$MACOS_CERTIFICATE_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH"
+          security set-key-partition-list \
+            -S apple-tool:,apple: \
+            -s \
+            -k "$KEYCHAIN_PASSWORD" \
+            "$KEYCHAIN_PATH"
+
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$PROFILE_PATH" \
+            "$HOME/Library/MobileDevice/Provisioning Profiles/TodoLite.provisionprofile"
+
+      - name: Sign and notarize app
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          APP_PATH="$RUNNER_TEMP/TodoLiteReleaseBuild/办它.app"
+          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/TodoLite.provisionprofile"
+          PROFILE_PLIST="$RUNNER_TEMP/profile.plist"
+          ENTITLEMENTS_PATH="$RUNNER_TEMP/entitlements.plist"
+          NOTARY_ARCHIVE="$RUNNER_TEMP/TodoLite-notarization.zip"
+
+          test -d "$APP_PATH"
+          cp "$PROFILE_PATH" "$APP_PATH/Contents/embedded.provisionprofile"
+          security cms -D -i "$PROFILE_PATH" > "$PROFILE_PLIST"
+          /usr/libexec/PlistBuddy -x -c 'Print :Entitlements' \
+            "$PROFILE_PLIST" > "$ENTITLEMENTS_PATH"
+
+          SIGNING_IDENTITY=$(security find-identity -v -p codesigning | \
+            sed -n 's/.*"\(Developer ID Application:.*\)"/\1/p' | head -1)
+          if [[ -z "$SIGNING_IDENTITY" ]]; then
+            echo "Developer ID Application certificate was not found" >&2
+            exit 1
+          fi
+
+          codesign --force \
+            --options runtime \
+            --timestamp \
+            --entitlements "$ENTITLEMENTS_PATH" \
+            --sign "$SIGNING_IDENTITY" \
+            "$APP_PATH"
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+
+          ditto -c -k --keepParent "$APP_PATH" "$NOTARY_ARCHIVE"
+          xcrun notarytool submit "$NOTARY_ARCHIVE" \
+            --key "$RUNNER_TEMP/AuthKey_$APPSTORE_API_KEY_ID.p8" \
+            --key-id "$APPSTORE_API_KEY_ID" \
+            --issuer "$APPSTORE_ISSUER_ID" \
+            --wait
+          xcrun stapler staple "$APP_PATH"
+          xcrun stapler validate "$APP_PATH"
+          spctl --assess --type execute --verbose=2 "$APP_PATH"
+
+      - name: Package macOS release
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          APP_PATH="$RUNNER_TEMP/TodoLiteReleaseBuild/办它.app"
+          OUTPUT_DIR="$RUNNER_TEMP/release"
+          DMG_STAGING="$RUNNER_TEMP/dmg"
+          DMG_PATH="$OUTPUT_DIR/TodoLite-$VERSION.dmg"
+          ZIP_PATH="$OUTPUT_DIR/TodoLite-$VERSION.zip"
+
+          mkdir -p "$OUTPUT_DIR" "$DMG_STAGING"
+          ditto "$APP_PATH" "$DMG_STAGING/办它.app"
+          ln -s /Applications "$DMG_STAGING/Applications"
+
+          hdiutil create \
+            -volname "办它 $VERSION" \
+            -srcfolder "$DMG_STAGING" \
+            -ov \
+            -format UDZO \
+            "$DMG_PATH"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ZIP_PATH"
+
+          xcrun notarytool submit "$DMG_PATH" \
+            --key "$RUNNER_TEMP/AuthKey_$APPSTORE_API_KEY_ID.p8" \
+            --key-id "$APPSTORE_API_KEY_ID" \
+            --issuer "$APPSTORE_ISSUER_ID" \
+            --wait
+          xcrun stapler staple "$DMG_PATH"
+          xcrun stapler validate "$DMG_PATH"
+          hdiutil verify "$DMG_PATH"
+          unzip -t "$ZIP_PATH"
+
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+          {
+            echo "# TodoLite $VERSION"
+            echo
+            if [[ -n "$PREVIOUS_TAG" ]]; then
+              git log --pretty='- %s (%h)' "$PREVIOUS_TAG..$GITHUB_REF_NAME"
+            else
+              git log --pretty='- %s (%h)' "$GITHUB_REF_NAME"
+            fi
+          } > "$OUTPUT_DIR/CHANGELOG-$VERSION.md"
+
+      - name: Upload release assets
         if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
-          name: TodoLite-macOS
-          path: TodoLite.dmg
+          name: TodoLite-${{ github.ref_name }}
+          path: ${{ runner.temp }}/release/*
+          if-no-files-found: error
+
+      - name: Clean up signing keychain
+        if: always() && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          security delete-keychain "$RUNNER_TEMP/release-signing.keychain-db" || true
+          rm -f "$HOME/Library/MobileDevice/Provisioning Profiles/TodoLite.provisionprofile"
+          rm -f "$RUNNER_TEMP/AuthKey_$APPSTORE_API_KEY_ID.p8"
 
   release:
     needs: [build-ios, build-macos]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
-      - name: Download macOS artifact
+      - name: Download release assets
         uses: actions/download-artifact@v4
         with:
-          name: TodoLite-macOS
+          name: TodoLite-${{ github.ref_name }}
+          path: release
 
-      - name: Create Release
+      - name: Prepare release metadata
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: TodoLite.dmg
-          generate_release_notes: true
+          body_path: release/CHANGELOG-${{ env.VERSION }}.md
+          files: |
+            release/TodoLite-${{ env.VERSION }}.dmg
+            release/TodoLite-${{ env.VERSION }}.zip
+            release/CHANGELOG-${{ env.VERSION }}.md
+          fail_on_unmatched_files: true
+          preserve_order: true

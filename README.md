@@ -126,6 +126,33 @@ xcodebuild -project TodoLite.xcodeproj \
 
 测试覆盖模型 Codable、状态迁移、规则解析、日期解析和 `TodoStore` 派生集合。
 
+## 发布
+
+推送 `v<major>.<minor>` 或 `v<major>.<minor>.<patch>` 标签会触发 GitHub Release。发布任务会签名并公证 macOS 应用，然后上传以下文件：
+
+- `TodoLite-<version>.dmg`
+- `TodoLite-<version>.zip`
+- `CHANGELOG-<version>.md`
+
+仓库需要配置以下 GitHub Actions Secrets；缺少任意一项时发布任务会停止，避免发布无法通过 macOS Gatekeeper 检查的安装包：
+
+- `MACOS_CERTIFICATE`：Developer ID Application `.p12` 文件的 Base64 内容
+- `MACOS_CERTIFICATE_PASSWORD`：导出 `.p12` 时设置的密码
+- `MACOS_PROVISIONING_PROFILE`：包含 iCloud 和 App Group 权限的 Developer ID provisioning profile 的 Base64 内容
+- `APPSTORE_API_KEY_ID`：App Store Connect API Key ID
+- `APPSTORE_ISSUER_ID`：App Store Connect Issuer ID
+- `APPSTORE_API_PRIVATE_KEY_BASE64`：App Store Connect `.p8` 私钥的 Base64 内容
+
+在 macOS 上可用以下命令生成 Base64 内容：
+
+```bash
+base64 -i DeveloperIDApplication.p12 | pbcopy
+base64 -i TodoLite.provisionprofile | pbcopy
+base64 -i AuthKey_<KEY_ID>.p8 | pbcopy
+```
+
+发布任务会检查 `project.yml` 生成的 `CFBundleShortVersionString` 是否与标签版本一致，不一致时停止发布。
+
 ## LLM 配置
 
 设置页提供 LLM 配置入口：
