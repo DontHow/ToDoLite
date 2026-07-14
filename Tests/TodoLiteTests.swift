@@ -249,6 +249,7 @@ final class TodoLiteTests: XCTestCase {
 
     // MARK: - TodoStore Focus Logic
 
+    @MainActor
     func testFocusTodos() {
         let store = TodoStore()
         let t1 = TodoItem(id: "t1", title: "Focus1", status: .doing)
@@ -263,6 +264,7 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertTrue(store.focusTodos.contains { $0.title == "Focus2" })
     }
 
+    @MainActor
     func testFocusTodosExcludesDone() {
         let store = TodoStore()
         let t1 = TodoItem(id: "t1", title: "已完成Focus", status: .done)
@@ -273,6 +275,7 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertEqual(store.focusTodos.count, 0)
     }
 
+    @MainActor
     func testSuggestedTodos() {
         let store = TodoStore()
         let today = Date()
@@ -288,6 +291,7 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertTrue(store.suggestedTodos.contains { $0.title == "今日到期" })
     }
 
+    @MainActor
     func testOverdueTodos() {
         let store = TodoStore()
         let past = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
@@ -325,6 +329,7 @@ final class TodoLiteTests: XCTestCase {
         )
     }
 
+    @MainActor
     func testActiveTodos() {
         let store = TodoStore()
         store.todos = [
@@ -338,6 +343,7 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertTrue(store.activeTodos.contains { $0.title == "收件箱" })
     }
 
+    @MainActor
     func testInboxTodos() {
         let store = TodoStore()
         store.todos = [
@@ -346,6 +352,23 @@ final class TodoLiteTests: XCTestCase {
             TodoItem(title: "收件箱2", status: .inbox),
         ]
         XCTAssertEqual(store.inboxTodos.count, 2)
+    }
+
+    @MainActor
+    func testExternalSyncUpdatesAreSerialized() async {
+        let store = TodoStore()
+
+        await withTaskGroup(of: Void.self) { group in
+            for index in 0..<20 {
+                group.addTask {
+                    await store.applyExternalProject(Project(id: "project-\(index)", name: "项目 \(index)"))
+                    await store.applyExternalTag(TagItem(id: "tag-\(index)", name: "标签 \(index)"))
+                }
+            }
+        }
+
+        XCTAssertEqual(Set(store.projects.map(\.id)).count, 20)
+        XCTAssertEqual(Set(store.tags.map(\.id)).count, 20)
     }
 
     func testDueDateGroupingSeparatesOverdueTodos() {
@@ -398,6 +421,7 @@ final class TodoLiteTests: XCTestCase {
         ))
     }
 
+    @MainActor
     func testToggleCompleteStateMachine() {
         let store = TodoStore()
         let doing = TodoItem(title: "进行中", status: .doing)
@@ -433,6 +457,7 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertNil(m2.completedAt)
     }
 
+    @MainActor
     func testArchiveTodo() {
         let store = TodoStore()
         let todo = TodoItem(title: "归档", status: .done)

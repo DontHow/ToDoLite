@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 final class iCloudSyncManager {
     static let shared = iCloudSyncManager()
 
@@ -16,6 +17,7 @@ final class iCloudSyncManager {
         guard !isMonitoring else { return }
         isMonitoring = true
 
+        query.operationQueue = .main
         query.searchScopes = [NSMetadataQueryUbiquitousDocumentsScope]
         query.predicate = NSPredicate(
             format: "%K LIKE[c] %@",
@@ -82,16 +84,16 @@ final class iCloudSyncManager {
                     switch dir {
                     case "tasks":
                         let todo = try await FileSystemManager.shared.read(TodoItem.self, filename: filename, directory: .tasks)
-                        await updateTodoInStore(todo)
+                        await store.applyExternalTodo(todo)
                     case "projects":
                         let project = try await FileSystemManager.shared.read(Project.self, filename: filename, directory: .projects)
-                        await updateProjectInStore(project)
+                        await store.applyExternalProject(project)
                     case "tags":
                         let tag = try await FileSystemManager.shared.read(TagItem.self, filename: filename, directory: .tags)
-                        await updateTagInStore(tag)
+                        await store.applyExternalTag(tag)
                     case "meta" where filename == FocusRepository.filename(for: Date()):
                         let focus = try await FileSystemManager.shared.read(FocusSet.self, filename: filename, directory: .meta)
-                        await updateFocusInStore(focus)
+                        store.applyExternalFocus(focus)
                     default:
                         break
                     }
@@ -140,25 +142,4 @@ final class iCloudSyncManager {
         return String(filename.dropFirst(prefix.count).dropLast(5))
     }
 
-    // MARK: - Store Updates
-
-    @MainActor
-    private func updateTodoInStore(_ todo: TodoItem) async {
-        await store.applyExternalTodo(todo)
-    }
-
-    @MainActor
-    private func updateProjectInStore(_ project: Project) async {
-        await store.applyExternalProject(project)
-    }
-
-    @MainActor
-    private func updateTagInStore(_ tag: TagItem) async {
-        await store.applyExternalTag(tag)
-    }
-
-    @MainActor
-    private func updateFocusInStore(_ focusSet: FocusSet) {
-        store.applyExternalFocus(focusSet)
-    }
 }
