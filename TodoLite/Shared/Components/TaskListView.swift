@@ -9,7 +9,7 @@ enum TaskGrouping: String, CaseIterable {
 }
 
 struct TaskGroup: Identifiable {
-    let id = UUID()
+    let id: String
     let title: String
     let todos: [TodoItem]
 }
@@ -182,7 +182,7 @@ extension TaskGrouping {
     func apply(to todos: [TodoItem], projects: [Project]) -> [TaskGroup] {
         switch self {
         case .none:
-            return [TaskGroup(title: rawValue, todos: todos)]
+            return [TaskGroup(id: "none", title: rawValue, todos: todos)]
         case .dueDate:
             return groupByDueDate(todos)
         case .createdDate:
@@ -227,12 +227,12 @@ extension TaskGrouping {
         }
 
         var groups: [TaskGroup] = []
-        if !overdueTodos.isEmpty { groups.append(TaskGroup(title: "逾期", todos: overdueTodos)) }
-        if !todayTodos.isEmpty { groups.append(TaskGroup(title: "今天", todos: todayTodos)) }
-        if !tomorrowTodos.isEmpty { groups.append(TaskGroup(title: "明天", todos: tomorrowTodos)) }
-        if !thisWeekTodos.isEmpty { groups.append(TaskGroup(title: "本周", todos: thisWeekTodos)) }
-        if !futureTodos.isEmpty { groups.append(TaskGroup(title: "未来", todos: futureTodos)) }
-        if !noDueTodos.isEmpty { groups.append(TaskGroup(title: "无截止日期", todos: noDueTodos)) }
+        if !overdueTodos.isEmpty { groups.append(TaskGroup(id: "due-overdue", title: "逾期", todos: overdueTodos)) }
+        if !todayTodos.isEmpty { groups.append(TaskGroup(id: "due-today", title: "今天", todos: todayTodos)) }
+        if !tomorrowTodos.isEmpty { groups.append(TaskGroup(id: "due-tomorrow", title: "明天", todos: tomorrowTodos)) }
+        if !thisWeekTodos.isEmpty { groups.append(TaskGroup(id: "due-this-week", title: "本周", todos: thisWeekTodos)) }
+        if !futureTodos.isEmpty { groups.append(TaskGroup(id: "due-future", title: "未来", todos: futureTodos)) }
+        if !noDueTodos.isEmpty { groups.append(TaskGroup(id: "due-none", title: "无截止日期", todos: noDueTodos)) }
         return groups
     }
 
@@ -261,10 +261,10 @@ extension TaskGrouping {
         }
 
         var groups: [TaskGroup] = []
-        if !todayTodos.isEmpty { groups.append(TaskGroup(title: "今天", todos: todayTodos)) }
-        if !thisWeekTodos.isEmpty { groups.append(TaskGroup(title: "本周", todos: thisWeekTodos)) }
-        if !thisMonthTodos.isEmpty { groups.append(TaskGroup(title: "本月", todos: thisMonthTodos)) }
-        if !earlierTodos.isEmpty { groups.append(TaskGroup(title: "更早", todos: earlierTodos)) }
+        if !todayTodos.isEmpty { groups.append(TaskGroup(id: "created-today", title: "今天", todos: todayTodos)) }
+        if !thisWeekTodos.isEmpty { groups.append(TaskGroup(id: "created-this-week", title: "本周", todos: thisWeekTodos)) }
+        if !thisMonthTodos.isEmpty { groups.append(TaskGroup(id: "created-this-month", title: "本月", todos: thisMonthTodos)) }
+        if !earlierTodos.isEmpty { groups.append(TaskGroup(id: "created-earlier", title: "更早", todos: earlierTodos)) }
         return groups
     }
 
@@ -294,10 +294,10 @@ extension TaskGrouping {
         }
 
         var groups: [TaskGroup] = []
-        if !todayTodos.isEmpty { groups.append(TaskGroup(title: "今天", todos: todayTodos)) }
-        if !thisWeekTodos.isEmpty { groups.append(TaskGroup(title: "本周", todos: thisWeekTodos)) }
-        if !lastWeekTodos.isEmpty { groups.append(TaskGroup(title: "上周", todos: lastWeekTodos)) }
-        if !earlierTodos.isEmpty { groups.append(TaskGroup(title: "更早", todos: earlierTodos)) }
+        if !todayTodos.isEmpty { groups.append(TaskGroup(id: "completed-today", title: "今天", todos: todayTodos)) }
+        if !thisWeekTodos.isEmpty { groups.append(TaskGroup(id: "completed-this-week", title: "本周", todos: thisWeekTodos)) }
+        if !lastWeekTodos.isEmpty { groups.append(TaskGroup(id: "completed-last-week", title: "上周", todos: lastWeekTodos)) }
+        if !earlierTodos.isEmpty { groups.append(TaskGroup(id: "completed-earlier", title: "更早", todos: earlierTodos)) }
         return groups
     }
 
@@ -317,14 +317,14 @@ extension TaskGrouping {
 
         for (pid, ptodos) in withProject {
             let name = projects.first(where: { $0.id == pid })?.name ?? "未命名项目"
-            groups.append(TaskGroup(title: name, todos: ptodos.sorted { a, b in
+            groups.append(TaskGroup(id: "project-\(pid ?? "")", title: name, todos: ptodos.sorted { a, b in
                 if let da = a.dueAt, let db = b.dueAt { return da < db }
                 return a.dueAt != nil
             }))
         }
 
         if let ungrouped = grouped[nil], !ungrouped.isEmpty {
-            groups.append(TaskGroup(title: "未分配", todos: ungrouped.sorted { a, b in
+            groups.append(TaskGroup(id: "project-none", title: "未分配", todos: ungrouped.sorted { a, b in
                 if let da = a.dueAt, let db = b.dueAt { return da < db }
                 return a.dueAt != nil
             }))

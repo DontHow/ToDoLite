@@ -8,6 +8,7 @@ final class iCloudSyncManager {
     private let store = TodoStore.shared
 
     private var isMonitoring = false
+    private var pendingRemovalTasks: [String: Task<Void, Never>] = [:]
 
     private init() {}
 
@@ -44,6 +45,8 @@ final class iCloudSyncManager {
     func stopMonitoring() {
         query.stop()
         NotificationCenter.default.removeObserver(self)
+        pendingRemovalTasks.values.forEach { $0.cancel() }
+        pendingRemovalTasks.removeAll()
         isMonitoring = false
     }
 
@@ -51,23 +54,29 @@ final class iCloudSyncManager {
 
     @objc private func queryDidFinishGathering(_ notification: Notification) {
         query.disableUpdates()
-        processQueryResults()
+        processItems(query.results as? [NSMetadataItem] ?? [])
         query.enableUpdates()
     }
 
     @objc private func queryDidUpdate(_ notification: Notification) {
         query.disableUpdates()
         processRemovedItems(from: notification)
-        processQueryResults()
+        processChangedItems(from: notification)
         query.enableUpdates()
     }
 
-    private func processQueryResults() {
-        guard let results = query.results as? [NSMetadataItem] else { return }
+    private func processChangedItems(from notification: Notification) {
+        let added = notification.userInfo?[NSMetadataQueryUpdateAddedItemsKey] as? [NSMetadataItem] ?? []
+        let changed = notification.userInfo?[NSMetadataQueryUpdateChangedItemsKey] as? [NSMetadataItem] ?? []
+        processItems(added + changed)
+    }
 
-        for item in results {
+    private func processItems(_ items: [NSMetadataItem]) {
+        for item in items {
             guard let url = item.value(forAttribute: NSMetadataItemURLKey) as? URL else { continue }
             guard let filename = item.value(forAttribute: NSMetadataItemFSNameKey) as? String else { continue }
+
+            cancelPendingRemoval(for: url)
 
             // Skip conflict files
             if filename.contains("_conflict_") { continue }
@@ -87,7 +96,7 @@ final class iCloudSyncManager {
 
             let dir = url.deletingLastPathComponent().lastPathComponent
 
-            Task {
+            Task { @MainActor in
                 do {
                     switch dir {
                     case "tasks":
@@ -122,26 +131,51 @@ final class iCloudSyncManager {
             let filename = url.lastPathComponent
             let directory = url.deletingLastPathComponent().lastPathComponent
 
-            Task {
-                switch directory {
-                case "tasks":
-                    if let id = Self.id(from: filename, prefix: "task_") {
-                        await store.removeExternalTodo(id: id)
-                    }
-                case "projects":
-                    if let id = Self.id(from: filename, prefix: "project_") {
-                        await store.removeExternalProject(id: id)
-                    }
-                case "tags":
-                    if let id = Self.id(from: filename, prefix: "tag_") {
-                        await store.removeExternalTag(id: id)
-                    }
-                case "meta" where filename == FocusRepository.filename(for: Date()):
-                    store.applyExternalFocus(FocusSet())
-                default:
-                    break
-                }
+            scheduleRemoval(for: url, filename: filename, directory: directory)
+        }
+    }
+
+    private func scheduleRemoval(for url: URL, filename: String, directory: String) {
+        let key = url.standardizedFileURL.path
+        pendingRemovalTasks[key]?.cancel()
+        pendingRemovalTasks[key] = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard !Task.isCancelled, let self else { return }
+            defer { pendingRemovalTasks[key] = nil }
+
+            // Atomic replacement can briefly appear as a removal followed by an addition.
+            guard Self.shouldRemoveExternalItem(fileExists: FileManager.default.fileExists(atPath: url.path)) else {
+                return
             }
+
+            await removeExternalItem(filename: filename, directory: directory)
+        }
+    }
+
+    private func cancelPendingRemoval(for url: URL) {
+        let key = url.standardizedFileURL.path
+        pendingRemovalTasks[key]?.cancel()
+        pendingRemovalTasks[key] = nil
+    }
+
+    private func removeExternalItem(filename: String, directory: String) async {
+        switch directory {
+        case "tasks":
+            if let id = Self.id(from: filename, prefix: "task_") {
+                await store.removeExternalTodo(id: id)
+            }
+        case "projects":
+            if let id = Self.id(from: filename, prefix: "project_") {
+                await store.removeExternalProject(id: id)
+            }
+        case "tags":
+            if let id = Self.id(from: filename, prefix: "tag_") {
+                await store.removeExternalTag(id: id)
+            }
+        case "meta" where filename == FocusRepository.filename(for: Date()):
+            store.applyExternalFocus(FocusSet())
+        default:
+            break
         }
     }
 
@@ -152,6 +186,10 @@ final class iCloudSyncManager {
 
     nonisolated static func shouldRequestDownload(status: String?, alreadyRequested: Bool) -> Bool {
         status == NSMetadataUbiquitousItemDownloadingStatusNotDownloaded && !alreadyRequested
+    }
+
+    nonisolated static func shouldRemoveExternalItem(fileExists: Bool) -> Bool {
+        !fileExists
     }
 
 }

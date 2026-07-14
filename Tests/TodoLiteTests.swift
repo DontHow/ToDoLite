@@ -423,6 +423,30 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertEqual(groups.dropFirst().first?.title, "今天")
     }
 
+    func testTaskGroupingUsesStableIds() {
+        let todo = TodoItem(title: "任务", dueAt: Date())
+
+        let firstIds = TaskGrouping.dueDate.apply(to: [todo], projects: []).map(\.id)
+        let secondIds = TaskGrouping.dueDate.apply(to: [todo], projects: []).map(\.id)
+
+        XCTAssertEqual(firstIds, secondIds)
+    }
+
+    func testProjectGroupingIdsDoNotDependOnDuplicateNames() {
+        let projects = [
+            Project(id: "one", name: "同名项目"),
+            Project(id: "two", name: "同名项目"),
+        ]
+        let todos = [
+            TodoItem(title: "任务一", projectId: "one"),
+            TodoItem(title: "任务二", projectId: "two"),
+        ]
+
+        let groups = TaskGrouping.byProject.apply(to: todos, projects: projects)
+
+        XCTAssertEqual(Set(groups.map(\.id)), Set(["project-one", "project-two"]))
+    }
+
     func testSearchIndexerSupportsStringTodoIds() async {
         let todo = TodoItem(id: UUID().uuidString, title: "唯一搜索关键词")
 
@@ -524,6 +548,11 @@ final class TodoLiteTests: XCTestCase {
             alreadyRequested: false
         ))
         XCTAssertFalse(iCloudSyncManager.shouldRequestDownload(status: nil, alreadyRequested: false))
+    }
+
+    func testICloudOnlyRemovesItemsThatRemainAbsent() {
+        XCTAssertFalse(iCloudSyncManager.shouldRemoveExternalItem(fileExists: true))
+        XCTAssertTrue(iCloudSyncManager.shouldRemoveExternalItem(fileExists: false))
     }
 
     @MainActor
