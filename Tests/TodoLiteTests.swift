@@ -300,6 +300,31 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertEqual(store.overdueTodos[0].title, "逾期")
     }
 
+    func testTodoReschedulePresetDates() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "Asia/Shanghai"))
+        let baseDate = try XCTUnwrap(calendar.date(from: DateComponents(
+            year: 2026,
+            month: 7,
+            day: 14,
+            hour: 18,
+            minute: 30
+        )))
+
+        XCTAssertEqual(
+            TodoReschedulePreset.threeDays.dueDate(from: baseDate, calendar: calendar),
+            calendar.date(from: DateComponents(year: 2026, month: 7, day: 17))
+        )
+        XCTAssertEqual(
+            TodoReschedulePreset.oneWeek.dueDate(from: baseDate, calendar: calendar),
+            calendar.date(from: DateComponents(year: 2026, month: 7, day: 21))
+        )
+        XCTAssertEqual(
+            TodoReschedulePreset.oneMonth.dueDate(from: baseDate, calendar: calendar),
+            calendar.date(from: DateComponents(year: 2026, month: 8, day: 14))
+        )
+    }
+
     func testActiveTodos() {
         let store = TodoStore()
         store.todos = [

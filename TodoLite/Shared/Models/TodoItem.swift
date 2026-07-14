@@ -49,3 +49,31 @@ struct TodoItem: Codable, Identifiable, Hashable, Sendable {
         self.version = version
     }
 }
+
+enum TodoReschedulePreset: CaseIterable, Identifiable {
+    case threeDays
+    case oneWeek
+    case oneMonth
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .threeDays: return "3 天后"
+        case .oneWeek: return "一周后"
+        case .oneMonth: return "一月后"
+        }
+    }
+
+    func dueDate(from date: Date = Date(), calendar: Calendar = .current) -> Date? {
+        let today = calendar.startOfDay(for: date)
+        switch self {
+        case .threeDays:
+            return calendar.date(byAdding: .day, value: 3, to: today)
+        case .oneWeek:
+            return calendar.date(byAdding: .day, value: 7, to: today)
+        case .oneMonth:
+            return calendar.date(byAdding: .month, value: 1, to: today)
+        }
+    }
+}

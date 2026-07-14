@@ -5,37 +5,15 @@ struct TodoRowView: View {
     @State private var store = TodoStore.shared
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            completeButton
+        VStack(alignment: .leading, spacing: 4) {
+            titleText
 
-            VStack(alignment: .leading, spacing: 4) {
-                titleText
-
-                if hasMetadata {
-                    metadataRow
-                }
+            if hasMetadata {
+                metadataRow
             }
-
-            Spacer()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 8)
-    }
-
-    // MARK: - Complete Button
-
-    private var completeButton: some View {
-        Button(action: {
-            Task {
-                try? await store.toggleComplete(id: todo.id)
-            }
-        }) {
-            Image(systemName: todo.status == .done ? "checkmark.circle.fill" : "circle")
-                .appFont(.body)
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(todo.status == .done ? TodoStatus.done.theme.primaryText : Color.labelSecondary)
-        }
-        .buttonStyle(ScaleButtonStyle())
-        .padding(.top, 1)
     }
 
     // MARK: - Title
@@ -183,15 +161,5 @@ struct TodoRowView: View {
         default:
             return date.formatted(.dateTime.month().day())
         }
-    }
-}
-
-// MARK: - Scale Button Style
-
-private struct ScaleButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.85 : 1.0)
-            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
     }
 }
