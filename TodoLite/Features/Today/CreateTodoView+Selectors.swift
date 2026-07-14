@@ -5,7 +5,7 @@ extension CreateTodoView {
         VStack(spacing: 16) {
             statusSelector
             projectSelector
-            tagSelector
+            tagSelector()
 
             if todo != nil {
                 actionCard
@@ -30,36 +30,55 @@ extension CreateTodoView {
 
                 ScrollView {
                     VStack(spacing: 6) {
+                        if let pendingProjectName {
+                            pendingProjectRow(pendingProjectName)
+                        }
                         projectRow(nil)
                         ForEach(filteredProjects) { project in
                             projectRow(project)
                         }
                     }
                 }
-                .frame(maxHeight: 320)
+                .frame(
+                    minHeight: usesWideDetailLayout && todo == nil ? 200 : nil,
+                    maxHeight: usesWideDetailLayout && todo == nil ? .infinity : 240
+                )
             }
         }
+        .frame(maxHeight: usesWideDetailLayout && todo == nil ? .infinity : nil, alignment: .top)
     }
 
-    var tagSelector: some View {
+    @ViewBuilder
+    func tagSelector(scrollsList: Bool = true) -> some View {
         OptionRow(icon: "tag.fill", iconColor: .purple, label: "标签") {
             VStack(spacing: 10) {
                 searchField(text: $tagQuery, placeholder: "搜索标签")
 
-                ScrollView {
-                    VStack(spacing: 6) {
-                        ForEach(filteredTags) { tag in
-                            tagRow(tag)
-                        }
-
-                        if store.tags.isEmpty {
-                            emptySelectorText("暂无标签")
-                        } else if filteredTags.isEmpty {
-                            emptySelectorText("无匹配标签")
-                        }
+                if scrollsList {
+                    ScrollView {
+                        tagRows
                     }
+                    .frame(maxHeight: 200)
+                } else {
+                    tagRows
                 }
-                .frame(maxHeight: 220)
+            }
+        }
+    }
+
+    var tagRows: some View {
+        VStack(spacing: 6) {
+            ForEach(pendingTagNames, id: \.self) { name in
+                pendingTagRow(name)
+            }
+            ForEach(filteredTags) { tag in
+                tagRow(tag)
+            }
+
+            if store.tags.isEmpty && pendingTagNames.isEmpty {
+                emptySelectorText("暂无标签")
+            } else if filteredTags.isEmpty {
+                emptySelectorText("无匹配标签")
             }
         }
     }
@@ -99,10 +118,11 @@ extension CreateTodoView {
     }
 
     func projectRow(_ project: Project?) -> some View {
-        let isSelected = edited.projectId == project?.id
+        let isSelected = edited.projectId == project?.id && (project != nil || pendingProjectName == nil)
         return Button {
             withAnimation(.spring(duration: 0.2)) {
                 edited.projectId = project?.id
+                pendingProjectName = nil
             }
         } label: {
             HStack(spacing: 10) {
@@ -118,6 +138,30 @@ extension CreateTodoView {
             .padding(.horizontal, 12)
             .padding(.vertical, 9)
             .background(isSelected ? Color.blue.opacity(0.14) : Color.clear)
+            .contentShape(Rectangle())
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+    }
+
+    func pendingProjectRow(_ name: String) -> some View {
+        Button {
+            pendingProjectName = nil
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "plus.circle.fill")
+                    .foregroundStyle(.blue)
+                Text("将创建：\(name)")
+                    .appFont(.subheadline, weight: .semibold)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                Spacer()
+                Image(systemName: "xmark")
+                    .foregroundStyle(Color.labelSecondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .background(Color.blue.opacity(0.14))
             .contentShape(Rectangle())
             .clipShape(RoundedRectangle(cornerRadius: 10))
         }
@@ -148,6 +192,30 @@ extension CreateTodoView {
             .padding(.horizontal, 12)
             .padding(.vertical, 9)
             .background(isSelected ? Color(hex: tag.colorHex).opacity(0.16) : Color.clear)
+            .contentShape(Rectangle())
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+    }
+
+    func pendingTagRow(_ name: String) -> some View {
+        Button {
+            pendingTagNames.removeAll { $0 == name }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "plus.circle.fill")
+                    .foregroundStyle(.purple)
+                Text("将创建：\(name)")
+                    .appFont(.subheadline, weight: .semibold)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                Spacer()
+                Image(systemName: "xmark")
+                    .foregroundStyle(Color.labelSecondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .background(Color.purple.opacity(0.14))
             .contentShape(Rectangle())
             .clipShape(RoundedRectangle(cornerRadius: 10))
         }

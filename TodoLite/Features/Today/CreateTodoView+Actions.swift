@@ -80,10 +80,23 @@ extension CreateTodoView {
         VStack(spacing: 0) {
             Divider()
 
-            primarySaveButton
+            #if os(macOS)
+            HStack(spacing: 12) {
+                Button("取消") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                    .frame(width: 88)
+
+                primarySaveButton
+            }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
             .background(.ultraThinMaterial)
+            #else
+            primarySaveButton
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(.ultraThinMaterial)
+            #endif
         }
     }
 }

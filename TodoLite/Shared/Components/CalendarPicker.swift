@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CalendarPicker: View {
     @Binding var selectedDate: Date?
+    let isCompact: Bool
 
     @State private var displayMonth: Date
     @State private var holidays: [String: HolidayInfo] = [:]
@@ -14,8 +15,9 @@ struct CalendarPicker: View {
         return f
     }()
 
-    init(selectedDate: Binding<Date?>) {
+    init(selectedDate: Binding<Date?>, isCompact: Bool = false) {
         _selectedDate = selectedDate
+        self.isCompact = isCompact
         _displayMonth = State(initialValue: selectedDate.wrappedValue ?? Date())
     }
 
@@ -133,7 +135,7 @@ struct CalendarPicker: View {
                     dayCell(date)
                 } else {
                     Color.clear
-                        .frame(minHeight: 52)
+                        .frame(minHeight: dayCellHeight)
                 }
             }
         }
@@ -153,7 +155,7 @@ struct CalendarPicker: View {
                 if isSelected {
                     Circle()
                         .fill(Color.accentColor)
-                        .frame(width: 36, height: 36)
+                        .frame(width: selectionSize, height: selectionSize)
                 }
 
                 VStack(spacing: 0) {
@@ -176,10 +178,18 @@ struct CalendarPicker: View {
                     }
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: 52)
+            .frame(maxWidth: .infinity, minHeight: dayCellHeight)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    private var dayCellHeight: CGFloat {
+        isCompact ? 40 : 52
+    }
+
+    private var selectionSize: CGFloat {
+        isCompact ? 32 : 36
     }
 
     private func isWeekend(_ date: Date) -> Bool {

@@ -23,31 +23,38 @@ extension CreateTodoView {
     var wideDetailForm: some View {
         HStack(alignment: .top, spacing: 0) {
             if todo == nil {
-                VStack(spacing: 18) {
-                    inlineModeToggle
-                    coreInputPanel
-                }
-                .frame(minWidth: 320, maxWidth: 380, alignment: .top)
-                .padding(.trailing, 16)
-                .layoutPriority(2)
+                coreInfoPanel(expandsDescription: true)
+                    .frame(minWidth: 280, maxWidth: 320, alignment: .top)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .padding(.trailing, 16)
+                    .layoutPriority(2)
 
                 Divider()
 
-                VStack(spacing: 16) {
-                    projectSelector
-                }
-                .frame(minWidth: 220, maxWidth: 260, alignment: .top)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .layoutPriority(1)
+                dueDatePanel(compactCalendar: true)
+                    .frame(minWidth: 300, maxWidth: 340, alignment: .top)
+                    .padding(.horizontal, 16)
+                    .layoutPriority(2)
 
                 Divider()
 
-                VStack(spacing: 16) {
-                    statusSelector
-                    tagSelector
+                projectSelector
+                    .frame(minWidth: 210, maxWidth: 240, alignment: .top)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .layoutPriority(1)
+
+                Divider()
+
+                ScrollView {
+                    VStack(spacing: 16) {
+                        statusSelector
+                        tagSelector(scrollsList: false)
+                    }
                 }
-                .frame(minWidth: 200, maxWidth: 240, alignment: .top)
+                .scrollIndicators(.visible)
+                .frame(minWidth: 190, maxWidth: 220, alignment: .top)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .layoutPriority(1)
@@ -68,10 +75,6 @@ extension CreateTodoView {
 
     var compactDetailForm: some View {
         VStack(spacing: 18) {
-            if todo == nil {
-                inlineModeToggle
-            }
-
             coreInputPanel
             attributesPanel
         }
@@ -79,33 +82,60 @@ extension CreateTodoView {
 
     var coreInputPanel: some View {
         VStack(spacing: 18) {
-            VStack(alignment: .leading, spacing: 14) {
-                sectionHeader(icon: "square.and.pencil", color: .accentColor, title: "核心信息")
-
-                TextField("任务标题", text: $edited.title)
-                    .appFont(.title3, weight: .semibold)
-                    .focused($detailTitleFocused)
-
-                Divider()
-
-                TextField("添加描述...", text: $edited.description, axis: .vertical)
-                    .lineLimit(5...9)
-                    .appFont(.body)
-                    .foregroundStyle(Color.labelSecondary)
-                    .frame(minHeight: 100, alignment: .topLeading)
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(Color.cardBackground)
-            )
-
-            dueDatePanel
+            coreInfoPanel()
+            dueDatePanel()
         }
     }
 
-    var dueDatePanel: some View {
+    func coreInfoPanel(expandsDescription: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            sectionHeader(icon: "square.and.pencil", color: .accentColor, title: "核心信息")
+
+            TextField("任务标题", text: $edited.title)
+                .appFont(.title3, weight: .semibold)
+                .focused($detailTitleFocused)
+
+            ruleSuggestions
+
+            Divider()
+
+            ZStack(alignment: .topLeading) {
+                if edited.description.isEmpty {
+                    Text("添加描述...")
+                        .appFont(.body)
+                        .foregroundStyle(.tertiary)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 8)
+                        .allowsHitTesting(false)
+                }
+
+                TextEditor(text: $edited.description)
+                    .appFont(.body)
+                    .foregroundStyle(Color.labelSecondary)
+                    .scrollContentBackground(.hidden)
+            }
+            .frame(
+                minHeight: 140,
+                maxHeight: expandsDescription ? .infinity : 140
+            )
+
+            Divider()
+
+            parsingControls
+                .task(id: edited.title) {
+                    await automaticallyApplyRuleParsing(to: edited.title)
+                }
+        }
+        .frame(maxHeight: expandsDescription ? .infinity : nil, alignment: .top)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.cardBackground)
+        )
+    }
+
+    func dueDatePanel(compactCalendar: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             sectionHeader(icon: "calendar", color: .orange, title: "截止日期")
 
@@ -116,7 +146,10 @@ extension CreateTodoView {
                 customDateButton
             }
 
-            CalendarPicker(selectedDate: $edited.dueAt)
+            CalendarPicker(
+                selectedDate: $edited.dueAt,
+                isCompact: compactCalendar
+            )
 
             if let completedAt = edited.completedAt {
                 Divider()

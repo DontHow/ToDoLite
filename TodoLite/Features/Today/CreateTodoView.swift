@@ -5,23 +5,22 @@ struct CreateTodoView: View {
 
     @State var store = TodoStore.shared
     @State var edited: TodoItem
-    @State var useQuickEntry = true
-    @State var parsedDraft: TodoDraft?
-    @State var isParsingLLM = false
-    @State var llmError: String?
     @State var errorMessage: String?
+    @State var parseMessage: String?
+    @State var parseError: String?
+    @State var isParsingLLM = false
+    @State var pendingProjectName: String?
+    @State var pendingTagNames: [String] = []
     @State var projectQuery = ""
     @State var tagQuery = ""
     @Environment(\.dismiss) var dismiss
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    @FocusState var quickEntryFocused: Bool
     @FocusState var detailTitleFocused: Bool
 
     init(todo: TodoItem? = nil) {
         self.todo = todo
         if let todo = todo {
             _edited = State(initialValue: todo)
-            _useQuickEntry = State(initialValue: false)
         } else {
             var newTodo = TodoItem(title: "")
             newTodo.dueAt = defaultDueDate()
@@ -34,17 +33,7 @@ struct CreateTodoView: View {
             Group {
                 #if os(iOS)
                 ScrollView {
-                    VStack(spacing: 10) {
-                        if todo == nil && useQuickEntry {
-                            modeToggle
-                        }
-
-                        if todo == nil && useQuickEntry {
-                            quickEntryArea
-                        } else {
-                            detailForm
-                        }
-                    }
+                    detailForm
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
                 }
@@ -55,28 +44,25 @@ struct CreateTodoView: View {
                     }
                 }
                 #else
-                ZStack(alignment: .bottom) {
+                if todo == nil && usesWideDetailLayout {
+                    VStack(spacing: 0) {
+                        wideDetailForm
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+
+                        saveButtonBar
+                    }
+                } else {
                     ScrollView {
-                        VStack(spacing: 10) {
-                            if todo == nil && useQuickEntry {
-                                modeToggle
-                            }
-
-                            if todo == nil && useQuickEntry {
-                                quickEntryArea
-                            } else {
-                                detailForm
-                            }
-
-                            Spacer().frame(height: todo == nil ? 100 : 24)
-                        }
+                        detailForm
                         .padding(.horizontal, 20)
                         .padding(.vertical, 12)
                     }
                     .scrollDismissesKeyboard(.interactively)
-
-                    if todo == nil {
-                        saveButtonBar
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        if todo == nil {
+                            saveButtonBar
+                        }
                     }
                 }
                 #endif
@@ -86,9 +72,17 @@ struct CreateTodoView: View {
             .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar {
+                #if os(macOS)
+                if todo != nil {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("取消") { dismiss() }
+                    }
+                }
+                #else
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") { dismiss() }
                 }
+                #endif
                 if todo != nil {
                     ToolbarItem(placement: .confirmationAction) {
                         Button("保存") {
@@ -105,53 +99,36 @@ struct CreateTodoView: View {
             }
         }
         #if os(macOS)
-        .frame(minWidth: 900)
-        .fixedSize(horizontal: false, vertical: true)
+        .frame(minWidth: 1160, idealWidth: 1240, minHeight: 580, idealHeight: 640)
         #endif
     }
 
     var canSave: Bool {
-        if todo == nil && useQuickEntry {
-            !(parsedDraft?.title.isEmpty ?? true)
-        } else {
-            !edited.title.isEmpty
-        }
+        !edited.title.isEmpty
     }
 
     func save() async {
-        if todo != nil {
-            do {
-                try await store.updateTodo(edited)
+        do {
+            let resolved = try await resolvePendingMetadata(in: edited)
+            if todo != nil {
+                try await store.updateTodo(resolved)
                 dismiss()
-            } catch {
-                errorMessage = "保存失败: \(error.localizedDescription)"
-            }
-        } else if useQuickEntry, let draft = parsedDraft {
-            do {
-                try await store.createTodoWithParsed(
-                    title: draft.title,
-                    description: draft.description,
-                    status: .inbox,
-                    projectName: draft.projectName,
-                    tagNames: draft.tagNames,
-                    dueAt: draft.dueAt ?? defaultDueDate()
-                )
-                dismiss()
-            } catch {
-                errorMessage = "创建失败: \(error.localizedDescription)"
-            }
-        } else {
-            do {
+            } else {
                 try await store.createTodo(
-                    title: edited.title,
-                    description: edited.description,
-                    status: edited.status,
-                    projectId: edited.projectId,
-                    tagIds: edited.tagIds,
-                    dueAt: edited.dueAt
+                    title: resolved.title,
+                    description: resolved.description,
+                    status: resolved.status,
+                    projectId: resolved.projectId,
+                    tagIds: resolved.tagIds,
+                    scheduledAt: resolved.scheduledAt,
+                    dueAt: resolved.dueAt
                 )
                 dismiss()
-            } catch {
+            }
+        } catch {
+            if todo != nil {
+                errorMessage = "保存失败: \(error.localizedDescription)"
+            } else {
                 errorMessage = "创建失败: \(error.localizedDescription)"
             }
         }

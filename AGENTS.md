@@ -67,7 +67,7 @@ View -> TodoStore (@Observable) -> Repository actor -> FileSystemManager actor -
 - `TodoLite/Shared/FileSystem/FileSystemManager.swift`：通过 `NSFileCoordinator` 读写、列出和删除 JSON；创建应用目录；从 iCloud 回退到本地 Documents。
 - `TodoLite/Shared/FileSystem/iCloudSyncManager.swift`：使用 `NSMetadataQuery` 监控已下载 JSON 的变化。
 - `TodoLite/Shared/Search/SearchIndexer.swift`：Application Support 下的 SQLite FTS5 contentless index。
-- `TodoLite/Shared/Parser/TodoParser.swift`：快速录入规则解析器。
+- `TodoLite/Shared/Parser/TodoParser.swift`：详细输入表单使用的任务文本规则解析器。
 - `TodoLite/Shared/LLM/*.swift`：OpenAI-compatible chat service 和任务解析器。
 - `TodoLite/Shared/Widget/WidgetDataStore.swift`：把今日关注摘要写入 App Group defaults，供 widget 使用。
 
@@ -173,7 +173,9 @@ TodoLite/
 - 删除任务当前会移除 JSON 文件；归档是把 `status` 改为 `.archived`。
 - LLM 不直接写文件。LLM 只返回 draft 或文本；持久化仍通过 store/repository。
 
-## 快速录入和 LLM
+## 任务录入和 LLM
+
+`CreateTodoView` 当前只提供一套详细输入表单，不再提供独立的快速输入模式。标题中的规则语法会在短暂输入停顿后自动解析；核心信息区保留显式的“AI 解析”操作。解析结果会回填标题、描述、项目、标签和截止日期，用户可以继续手动调整。规则解析产生的缺失项目或标签只在保存任务时创建。新任务默认截止日期为从今天起三个工作日后。
 
 规则解析器语法：
 
@@ -183,9 +185,7 @@ TodoLite/
 
 日期由 `DateResolver` 解析，支持 `today`、`tomorrow`、`weekend`、`next week`、weekday 和简单数字日期格式。
 
-通过快速录入创建任务时，可以按名称创建缺失的项目和标签。`CreateTodoView` 在没有解析出 due date 时，默认新任务截止日期为从今天起三个工作日后。
-
-LLM 解析使用 `LLMParser` -> `LLMService.chat`，请求地址为 `baseURL + /chat/completions`。
+LLM 任务解析使用 `LLMParser` -> `LLMService.chat`，请求地址为 `baseURL + /chat/completions`。
 
 ## Widget 和菜单栏
 
