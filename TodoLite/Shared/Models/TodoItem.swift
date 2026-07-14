@@ -48,6 +48,12 @@ struct TodoItem: Codable, Identifiable, Hashable, Sendable {
         self.completedAt = completedAt
         self.version = version
     }
+
+    func archived() -> TodoItem {
+        var archived = self
+        archived.status = .archived
+        return archived
+    }
 }
 
 enum TodoReschedulePreset: CaseIterable, Identifiable {

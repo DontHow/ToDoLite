@@ -117,9 +117,9 @@ final class TodoStore {
                 projectId = existing.id
             } else {
                 let newProject = Project(name: name)
-                try await projectRepo.save(newProject)
-                projects.append(newProject)
-                projectId = newProject.id
+                let savedProject = try await projectRepo.save(newProject)
+                projects.append(savedProject)
+                projectId = savedProject.id
             }
         }
 
@@ -177,10 +177,7 @@ final class TodoStore {
 
     func archiveTodo(id: String) async throws {
         guard let idx = todos.firstIndex(where: { $0.id == id }) else { return }
-        var todo = todos[idx]
-        todo.status = .archived
-        todo.completedAt = Date()
-        try await updateTodo(todo)
+        try await updateTodo(todos[idx].archived())
     }
 
     // MARK: - Focus
@@ -221,14 +218,14 @@ final class TodoStore {
 
     func createProject(name: String, emoji: String = "📁", colorHex: String = "#007AFF") async throws {
         let project = Project(name: name, emoji: emoji, colorHex: colorHex)
-        try await projectRepo.save(project)
-        projects.append(project)
+        let saved = try await projectRepo.save(project)
+        projects.append(saved)
     }
 
     func updateProject(_ project: Project) async throws {
-        try await projectRepo.save(project)
-        if let idx = projects.firstIndex(where: { $0.id == project.id }) {
-            projects[idx] = project
+        let saved = try await projectRepo.save(project)
+        if let idx = projects.firstIndex(where: { $0.id == saved.id }) {
+            projects[idx] = saved
         }
         await indexer.rebuild(todos: todos, projects: projects, tags: tags)
     }
@@ -282,6 +279,7 @@ final class TodoStore {
 
     func applyExternalProject(_ project: Project) async {
         if let idx = projects.firstIndex(where: { $0.id == project.id }) {
+            guard project.updatedAt > projects[idx].updatedAt else { return }
             projects[idx] = project
         } else {
             projects.append(project)

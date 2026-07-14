@@ -5,9 +5,12 @@ actor ProjectRepository {
 
     private let fs = FileSystemManager.shared
 
-    func save(_ project: Project) async throws {
+    func save(_ project: Project) async throws -> Project {
         let filename = filename(for: project.id)
-        try await fs.write(project, filename: filename, directory: .projects)
+        var updated = project
+        updated.updatedAt = Date()
+        try await fs.write(updated, filename: filename, directory: .projects)
+        return updated
     }
 
     func read(id: String) async throws -> Project {

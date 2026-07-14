@@ -50,10 +50,7 @@ actor TodoRepository {
     // MARK: - Archive
 
     func archive(_ item: TodoItem) async throws -> TodoItem {
-        var archived = item
-        archived.status = .archived
-        archived.updatedAt = Date()
-        return try await save(archived)
+        try await save(item.archived())
     }
 
     // MARK: - Helpers

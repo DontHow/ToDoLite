@@ -75,7 +75,15 @@ final class iCloudSyncManager {
             let status = item.value(forAttribute: NSMetadataUbiquitousItemDownloadingStatusKey) as? String
             let isDownloaded = status == NSMetadataUbiquitousItemDownloadingStatusCurrent
 
-            guard isDownloaded else { continue }
+            guard isDownloaded else {
+                let downloadRequested = item.value(
+                    forAttribute: NSMetadataUbiquitousItemDownloadRequestedKey
+                ) as? Bool ?? false
+                if Self.shouldRequestDownload(status: status, alreadyRequested: downloadRequested) {
+                    try? FileManager.default.startDownloadingUbiquitousItem(at: url)
+                }
+                continue
+            }
 
             let dir = url.deletingLastPathComponent().lastPathComponent
 
@@ -140,6 +148,10 @@ final class iCloudSyncManager {
     private static func id(from filename: String, prefix: String) -> String? {
         guard filename.hasPrefix(prefix), filename.hasSuffix(".json") else { return nil }
         return String(filename.dropFirst(prefix.count).dropLast(5))
+    }
+
+    nonisolated static func shouldRequestDownload(status: String?, alreadyRequested: Bool) -> Bool {
+        status == NSMetadataUbiquitousItemDownloadingStatusNotDownloaded && !alreadyRequested
     }
 
 }

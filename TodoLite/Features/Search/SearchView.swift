@@ -37,6 +37,15 @@ struct SearchView: View {
             .onChange(of: query) { _, newValue in
                 performSearch(newValue)
             }
+            .onChange(of: store.todos) { _, _ in
+                performSearch(query)
+            }
+            .onChange(of: store.projects) { _, _ in
+                performSearch(query)
+            }
+            .onChange(of: store.tags) { _, _ in
+                performSearch(query)
+            }
         }
     }
 

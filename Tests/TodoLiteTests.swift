@@ -371,6 +371,43 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertEqual(Set(store.tags.map(\.id)).count, 20)
     }
 
+    @MainActor
+    func testExternalProjectIgnoresOlderUpdate() async {
+        let store = TodoStore()
+        let currentDate = Date()
+        store.projects = [
+            Project(id: "project", name: "新版名称", updatedAt: currentDate)
+        ]
+
+        await store.applyExternalProject(
+            Project(
+                id: "project",
+                name: "旧版名称",
+                updatedAt: currentDate.addingTimeInterval(-60)
+            )
+        )
+
+        XCTAssertEqual(store.projects.first?.name, "新版名称")
+        XCTAssertEqual(store.projects.first?.updatedAt, currentDate)
+    }
+
+    @MainActor
+    func testExternalProjectAcceptsNewerUpdate() async {
+        let store = TodoStore()
+        let currentDate = Date()
+        let newerDate = currentDate.addingTimeInterval(60)
+        store.projects = [
+            Project(id: "project", name: "旧版名称", updatedAt: currentDate)
+        ]
+
+        await store.applyExternalProject(
+            Project(id: "project", name: "新版名称", updatedAt: newerDate)
+        )
+
+        XCTAssertEqual(store.projects.first?.name, "新版名称")
+        XCTAssertEqual(store.projects.first?.updatedAt, newerDate)
+    }
+
     func testDueDateGroupingSeparatesOverdueTodos() {
         let calendar = Calendar.current
         let overdue = TodoItem(
@@ -404,6 +441,51 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertEqual(results, [todo.id])
     }
 
+    func testSearchIndexerReflectsTodoProjectAndTagUpdates() async {
+        let todoId = UUID().uuidString
+        let projectId = UUID().uuidString
+        let tagId = UUID().uuidString
+        let original = TodoItem(
+            id: todoId,
+            title: "旧任务标题",
+            projectId: projectId,
+            tagIds: [tagId]
+        )
+
+        await SearchIndexer.shared.rebuild(
+            todos: [original],
+            projects: [Project(id: projectId, name: "旧项目")],
+            tags: [TagItem(id: tagId, name: "旧标签")]
+        )
+        let originalTitleResults = await SearchIndexer.shared.search(query: "旧任务")
+        let originalProjectResults = await SearchIndexer.shared.search(query: "旧项目")
+        let originalTagResults = await SearchIndexer.shared.search(query: "旧标签")
+        XCTAssertEqual(originalTitleResults, [todoId])
+        XCTAssertEqual(originalProjectResults, [todoId])
+        XCTAssertEqual(originalTagResults, [todoId])
+
+        var updated = original
+        updated.title = "新任务标题"
+        await SearchIndexer.shared.rebuild(
+            todos: [updated],
+            projects: [Project(id: projectId, name: "新项目")],
+            tags: [TagItem(id: tagId, name: "新标签")]
+        )
+
+        let staleTitleResults = await SearchIndexer.shared.search(query: "旧任务")
+        let staleProjectResults = await SearchIndexer.shared.search(query: "旧项目")
+        let staleTagResults = await SearchIndexer.shared.search(query: "旧标签")
+        let updatedTitleResults = await SearchIndexer.shared.search(query: "新任务")
+        let updatedProjectResults = await SearchIndexer.shared.search(query: "新项目")
+        let updatedTagResults = await SearchIndexer.shared.search(query: "新标签")
+        XCTAssertTrue(staleTitleResults.isEmpty)
+        XCTAssertTrue(staleProjectResults.isEmpty)
+        XCTAssertTrue(staleTagResults.isEmpty)
+        XCTAssertEqual(updatedTitleResults, [todoId])
+        XCTAssertEqual(updatedProjectResults, [todoId])
+        XCTAssertEqual(updatedTagResults, [todoId])
+    }
+
     func testAutomaticUpdateCheckThrottle() {
         let now = Date()
 
@@ -419,6 +501,29 @@ final class TodoLiteTests: XCTestCase {
             lastCheck: now.addingTimeInterval(-25 * 60 * 60),
             now: now
         ))
+    }
+
+    func testICloudRequestsMissingFileDownload() {
+        XCTAssertTrue(iCloudSyncManager.shouldRequestDownload(
+            status: NSMetadataUbiquitousItemDownloadingStatusNotDownloaded,
+            alreadyRequested: false
+        ))
+        XCTAssertFalse(iCloudSyncManager.shouldRequestDownload(
+            status: NSMetadataUbiquitousItemDownloadingStatusNotDownloaded,
+            alreadyRequested: true
+        ))
+    }
+
+    func testICloudDoesNotDownloadCurrentOrStaleLocalFileExplicitly() {
+        XCTAssertFalse(iCloudSyncManager.shouldRequestDownload(
+            status: NSMetadataUbiquitousItemDownloadingStatusCurrent,
+            alreadyRequested: false
+        ))
+        XCTAssertFalse(iCloudSyncManager.shouldRequestDownload(
+            status: NSMetadataUbiquitousItemDownloadingStatusDownloaded,
+            alreadyRequested: false
+        ))
+        XCTAssertFalse(iCloudSyncManager.shouldRequestDownload(status: nil, alreadyRequested: false))
     }
 
     @MainActor
@@ -457,17 +562,23 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertNil(m2.completedAt)
     }
 
-    @MainActor
-    func testArchiveTodo() {
-        let store = TodoStore()
-        let todo = TodoItem(title: "归档", status: .done)
-        store.todos = [todo]
+    func testArchivingActiveTodoDoesNotMarkItCompleted() {
+        let archived = TodoItem(title: "未完成归档", status: .doing).archived()
 
-        var archived = store.todos[0]
-        archived.status = .archived
-        archived.completedAt = Date()
         XCTAssertEqual(archived.status, .archived)
-        XCTAssertNotNil(archived.completedAt)
+        XCTAssertNil(archived.completedAt)
+    }
+
+    func testArchivingCompletedTodoPreservesCompletionDate() {
+        let completedAt = Date()
+        let archived = TodoItem(
+            title: "已完成归档",
+            status: .done,
+            completedAt: completedAt
+        ).archived()
+
+        XCTAssertEqual(archived.status, .archived)
+        XCTAssertEqual(archived.completedAt, completedAt)
     }
 
     func testStatusCodableMigration() throws {
