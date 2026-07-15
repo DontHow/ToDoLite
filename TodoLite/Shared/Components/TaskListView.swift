@@ -309,10 +309,23 @@ extension TaskGrouping {
         let withProject = grouped
             .filter { $0.key != nil }
             .sorted { pair0, pair1 in
-                let minDue0 = pair0.value.compactMap { $0.dueAt }.min()
-                let minDue1 = pair1.value.compactMap { $0.dueAt }.min()
-                if let d0 = minDue0, let d1 = minDue1 { return d0 < d1 }
-                return minDue0 != nil
+                let nearestDue0 = pair0.value.compactMap(\.dueAt).min()
+                let nearestDue1 = pair1.value.compactMap(\.dueAt).min()
+
+                switch (nearestDue0, nearestDue1) {
+                case let (due0?, due1?) where due0 != due1:
+                    return due0 < due1
+                case (_?, nil):
+                    return true
+                case (nil, _?):
+                    return false
+                default:
+                    let id0 = pair0.key ?? ""
+                    let id1 = pair1.key ?? ""
+                    let name0 = projects.first(where: { $0.id == id0 })?.name ?? "未命名项目"
+                    let name1 = projects.first(where: { $0.id == id1 })?.name ?? "未命名项目"
+                    return name0 == name1 ? id0 < id1 : name0.localizedStandardCompare(name1) == .orderedAscending
+                }
             }
 
         for (pid, ptodos) in withProject {

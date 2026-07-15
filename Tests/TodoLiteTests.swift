@@ -447,6 +447,25 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertEqual(Set(groups.map(\.id)), Set(["project-one", "project-two"]))
     }
 
+    func testProjectGroupingSortsProjectsByNearestDueDate() {
+        let now = Date()
+        let projects = [
+            Project(id: "later", name: "稍后项目"),
+            Project(id: "none", name: "无截止项目"),
+            Project(id: "sooner", name: "近期项目"),
+        ]
+        let todos = [
+            TodoItem(title: "稍后任务", projectId: "later", dueAt: now.addingTimeInterval(2 * 86_400)),
+            TodoItem(title: "无截止任务", projectId: "none"),
+            TodoItem(title: "近期任务", projectId: "sooner", dueAt: now.addingTimeInterval(86_400)),
+            TodoItem(title: "近期项目的远期任务", projectId: "sooner", dueAt: now.addingTimeInterval(3 * 86_400)),
+        ]
+
+        let groups = TaskGrouping.byProject.apply(to: todos, projects: projects)
+
+        XCTAssertEqual(groups.map(\.id), ["project-sooner", "project-later", "project-none"])
+    }
+
     func testSearchIndexerSupportsStringTodoIds() async {
         let todo = TodoItem(id: UUID().uuidString, title: "唯一搜索关键词")
 
