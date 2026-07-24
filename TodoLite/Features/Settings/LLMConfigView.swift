@@ -4,7 +4,11 @@ struct LLMConfigView: View {
     @State private var apiKey: String = ""
     @State private var baseURL: String = ""
     @State private var model: String = ""
+    @State private var reportTemplate: String = ""
     @State private var isSaving = false
+    @State private var didSave = false
+    @State private var isAPIKeyVisible = false
+    @State private var errorMessage: String?
 
     var body: some View {
         ScrollView {
@@ -29,11 +33,28 @@ struct LLMConfigView: View {
 
                         Divider()
 
-                        SecureField("API 密钥", text: $apiKey)
+                        HStack(spacing: 8) {
+                            Group {
+                                if isAPIKeyVisible {
+                                    TextField("API 密钥", text: $apiKey)
+                                } else {
+                                    SecureField("API 密钥", text: $apiKey)
+                                }
+                            }
                             #if os(iOS)
                             .textInputAutocapitalization(.never)
                             #endif
                             .autocorrectionDisabled()
+
+                            Button {
+                                isAPIKeyVisible.toggle()
+                            } label: {
+                                Image(systemName: isAPIKeyVisible ? "eye.slash" : "eye")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(isAPIKeyVisible ? "隐藏密钥" : "显示密钥")
+                        }
                     }
                 }
                 .padding(18)
@@ -61,12 +82,50 @@ struct LLMConfigView: View {
                 .background(Color.cardBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
 
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "doc.text")
+                            .foregroundStyle(.orange)
+                            .appFont(.body)
+                            .symbolRenderingMode(.hierarchical)
+                        Text("周报模板")
+                            .appFont(.title3, design: .rounded, weight: .bold)
+                        Spacer()
+                        Button("填入默认模板") {
+                            reportTemplate = LLMConfig.defaultReportTemplate
+                        }
+                        .appFont(.caption)
+                        .buttonStyle(.borderless)
+                    }
+
+                    ZStack(alignment: .topLeading) {
+                        TextEditor(text: $reportTemplate)
+                            .appFont(.body)
+                            .scrollContentBackground(.hidden)
+                            .frame(minHeight: 120)
+                        if reportTemplate.isEmpty {
+                            Text("自定义周报生成要求，留空使用默认模板")
+                                .appFont(.body)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 8)
+                                .padding(.leading, 5)
+                                .allowsHitTesting(false)
+                        }
+                    }
+                }
+                .padding(18)
+                .background(Color.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 18))
+
                 Button(action: save) {
                     HStack {
                         Spacer()
                         if isSaving {
                             ProgressView()
                                 .controlSize(.small)
+                        } else if didSave {
+                            Label("已保存", systemImage: "checkmark")
+                                .appFont(.headline)
                         } else {
                             Text("保存")
                                 .appFont(.headline)
@@ -87,11 +146,17 @@ struct LLMConfigView: View {
             .padding(.vertical, 12)
         }
         .navigationTitle("LLM 配置")
+        .alert("错误", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+            Button("确定", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "")
+        }
         .task {
             let config = TodoStore.shared.llmConfig
             apiKey = config.apiKey
             baseURL = config.baseURL
             model = config.model
+            reportTemplate = config.reportTemplate
         }
     }
 
@@ -101,12 +166,20 @@ struct LLMConfigView: View {
 
     private func save() {
         isSaving = true
-        let config = LLMConfig(apiKey: apiKey, baseURL: baseURL, model: model)
+        let config = LLMConfig(
+            apiKey: apiKey.trimmingCharacters(in: .whitespacesAndNewlines),
+            baseURL: baseURL.trimmingCharacters(in: .whitespacesAndNewlines),
+            model: model.trimmingCharacters(in: .whitespacesAndNewlines),
+            reportTemplate: reportTemplate.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
         Task {
             do {
                 try await TodoStore.shared.saveLLMConfig(config)
+                didSave = true
+                try? await Task.sleep(for: .seconds(2))
+                didSave = false
             } catch {
-                // TODO: show error
+                errorMessage = "保存失败: \(error.localizedDescription)"
             }
             isSaving = false
         }

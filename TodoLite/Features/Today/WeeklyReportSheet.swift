@@ -105,14 +105,15 @@ struct WeeklyReportSheet: View {
     }
 
     private func buildPrompt() -> String {
+        let template = TodoStore.shared.llmConfig.reportTemplate
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let requirements = template.isEmpty ? LLMConfig.defaultReportTemplate : template
+
         var lines: [String] = []
         lines.append("请根据以下本周完成的任务，生成一份工作周报。")
         lines.append("")
         lines.append("要求：")
-        lines.append("1. 先给出本周工作概述")
-        lines.append("2. 按项目分类列出详细工作内容")
-        lines.append("3. 最后给出下周工作计划建议")
-        lines.append("4. 格式简洁专业，使用 Markdown 格式")
+        lines.append(requirements)
         lines.append("")
         lines.append("本周完成的任务列表：")
         lines.append("")

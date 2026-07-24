@@ -22,6 +22,23 @@ final class TodoLiteTests: XCTestCase {
         XCTAssertEqual(decoded.taskIds, ["t1", "t2"])
     }
 
+    func testLLMConfigCodable() throws {
+        let config = LLMConfig(apiKey: "sk-test", baseURL: "https://api.deepseek.com", model: "deepseek-v4-flash", reportTemplate: "自定义模板")
+        let data = try JSONEncoder().encode(config)
+        let decoded = try JSONDecoder().decode(LLMConfig.self, from: data)
+        XCTAssertEqual(decoded.apiKey, "sk-test")
+        XCTAssertEqual(decoded.reportTemplate, "自定义模板")
+    }
+
+    func testLLMConfigDecodesLegacyJSONWithoutReportTemplate() throws {
+        // 旧版本配置没有 reportTemplate 字段，应回退为空串
+        let legacy = #"{"apiKey":"sk-old","baseURL":"https://api.openai.com/v1","model":"gpt-4o-mini"}"#
+        let decoded = try JSONDecoder().decode(LLMConfig.self, from: Data(legacy.utf8))
+        XCTAssertEqual(decoded.apiKey, "sk-old")
+        XCTAssertEqual(decoded.model, "gpt-4o-mini")
+        XCTAssertEqual(decoded.reportTemplate, "")
+    }
+
     func testProjectCodable() throws {
         let project = Project(name: "工作", emoji: "💼", colorHex: "#FF0000")
         let data = try JSONEncoder().encode(project)
