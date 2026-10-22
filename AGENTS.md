@@ -10,7 +10,7 @@
 
 ## 构建
 
-Xcode 工程由 XcodeGen 根据 `project.yml` 生成。
+Xcode 工程由 XcodeGen 2.43.0 根据 `project.yml` 生成。CI 固定使用官方 2.43.0 二进制并核验 SHA-256；升级生成器时需同步更新 CI 和生成工程，避免工程格式随工具版本漂移。
 
 ```bash
 xcodegen generate

@@ -18,8 +18,14 @@ jobs:
 
       - name: Verify generated project
         run: |
-          brew install xcodegen
-          xcodegen generate
+          XCODEGEN_ARCHIVE="$RUNNER_TEMP/xcodegen-2.43.0.zip"
+          curl -fsSL --retry 3 \
+            https://github.com/yonaskolb/XcodeGen/releases/download/2.43.0/xcodegen.zip \
+            -o "$XCODEGEN_ARCHIVE"
+          echo "a4847ed77d3341a4d24049bc4424a3babca4c94ff1dcaaee923eaca2b32c678f  $XCODEGEN_ARCHIVE" | shasum -a 256 -c -
+          unzip -q "$XCODEGEN_ARCHIVE" -d "$RUNNER_TEMP/todolite-xcodegen"
+          "$RUNNER_TEMP/todolite-xcodegen/xcodegen/bin/xcodegen" --version
+          "$RUNNER_TEMP/todolite-xcodegen/xcodegen/bin/xcodegen" generate
           git diff --exit-code -- TodoLite.xcodeproj TodoLite/Resources TodoLiteWidget/Info.plist TodoLiteWidget/Widget.entitlements
 
       - name: Select iOS simulator
