@@ -11,6 +11,7 @@ struct FocusSet: Codable, Sendable {
 
     static func todayString(for date: Date = Date()) -> String {
         let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
         formatter.dateFormat = "yyyy-MM-dd"
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = Calendar.current.timeZone

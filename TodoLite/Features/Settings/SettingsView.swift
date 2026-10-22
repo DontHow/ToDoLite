@@ -12,7 +12,36 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     settingsSection(title: "外观") {
-                        fontSizeRow
+                        Toggle("跟随系统字体", isOn: $store.followsSystemFont)
+                            .padding(16)
+                            .background(Color.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        fontSizeRow.disabled(store.followsSystemFont)
+                    }
+
+                    #if os(iOS)
+                    settingsSection(title: "组织与历史") {
+                        NavigationLink(destination: ProjectListView()) {
+                            settingsRow(icon: "folder", iconColor: .blue, label: "项目")
+                        }
+                        NavigationLink(destination: TagListView()) {
+                            settingsRow(icon: "tag", iconColor: .orange, label: "标签")
+                        }
+                        NavigationLink(destination: DoneView()) {
+                            settingsRow(icon: "checkmark.circle", iconColor: .green, label: "已完成")
+                        }
+                        NavigationLink(destination: ArchiveView()) {
+                            settingsRow(icon: "archivebox", iconColor: .gray, label: "已归档")
+                        }
+                    }
+                    .buttonStyle(CardButtonStyle())
+                    #endif
+
+                    settingsSection(title: "数据") {
+                        NavigationLink(destination: DataRecoveryView()) {
+                            settingsRow(icon: "externaldrive", iconColor: .teal, label: "回收站与备份")
+                        }
+                        .buttonStyle(CardButtonStyle())
                     }
 
                     settingsSection(title: "AI") {

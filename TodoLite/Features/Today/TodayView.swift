@@ -22,7 +22,7 @@ struct TodayView: View {
                     EmptyStateView(
                         icon: "sun.max.fill",
                         title: "今日无任务",
-                        subtitle: "享受自由的一天，或用 ⌘N 新建任务"
+                        subtitle: emptySubtitle
                     )
                 }
             }
@@ -31,7 +31,9 @@ struct TodayView: View {
                     Button(action: { showingCreate = true }) {
                         Image(systemName: "plus")
                     }
+                    #if os(iOS)
                     .keyboardShortcut("n", modifiers: .command)
+                    #endif
                 }
             }
             .sheet(isPresented: $showingCreate) {
@@ -67,6 +69,14 @@ struct TodayView: View {
         if !store.upcomingTodos.isEmpty {
             TaskListView(title: "即将到来", todos: store.upcomingTodos, accentTheme: .upcoming, defaultGrouping: .byProject)
         }
+    }
+
+    private var emptySubtitle: String {
+        #if os(macOS)
+        "享受自由的一天，或用 ⌘N 新建任务"
+        #else
+        "享受自由的一天，或点击右上角 + 新建任务"
+        #endif
     }
 
     private var horizontalPadding: CGFloat {

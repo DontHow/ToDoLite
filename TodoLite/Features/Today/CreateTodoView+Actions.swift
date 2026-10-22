@@ -4,7 +4,10 @@ extension CreateTodoView {
     var actionCard: some View {
         VStack(spacing: 12) {
             Button {
-                Task {
+                Task { @MainActor in
+                    guard !isSaving, !isParsingLLM else { return }
+                    isSaving = true
+                    defer { isSaving = false }
                     do {
                         try await store.archiveTodo(id: edited.id)
                         dismiss()
@@ -28,7 +31,10 @@ extension CreateTodoView {
             Divider()
 
             Button {
-                Task {
+                Task { @MainActor in
+                    guard !isSaving, !isParsingLLM else { return }
+                    isSaving = true
+                    defer { isSaving = false }
                     do {
                         try await store.deleteTodo(id: edited.id)
                         dismiss()
@@ -49,6 +55,7 @@ extension CreateTodoView {
             }
             .buttonStyle(.plain)
         }
+        .disabled(isSaving || isParsingLLM)
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 18)

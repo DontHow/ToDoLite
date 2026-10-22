@@ -19,8 +19,8 @@ struct ContentView: View {
             case .board: BoardView()
             case .search: SearchView()
             case .settings: SettingsView()
-            case .done: DoneView()
-            case .archive: ArchiveView()
+            case .done: NavigationStack { DoneView() }
+            case .archive: NavigationStack { ArchiveView() }
             case .projects: ProjectListView()
             case .tags: TagListView()
             }
@@ -80,19 +80,50 @@ struct ContentView: View {
         }
         #endif
         }
-        .dynamicTypeSize(fontSizeOption.dynamicTypeSize)
-        .appFontScale(fontSizeOption.scale)
+        .disabled(store.loadState != .loaded)
+        .overlay {
+            if store.loadState != .loaded {
+                VStack(spacing: 16) {
+                    if case .failed(let message) = store.loadState {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.largeTitle)
+                            .foregroundStyle(.orange)
+                        Text("数据加载失败").font(.headline)
+                        Text(message).foregroundStyle(.secondary)
+                        Button("重试") { Task { await initializeStore() } }
+                    } else {
+                        ProgressView("正在加载任务…")
+                    }
+                }
+                .multilineTextAlignment(.center)
+                .padding(32)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.cardBackground)
+            }
+        }
+        .alert("操作提示", isPresented: Binding(
+            get: { store.operationError != nil },
+            set: { if !$0 { store.operationError = nil } }
+        )) {
+            Button("确定", role: .cancel) { store.operationError = nil }
+        } message: {
+            Text(store.operationError ?? "")
+        }
+        .appFontPreference(followsSystem: store.followsSystemFont, option: fontSizeOption)
+        .sheet(isPresented: $store.showingCreateTodo) { CreateTodoView() }
         .onChange(of: scenePhase) { _, phase in
-            guard phase == .active else { return }
+            guard phase == .active, store.loadState == .loaded else { return }
             Task {
                 await store.refreshFocusIfNeeded()
                 await checkForUpdatesAutomatically()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+            guard store.loadState == .loaded else { return }
             Task { await store.refreshFocusIfNeeded() }
         }
         .task {
+            await initializeStore()
             await checkForUpdatesAutomatically()
         }
         .alert("发现新版本", isPresented: $showAutomaticUpdateAlert) {
@@ -102,6 +133,13 @@ struct ContentView: View {
             if let result = automaticUpdateResult {
                 Text("当前版本 \(result.currentVersion)，最新版本 \(result.latestVersion)")
             }
+        }
+    }
+
+    private func initializeStore() async {
+        await store.initialize()
+        if store.loadState == .loaded {
+            await iCloudSyncManager.shared.startMonitoring()
         }
     }
 

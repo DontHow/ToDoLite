@@ -97,7 +97,7 @@ extension CreateTodoView {
         let isSelected = edited.status == status
         return Button {
             withAnimation(.spring(duration: 0.2)) {
-                edited.status = status
+                edited = edited.changingStatus(to: status)
             }
         } label: {
             HStack(spacing: 10) {

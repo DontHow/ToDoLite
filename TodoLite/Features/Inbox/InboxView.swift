@@ -26,7 +26,9 @@ struct InboxView: View {
                     Button(action: { showingCreate = true }) {
                         Image(systemName: "plus")
                     }
+                    #if os(iOS)
                     .keyboardShortcut("n", modifiers: .command)
+                    #endif
                 }
             }
             .sheet(isPresented: $showingCreate) {

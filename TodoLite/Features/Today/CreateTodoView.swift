@@ -9,6 +9,8 @@ struct CreateTodoView: View {
     @State var parseMessage: String?
     @State var parseError: String?
     @State var isParsingLLM = false
+    @State var isSaving = false
+    @State var llmParsingTask: Task<Void, Never>?
     @State var pendingProjectName: String?
     @State var pendingTagNames: [String] = []
     @State var projectQuery = ""
@@ -67,6 +69,7 @@ struct CreateTodoView: View {
                 }
                 #endif
             }
+            .disabled(isSaving)
             .navigationTitle(todo == nil ? "新建任务" : "编辑任务")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
@@ -75,12 +78,12 @@ struct CreateTodoView: View {
                 #if os(macOS)
                 if todo != nil {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("取消") { dismiss() }
+                        Button("取消") { dismiss() }.disabled(isSaving)
                     }
                 }
                 #else
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button("取消") { dismiss() }.disabled(isSaving)
                 }
                 #endif
                 if todo != nil {
@@ -98,33 +101,26 @@ struct CreateTodoView: View {
                 Text(errorMessage ?? "")
             }
         }
+        .interactiveDismissDisabled(isSaving)
+        .onDisappear { llmParsingTask?.cancel() }
         #if os(macOS)
         .frame(minWidth: 1160, idealWidth: 1240, minHeight: 580, idealHeight: 640)
         #endif
     }
 
     var canSave: Bool {
-        !edited.title.isEmpty
+        !edited.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSaving && !isParsingLLM
     }
 
+    @MainActor
     func save() async {
+        guard canSave else { return }
+        isSaving = true
+        defer { isSaving = false }
         do {
-            let resolved = try await resolvePendingMetadata(in: edited)
-            if todo != nil {
-                try await store.updateTodo(resolved)
-                dismiss()
-            } else {
-                try await store.createTodo(
-                    title: resolved.title,
-                    description: resolved.description,
-                    status: resolved.status,
-                    projectId: resolved.projectId,
-                    tagIds: resolved.tagIds,
-                    scheduledAt: resolved.scheduledAt,
-                    dueAt: resolved.dueAt
-                )
-                dismiss()
-            }
+            try await store.saveDraft(edited, creating: todo == nil,
+                                      projectName: pendingProjectName, tagNames: pendingTagNames)
+            dismiss()
         } catch {
             if todo != nil {
                 errorMessage = "保存失败: \(error.localizedDescription)"

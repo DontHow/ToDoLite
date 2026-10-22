@@ -19,6 +19,18 @@ struct LLMConfig: Codable, Sendable {
         self.reportTemplate = reportTemplate
     }
 
+    private enum CodingKeys: String, CodingKey {
+        case apiKey, baseURL, model, reportTemplate
+    }
+
+    // apiKey 只兼容读取旧配置，新的磁盘配置不再包含密钥。
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(baseURL, forKey: .baseURL)
+        try container.encode(model, forKey: .model)
+        try container.encode(reportTemplate, forKey: .reportTemplate)
+    }
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         apiKey = try container.decodeIfPresent(String.self, forKey: .apiKey) ?? ""

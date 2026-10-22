@@ -9,6 +9,9 @@ targets:
         excludes:
           - "Resources/Info-macOS.plist"
           - "Resources/TodoLite-macOS.entitlements"
+    dependencies:
+      - target: TodoLiteWidget
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.donghao.TodoLite
@@ -25,8 +28,8 @@ targets:
     info:
       path: TodoLite/Resources/Info.plist
       properties:
-        CFBundleVersion: "19"
-        CFBundleShortVersionString: "1.19"
+        CFBundleVersion: "20"
+        CFBundleShortVersionString: "1.20"
         LSRequiresIPhoneOS: YES
     entitlements:
       path: TodoLite/Resources/TodoLite.entitlements
@@ -35,7 +38,7 @@ targets:
           - iCloud.$(CFBundleIdentifier)
         com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)
         com.apple.security.application-groups:
-          - group.$(CFBundleIdentifier)
+          - group.com.donghao.TodoLite
 
   TodoLite-macOS:
     type: application
@@ -62,8 +65,8 @@ targets:
     info:
       path: TodoLite/Resources/Info-macOS.plist
       properties:
-        CFBundleVersion: "19"
-        CFBundleShortVersionString: "1.19"
+        CFBundleVersion: "20"
+        CFBundleShortVersionString: "1.20"
         LSMinimumSystemVersion: "14.0"
     entitlements:
       path: TodoLite/Resources/TodoLite-macOS.entitlements
@@ -72,7 +75,7 @@ targets:
           - iCloud.$(CFBundleIdentifier)
         com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)
         com.apple.security.application-groups:
-          - group.$(CFBundleIdentifier)
+          - group.com.donghao.TodoLite
 
   TodoLiteWidget:
     type: app-extension
@@ -80,6 +83,7 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: TodoLiteWidget
+      - path: TodoLite/Shared/Widget/WidgetSnapshot.swift
     dependencies:
       - sdk: WidgetKit.framework
       - sdk: SwiftUI.framework
@@ -91,15 +95,15 @@ targets:
     info:
       path: TodoLiteWidget/Info.plist
       properties:
-        CFBundleVersion: "19"
-        CFBundleShortVersionString: "1.19"
+        CFBundleVersion: "20"
+        CFBundleShortVersionString: "1.20"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:
       path: TodoLiteWidget/Widget.entitlements
       properties:
         com.apple.security.application-groups:
-          - group.$(CFBundleIdentifier)
+          - group.com.donghao.TodoLite
 
   TodoLiteTests:
     type: bundle.unit-test

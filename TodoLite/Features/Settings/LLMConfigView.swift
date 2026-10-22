@@ -55,6 +55,9 @@ struct LLMConfigView: View {
                             .buttonStyle(.plain)
                             .accessibilityLabel(isAPIKeyVisible ? "隐藏密钥" : "显示密钥")
                         }
+                        Text("密钥仅保存在本机钥匙串，其他设备需单独配置。")
+                            .appFont(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 .padding(18)

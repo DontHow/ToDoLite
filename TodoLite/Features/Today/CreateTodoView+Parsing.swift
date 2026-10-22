@@ -183,7 +183,11 @@ extension CreateTodoView {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
                 Button {
-                    Task { await applyLLMParsing() }
+                    guard llmParsingTask == nil else { return }
+                    llmParsingTask = Task {
+                        defer { llmParsingTask = nil }
+                        await applyLLMParsing()
+                    }
                 } label: {
                     HStack(spacing: 6) {
                         if isParsingLLM {
@@ -196,7 +200,10 @@ extension CreateTodoView {
                             .appFont(.subheadline, weight: .medium)
                     }
                 }
-                .disabled(parsingInput.isEmpty || isParsingLLM)
+                .disabled(parsingInput.isEmpty || isParsingLLM || isSaving)
+                if isParsingLLM {
+                    Button("取消解析") { llmParsingTask?.cancel() }
+                }
 
                 Spacer()
             }
@@ -253,12 +260,13 @@ extension CreateTodoView {
         }
 
         try? await Task.sleep(nanoseconds: 250_000_000)
-        guard !Task.isCancelled, edited.title == input else { return }
+        guard !Task.isCancelled, !isParsingLLM, !isSaving, edited.title == input else { return }
 
         let draft = TodoParser.parse(input)
         let recognizedMetadata = draft.projectName != nil || !draft.tagNames.isEmpty || draft.dueAt != nil
         guard recognizedMetadata else { return }
 
+        edited.title = draft.title
         applyParsedDraft(draft)
         parseMessage = "已自动将规则解析结果填入表单"
         parseError = nil
@@ -312,9 +320,9 @@ extension CreateTodoView {
             ("today", "今天"),
             ("tomorrow", "明天"),
             ("weekend", "本周末"),
-            ("nextweek", "下周"),
-            ("monday", "下周一"),
-            ("friday", "下周五"),
+            ("nextweek", "一周后"),
+            ("monday", "下个周一"),
+            ("friday", "下个周五"),
         ]
         let candidates = definitions.compactMap { syntax, label -> DateRuleSuggestion? in
             guard let date = DateResolver.resolve(syntax) else { return nil }
@@ -405,7 +413,13 @@ extension CreateTodoView {
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
+    @MainActor
     func applyLLMParsing() async {
+        guard !isParsingLLM, !isSaving else { return }
+        let original = edited
+        let originalProject = pendingProjectName
+        let originalTags = pendingTagNames
+        let input = parsingInput
         let config = store.llmConfig
         guard !config.apiKey.isEmpty else {
             parseError = "请先在设置中配置 LLM"
@@ -420,15 +434,21 @@ extension CreateTodoView {
 
         do {
             let draft = try await LLMParser.shared.parse(
-                parsingInput,
+                input,
                 projects: store.projects,
                 tags: store.tags,
                 config: config
             )
+            guard !Task.isCancelled else { return }
+            guard edited == original, pendingProjectName == originalProject, pendingTagNames == originalTags else {
+                parseMessage = "表单已更新，未应用旧的 AI 结果，请重新解析。"
+                return
+            }
             applyParsedDraft(draft)
             parseMessage = "已将 AI 解析结果填入表单"
         } catch {
-            parseError = "AI 解析失败，请稍后重试"
+            guard !Task.isCancelled else { return }
+            parseError = "AI 解析失败：" + error.localizedDescription
         }
     }
 
@@ -464,34 +484,7 @@ extension CreateTodoView {
         }
     }
 
-    func resolvePendingMetadata(in todo: TodoItem) async throws -> TodoItem {
-        var resolved = todo
 
-        if let name = pendingProjectName {
-            if let project = store.projects.first(where: { $0.name == name }) {
-                resolved.projectId = project.id
-            } else {
-                try await store.createProject(name: name)
-                resolved.projectId = store.projects.first(where: { $0.name == name })?.id
-            }
-        }
-
-        for name in pendingTagNames {
-            let tag: TagItem
-            if let existing = store.tags.first(where: { $0.name == name }) {
-                tag = existing
-            } else {
-                try await store.createTag(name: name)
-                guard let created = store.tags.first(where: { $0.name == name }) else { continue }
-                tag = created
-            }
-            if !resolved.tagIds.contains(tag.id) {
-                resolved.tagIds.append(tag.id)
-            }
-        }
-
-        return resolved
-    }
 }
 
 private extension View {

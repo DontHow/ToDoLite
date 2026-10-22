@@ -3,11 +3,36 @@ import Foundation
 actor TagRepository {
     static let shared = TagRepository()
 
-    private let fs = FileSystemManager.shared
+    private let fs: FileSystemManager
 
-    func save(_ tag: TagItem) async throws {
-        let filename = filename(for: tag.id)
-        try await fs.write(tag, filename: filename, directory: .tags)
+    init(fs: FileSystemManager = .shared) {
+        self.fs = fs
+    }
+
+    func create(_ item: TagItem) async throws -> TagItem {
+        try await persist(item, replacing: nil)
+    }
+
+    func save(_ item: TagItem, replacing original: TagItem) async throws -> TagItem {
+        try await persist(item, replacing: original)
+    }
+
+    private func persist(_ item: TagItem, replacing original: TagItem?) async throws -> TagItem {
+        let filename = filename(for: item.id)
+        do {
+            return try await fs.update(TagItem.self, filename: filename, directory: .tags) { existing in
+                if let original {
+                    guard let existing else { throw FileSystemError.fileNotFound(filename) }
+                    guard original.id == item.id, existing == original else { throw FileSystemError.conflictDetected }
+                } else {
+                    guard existing == nil else { throw FileSystemError.conflictDetected }
+                }
+                return item
+            }
+        } catch FileSystemError.conflictDetected {
+            try await fs.writeConflictBackup(filename: filename, data: JSONEncoder().encode(item))
+            throw FileSystemError.conflictDetected
+        }
     }
 
     func read(id: String) async throws -> TagItem {
@@ -24,9 +49,7 @@ actor TagRepository {
         let files = try await fs.listFiles(in: .tags)
         var tags: [TagItem] = []
         for file in files where file.hasSuffix(".json") {
-            if let tag = try? await fs.read(TagItem.self, filename: file, directory: .tags) {
-                tags.append(tag)
-            }
+            tags.append(try await fs.read(TagItem.self, filename: file, directory: .tags))
         }
         return tags
     }

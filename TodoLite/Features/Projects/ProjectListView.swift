@@ -22,7 +22,10 @@ struct ProjectListView: View {
                         }
 
                         Button(role: .destructive) {
-                            Task { try? await store.deleteProject(id: project.id) }
+                            Task {
+                                do { try await store.deleteProject(id: project.id) }
+                                catch { TodoStore.shared.operationError = error.localizedDescription }
+                            }
                         } label: {
                             Label("删除", systemImage: "trash")
                         }
@@ -97,7 +100,10 @@ private struct ProjectCard: View {
             Spacer()
 
             Button {
-                Task { try? await TodoStore.shared.deleteProject(id: project.id) }
+                Task {
+                    do { try await TodoStore.shared.deleteProject(id: project.id) }
+                    catch { TodoStore.shared.operationError = error.localizedDescription }
+                }
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "trash.fill")
@@ -134,6 +140,8 @@ private struct ProjectCard: View {
 private struct ProjectEditorView: View {
     @State private var store = TodoStore.shared
     @State private var name = ""
+    @State private var isSaving = false
+    @State private var errorMessage: String?
     @State private var selectedColor = "#007AFF"
     @Environment(\.dismiss) private var dismiss
 
@@ -175,20 +183,35 @@ private struct ProjectEditorView: View {
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button(isEditing ? "保存" : "创建") {
-                        Task {
-                            if let project = project {
-                                var updated = project
-                                updated.name = name
-                                updated.colorHex = selectedColor
-                                try? await store.updateProject(updated)
-                            } else {
-                                try? await store.createProject(name: name, colorHex: selectedColor)
+                        Task { @MainActor in
+                            guard !isSaving else { return }
+                            isSaving = true
+                            defer { isSaving = false }
+                            do {
+                                if let project = project {
+                                    var updated = project
+                                    updated.name = name
+                                    updated.colorHex = selectedColor
+                                    try await store.updateProject(updated, replacing: project)
+                                } else {
+                                    try await store.createProject(name: name, colorHex: selectedColor)
+                                }
+                                dismiss()
+                            } catch {
+                                errorMessage = error.localizedDescription
                             }
-                            dismiss()
                         }
                     }
-                    .disabled(name.isEmpty)
+                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSaving)
                 }
+            }
+            .alert("保存失败", isPresented: Binding(
+                get: { errorMessage != nil },
+                set: { if !$0 { errorMessage = nil } }
+            )) {
+                Button("确定", role: .cancel) { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
             }
         }
     }

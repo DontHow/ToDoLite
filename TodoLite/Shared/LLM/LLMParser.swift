@@ -5,39 +5,9 @@ actor LLMParser {
 
     private let service = LLMService.shared
 
-    func parse(_ input: String, projects: [Project], tags: [TagItem], config: LLMConfig) async throws -> TodoDraft {
-        let projectList = projects.map { "- \($0.name)" }.joined(separator: "\n")
-        let tagList = tags.map { "- \($0.name)" }.joined(separator: "\n")
-
-        let systemPrompt = """
-        You are a task parsing assistant. Parse the user's natural language task description into structured data.
-
-        Available projects (match by name, or null if none match):
-        \(projectList.isEmpty ? "(none)" : projectList)
-
-        Available tags (match by name, or empty array if none match):
-        \(tagList.isEmpty ? "(none)" : tagList)
-
-        Date format for dueAt: ISO8601 string (yyyy-MM-dd) or null.
-        If user mentions relative dates, convert to absolute date.
-
-        Respond ONLY with a JSON object in this exact format:
-        {
-          "title": "extracted task title",
-          "description": "optional detailed description, or empty string",
-          "projectName": "matched project name or null",
-          "tagNames": ["matched tag names"],
-          "dueAt": "yyyy-MM-dd or null"
-        }
-        """
-
-        let userPrompt = "Parse this task: \"\(input)\""
-
+    func parse(_ input: String, projects: [Project], tags: [TagItem], config: LLMConfig, now: Date = Date(), calendar: Calendar = .current) async throws -> TodoDraft {
         let content = try await service.chat(
-            messages: [
-                LLMChatMessage(role: "system", content: systemPrompt),
-                LLMChatMessage(role: "user", content: userPrompt)
-            ],
+            messages: Self.messages(for: input, projects: projects, tags: tags, now: now, calendar: calendar),
             config: config
         )
 
@@ -53,9 +23,46 @@ actor LLMParser {
         draft.description = parsed.description ?? ""
         draft.projectName = parsed.projectName
         draft.tagNames = parsed.tagNames ?? []
-        draft.dueAt = parsed.dueAt.flatMap { dateFromString($0) }
+        draft.dueAt = parsed.dueAt.flatMap { dateFromString($0, calendar: calendar) }
 
         return draft
+    }
+
+    nonisolated static func messages(for input: String, projects: [Project], tags: [TagItem], now: Date, calendar: Calendar) -> [LLMChatMessage] {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = calendar.timeZone
+        formatter.dateFormat = "yyyy-MM-dd"
+        let localDate = formatter.string(from: now)
+        let projectList = projects.map { "- \($0.name)" }.joined(separator: "\n")
+        let tagList = tags.map { "- \($0.name)" }.joined(separator: "\n")
+
+        let systemPrompt = """
+        You are a task parsing assistant. Parse the user's natural language task description into structured data.
+
+        Available projects (match by name, or null if none match):
+        \(projectList.isEmpty ? "(none)" : projectList)
+
+        Available tags (match by name, or empty array if none match):
+        \(tagList.isEmpty ? "(none)" : tagList)
+
+        Date format for dueAt: ISO8601 string (yyyy-MM-dd) or null.
+        Current local date: \(localDate).
+        Current time zone: \(calendar.timeZone.identifier).
+        Interpret relative dates using this date and time zone.
+
+        Respond ONLY with a JSON object in this exact format:
+        {
+          "title": "extracted task title",
+          "description": "optional detailed description, or empty string",
+          "projectName": "matched project name or null",
+          "tagNames": ["matched tag names"],
+          "dueAt": "yyyy-MM-dd or null"
+        }
+        """
+
+        return [LLMChatMessage(role: "system", content: systemPrompt),
+                LLMChatMessage(role: "user", content: input)]
     }
 
     private func extractJSON(from text: String) -> String {
@@ -75,12 +82,9 @@ actor LLMParser {
         return trimmed
     }
 
-    private func dateFromString(_ string: String) -> Date? {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone.current
-        return formatter.date(from: string)
+    private func dateFromString(_ string: String, calendar: Calendar) -> Date? {
+        guard string.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil else { return nil }
+        return DateResolver.resolve(string, calendar: calendar)
     }
 }
 

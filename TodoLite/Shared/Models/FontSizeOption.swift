@@ -155,3 +155,22 @@ private extension Font.TextStyle {
     }
 }
 #endif
+
+
+private struct AppFontPreferenceModifier: ViewModifier {
+    @Environment(\.dynamicTypeSize) private var systemSize
+    let followsSystem: Bool
+    let option: FontSizeOption
+
+    func body(content: Content) -> some View {
+        content
+            .dynamicTypeSize(followsSystem ? systemSize : option.dynamicTypeSize)
+            .appFontScale(followsSystem ? 1 : option.scale)
+    }
+}
+
+extension View {
+    func appFontPreference(followsSystem: Bool, option: FontSizeOption) -> some View {
+        modifier(AppFontPreferenceModifier(followsSystem: followsSystem, option: option))
+    }
+}

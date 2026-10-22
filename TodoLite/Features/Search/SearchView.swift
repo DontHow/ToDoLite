@@ -5,6 +5,13 @@ struct SearchView: View {
     @State private var indexer = SearchIndexer.shared
     @State private var query = ""
     @State private var searchResults: [TodoItem] = []
+    @State private var isSearching = false
+    @State private var searchError: String?
+
+    private struct SearchRequest: Equatable {
+        let query: String
+        let revision: Int
+    }
 
     var body: some View {
         NavigationStack {
@@ -20,7 +27,11 @@ struct SearchView: View {
             .navigationTitle("搜索")
             .searchable(text: $query)
             .overlay {
-                if query.isEmpty && searchResults.isEmpty {
+                if isSearching {
+                    ProgressView("正在搜索…")
+                } else if let searchError {
+                    EmptyStateView(icon: "exclamationmark.triangle", title: "搜索暂不可用", subtitle: searchError)
+                } else if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && searchResults.isEmpty {
                     EmptyStateView(
                         icon: "magnifyingglass",
                         title: "搜索任务",
@@ -34,33 +45,32 @@ struct SearchView: View {
                     )
                 }
             }
-            .onChange(of: query) { _, newValue in
-                performSearch(newValue)
-            }
-            .onChange(of: store.todos) { _, _ in
-                performSearch(query)
-            }
-            .onChange(of: store.projects) { _, _ in
-                performSearch(query)
-            }
-            .onChange(of: store.tags) { _, _ in
-                performSearch(query)
+            .task(id: SearchRequest(query: query, revision: store.searchIndexRevision)) {
+                await performSearch(query)
             }
         }
     }
 
-    private func performSearch(_ text: String) {
-        guard !text.isEmpty else {
-            searchResults = []
+    @MainActor
+    private func performSearch(_ text: String) async {
+        searchError = nil
+        searchResults = []
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            isSearching = false
             return
         }
-        Task {
-            let ids = await indexer.search(query: text)
-            let matched = ids.compactMap { id in store.todos.first { $0.id == id } }
-            await MainActor.run {
-                guard query == text else { return }
-                searchResults = matched
-            }
+        isSearching = true
+        do {
+            try await Task.sleep(for: .milliseconds(150))
+            let ids = try await indexer.search(query: text)
+            guard !Task.isCancelled else { return }
+            let todos = Dictionary(store.todos.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+            searchResults = ids.compactMap { todos[$0] }
+            isSearching = false
+        } catch {
+            guard !Task.isCancelled else { return }
+            searchError = error.localizedDescription
+            isSearching = false
         }
     }
 

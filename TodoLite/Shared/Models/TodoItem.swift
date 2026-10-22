@@ -49,10 +49,28 @@ struct TodoItem: Codable, Identifiable, Hashable, Sendable {
         self.version = version
     }
 
+    /// 所有保存入口共用的完成时间约束；归档保留已有完成历史。
+    func normalizingCompletion(at date: Date = Date()) -> TodoItem {
+        var result = self
+        switch status {
+        case .done:
+            result.completedAt = completedAt ?? date
+        case .inbox, .doing:
+            result.completedAt = nil
+        case .archived:
+            break
+        }
+        return result
+    }
+
+    func changingStatus(to status: TodoStatus, at date: Date = Date()) -> TodoItem {
+        var result = self
+        result.status = status
+        return result.normalizingCompletion(at: date)
+    }
+
     func archived() -> TodoItem {
-        var archived = self
-        archived.status = .archived
-        return archived
+        changingStatus(to: .archived)
     }
 }
 

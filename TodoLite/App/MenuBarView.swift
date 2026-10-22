@@ -3,6 +3,7 @@ import SwiftUI
 
 struct MenuBarView: View {
     @State private var store = TodoStore.shared
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         if store.focusTodos.isEmpty {
@@ -24,9 +25,10 @@ struct MenuBarView: View {
         Divider()
 
         Button("新建任务...") {
+            store.showingCreateTodo = true
             openApp()
         }
-        .keyboardShortcut("n", modifiers: .command)
+        .disabled(store.loadState != .loaded)
 
         Divider()
 
@@ -40,7 +42,25 @@ struct MenuBarView: View {
     }
 
     private func openApp() {
+        openWindow(id: "main")
         NSApplication.shared.activate(ignoringOtherApps: true)
+    }
+}
+
+struct TodoCommands: Commands {
+    @State private var store = TodoStore.shared
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some Commands {
+        CommandGroup(replacing: .newItem) {
+            Button("新建任务") {
+                store.showingCreateTodo = true
+                openWindow(id: "main")
+                NSApplication.shared.activate(ignoringOtherApps: true)
+            }
+            .keyboardShortcut("n", modifiers: .command)
+            .disabled(store.loadState != .loaded)
+        }
     }
 }
 #endif

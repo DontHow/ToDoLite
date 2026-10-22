@@ -19,20 +19,17 @@ struct TodoLiteApp: App {
     #endif
 
     var body: some Scene {
-        WindowGroup {
+        #if os(macOS)
+        Window("办它", id: "main") {
             ContentView()
-                .task {
-                    try? await FileSystemManager.shared.setupDirectories()
-                    try? await TodoStore.shared.loadAll()
-                    iCloudSyncManager.shared.startMonitoring()
-                }
         }
         .defaultSize(width: 1200, height: 800)
-
-        #if os(macOS)
+        .commands { TodoCommands() }
         MenuBarExtra("办他", systemImage: "checklist") {
             MenuBarView()
         }
+        #else
+        WindowGroup { ContentView() }
         #endif
     }
 }

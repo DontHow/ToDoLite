@@ -16,6 +16,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify generated project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+          git diff --exit-code -- TodoLite.xcodeproj TodoLite/Resources TodoLiteWidget/Info.plist TodoLiteWidget/Widget.entitlements
+
+      - name: Select iOS simulator
+        run: |
+          DEVICE_ID=$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          iphones = [d for runtime, group in devices.items() if "iOS" in runtime
+                     for d in group if d.get("isAvailable") and d["name"].startswith("iPhone")]
+          if not iphones:
+              sys.exit("No available iPhone simulator")
+          print(iphones[0]["udid"])
+          ')
+          echo "TEST_DESTINATION=platform=iOS Simulator,id=$DEVICE_ID" >> "$GITHUB_ENV"
+
+      - name: Test iOS
+        run: |
+          xcodebuild -project TodoLite.xcodeproj \
+            -scheme TodoLite-iOS \
+            -destination "$TEST_DESTINATION" \
+            -resultBundlePath "$RUNNER_TEMP/TodoLiteTests.xcresult" \
+            CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Automatic \
+            test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-results
+          path: ${{ runner.temp }}/TodoLiteTests.xcresult
+          if-no-files-found: ignore
+
       - name: Build iOS
         run: |
           xcodebuild -project TodoLite.xcodeproj \

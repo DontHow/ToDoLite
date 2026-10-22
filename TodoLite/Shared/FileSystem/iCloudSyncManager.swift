@@ -6,6 +6,7 @@ final class iCloudSyncManager {
 
     private let query = NSMetadataQuery()
     private let store = TodoStore.shared
+    private var rootURL: URL?
 
     private var isMonitoring = false
     private var pendingRemovalTasks: [String: Task<Void, Never>] = [:]
@@ -14,8 +15,12 @@ final class iCloudSyncManager {
 
     // MARK: - Start/Stop
 
-    func startMonitoring() {
+    func startMonitoring() async {
         guard !isMonitoring else { return }
+        // 本地回退时不监听其他 iCloud 容器；后续事件也必须位于当前应用目录中。
+        guard let root = try? await FileSystemManager.shared.cloudAppDirectory() else { return }
+        guard !isMonitoring else { return }
+        rootURL = root
         isMonitoring = true
 
         query.operationQueue = .main
@@ -39,7 +44,11 @@ final class iCloudSyncManager {
             object: query
         )
 
-        query.start()
+        if !query.start() {
+            NotificationCenter.default.removeObserver(self)
+            isMonitoring = false
+            store.operationError = "无法启动 iCloud 同步监控，请重新打开应用后重试。"
+        }
     }
 
     func stopMonitoring() {
@@ -74,7 +83,8 @@ final class iCloudSyncManager {
     private func processItems(_ items: [NSMetadataItem]) {
         for item in items {
             guard let url = item.value(forAttribute: NSMetadataItemURLKey) as? URL else { continue }
-            guard let filename = item.value(forAttribute: NSMetadataItemFSNameKey) as? String else { continue }
+            guard let filename = item.value(forAttribute: NSMetadataItemFSNameKey) as? String,
+                  let rootURL, Self.isApplicationItem(url, rootURL: rootURL) else { continue }
 
             cancelPendingRemoval(for: url)
 
@@ -89,7 +99,8 @@ final class iCloudSyncManager {
                     forAttribute: NSMetadataUbiquitousItemDownloadRequestedKey
                 ) as? Bool ?? false
                 if Self.shouldRequestDownload(status: status, alreadyRequested: downloadRequested) {
-                    try? FileManager.default.startDownloadingUbiquitousItem(at: url)
+                    do { try FileManager.default.startDownloadingUbiquitousItem(at: url) }
+                    catch { store.operationError = "iCloud 文件下载失败：" + error.localizedDescription }
                 }
                 continue
             }
@@ -100,22 +111,29 @@ final class iCloudSyncManager {
                 do {
                     switch dir {
                     case "tasks":
-                        let todo = try await FileSystemManager.shared.read(TodoItem.self, filename: filename, directory: .tasks)
-                        await store.applyExternalTodo(todo)
+                        if let id = Self.id(from: filename, prefix: "task_") {
+                            await store.refreshRecordFromDisk(id: id, directory: dir)
+                        }
                     case "projects":
-                        let project = try await FileSystemManager.shared.read(Project.self, filename: filename, directory: .projects)
-                        await store.applyExternalProject(project)
+                        if let id = Self.id(from: filename, prefix: "project_") {
+                            await store.refreshRecordFromDisk(id: id, directory: dir)
+                        }
                     case "tags":
-                        let tag = try await FileSystemManager.shared.read(TagItem.self, filename: filename, directory: .tags)
-                        await store.applyExternalTag(tag)
+                        if let id = Self.id(from: filename, prefix: "tag_") {
+                            await store.refreshRecordFromDisk(id: id, directory: dir)
+                        }
                     case "meta" where filename == FocusRepository.filename(for: Date()):
                         let focus = try await FileSystemManager.shared.read(FocusSet.self, filename: filename, directory: .meta)
                         store.applyExternalFocus(focus)
+                    case "config" where filename == "llm_config.json":
+                        try await store.reloadLLMConfig()
                     default:
                         break
                     }
+                } catch FileSystemError.fileNotFound {
+                    // 文件在读取前被删除时，交给 removal 通知处理。
                 } catch {
-                    // File may have been deleted or unreadable
+                    store.operationError = "iCloud 同步读取失败：" + error.localizedDescription
                 }
             }
         }
@@ -127,7 +145,8 @@ final class iCloudSyncManager {
         }
 
         for item in items {
-            guard let url = item.value(forAttribute: NSMetadataItemURLKey) as? URL else { continue }
+            guard let url = item.value(forAttribute: NSMetadataItemURLKey) as? URL,
+                  let rootURL, Self.isApplicationItem(url, rootURL: rootURL) else { continue }
             let filename = url.lastPathComponent
             let directory = url.deletingLastPathComponent().lastPathComponent
 
@@ -162,15 +181,15 @@ final class iCloudSyncManager {
         switch directory {
         case "tasks":
             if let id = Self.id(from: filename, prefix: "task_") {
-                await store.removeExternalTodo(id: id)
+                await store.refreshRecordFromDisk(id: id, directory: directory)
             }
         case "projects":
             if let id = Self.id(from: filename, prefix: "project_") {
-                await store.removeExternalProject(id: id)
+                await store.refreshRecordFromDisk(id: id, directory: directory)
             }
         case "tags":
             if let id = Self.id(from: filename, prefix: "tag_") {
-                await store.removeExternalTag(id: id)
+                await store.refreshRecordFromDisk(id: id, directory: directory)
             }
         case "meta" where filename == FocusRepository.filename(for: Date()):
             store.applyExternalFocus(FocusSet())
@@ -182,6 +201,22 @@ final class iCloudSyncManager {
     private static func id(from filename: String, prefix: String) -> String? {
         guard filename.hasPrefix(prefix), filename.hasSuffix(".json") else { return nil }
         return String(filename.dropFirst(prefix.count).dropLast(5))
+    }
+
+    nonisolated static func isApplicationItem(_ url: URL, rootURL: URL) -> Bool {
+        let parent = url.standardizedFileURL.deletingLastPathComponent()
+        let root = rootURL.standardizedFileURL
+        guard parent.deletingLastPathComponent() == root else { return false }
+        let filename = url.lastPathComponent
+        guard filename.hasSuffix(".json"), !filename.contains("_conflict_") else { return false }
+        switch parent.lastPathComponent {
+        case "tasks": return filename.hasPrefix("task_")
+        case "projects": return filename.hasPrefix("project_")
+        case "tags": return filename.hasPrefix("tag_")
+        case "meta": return filename.hasPrefix("focus_")
+        case "config": return filename == "llm_config.json"
+        default: return false
+        }
     }
 
     nonisolated static func shouldRequestDownload(status: String?, alreadyRequested: Bool) -> Bool {

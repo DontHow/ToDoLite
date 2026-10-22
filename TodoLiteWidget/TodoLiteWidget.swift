@@ -1,15 +1,9 @@
 import WidgetKit
 import SwiftUI
 
-struct WidgetData: Codable {
-    let count: Int
-    let titles: [String]
-    let updatedAt: Date
-}
-
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), count: 3, titles: ["任务一", "任务二"])
+        SimpleEntry(date: Date(), count: 3, tasks: [WidgetTask(id: "1", title: "任务一"), WidgetTask(id: "2", title: "任务二")])
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
@@ -17,27 +11,24 @@ struct Provider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        let entry = loadEntry()
-        let timeline = Timeline(entries: [entry], policy: .atEnd)
-        completion(timeline)
+        let now = Date()
+        let entry = loadEntry(at: now)
+        let nextDay = WidgetSnapshotStore.nextDay(after: now)
+        // 即使系统尚未重新请求 timeline，也会在跨日时切换为空的今日快照。
+        let reset = SimpleEntry(date: nextDay, count: 0, tasks: [])
+        completion(Timeline(entries: [entry, reset], policy: .after(nextDay)))
     }
 
-    private func loadEntry() -> SimpleEntry {
-        let suiteName = "group.com.donghao.TodoLite"
-        let key = "widgetData"
-        guard let defaults = UserDefaults(suiteName: suiteName),
-              let data = defaults.data(forKey: key),
-              let decoded = try? JSONDecoder().decode(WidgetData.self, from: data) else {
-            return SimpleEntry(date: Date(), count: 0, titles: [])
-        }
-        return SimpleEntry(date: decoded.updatedAt, count: decoded.count, titles: decoded.titles)
+    private func loadEntry(at date: Date = Date()) -> SimpleEntry {
+        let snapshot = WidgetSnapshotStore.load(from: UserDefaults(suiteName: WidgetSnapshotStore.suiteName), at: date)
+        return SimpleEntry(date: date, count: snapshot.count, tasks: snapshot.tasks)
     }
 }
 
 struct SimpleEntry: TimelineEntry {
     let date: Date
     let count: Int
-    let titles: [String]
+    let tasks: [WidgetTask]
 }
 
 struct TodoLiteWidgetEntryView: View {
@@ -55,15 +46,15 @@ struct TodoLiteWidgetEntryView: View {
                     .foregroundStyle(.blue)
             }
 
-            if entry.titles.isEmpty {
+            if entry.tasks.isEmpty {
                 Text("没有任务")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(entry.titles, id: \.self) { title in
+                ForEach(entry.tasks) { task in
                     HStack(spacing: 4) {
                         Image(systemName: "circle")
                             .font(.caption2)
-                        Text(title)
+                        Text(task.title)
                             .font(.caption)
                             .lineLimit(1)
                     }
