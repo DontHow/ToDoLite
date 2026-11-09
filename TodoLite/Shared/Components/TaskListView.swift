@@ -22,10 +22,14 @@ struct TaskListView: View {
     var accentTheme: SectionTheme? = nil
     var onDrop: ((String) -> Bool)? = nil
     var isDraggable: Bool = false
+    var previewLimit: Int? = nil
+    var minimumHeight: CGFloat? = nil
+    var todayActions: TodayTaskActions? = nil
 
     @State private var store = TodoStore.shared
     @State private var grouping: TaskGrouping
     @State private var isTargeted = false
+    @State private var showsAll = false
 
     init(
         title: String,
@@ -35,7 +39,10 @@ struct TaskListView: View {
         accentTheme: SectionTheme? = nil,
         defaultGrouping: TaskGrouping = .none,
         onDrop: ((String) -> Bool)? = nil,
-        isDraggable: Bool = false
+        isDraggable: Bool = false,
+        previewLimit: Int? = nil,
+        minimumHeight: CGFloat? = nil,
+        todayActions: TodayTaskActions? = nil
     ) {
         self.title = title
         self.todos = todos
@@ -44,6 +51,9 @@ struct TaskListView: View {
         self.accentTheme = accentTheme
         self.onDrop = onDrop
         self.isDraggable = isDraggable
+        self.previewLimit = previewLimit
+        self.minimumHeight = minimumHeight
+        self.todayActions = todayActions
         _grouping = State(initialValue: defaultGrouping)
     }
 
@@ -52,26 +62,27 @@ struct TaskListView: View {
             header
             Divider().padding(.horizontal, 12)
             content
+            if let previewLimit, todos.count > previewLimit {
+                Button(showsAll ? "收起" : "显示全部 \(todos.count) 项") {
+                    showsAll.toggle()
+                }
+                .buttonStyle(.plain)
+                .appFont(.callout, weight: .medium)
+                .foregroundStyle(Color.accentColor)
+                .padding(12)
+            }
         }
-        .background(
-            EllipticalGradient(
-                gradient: Gradient(stops: [
-                    Gradient.Stop(color: Color.cardBackground, location: 0.0),
-                    Gradient.Stop(color: Color.cardBackground, location: 0.45),
-                    Gradient.Stop(color: (accentTheme?.softBackground ?? Color.cardBackground).opacity(0.55), location: 0.72),
-                    Gradient.Stop(color: (accentTheme?.softBackground ?? Color.cardBackground).opacity(0.85), location: 0.86),
-                    Gradient.Stop(color: (accentTheme?.primaryText ?? accentColor ?? Color.separatorColor).opacity(0.35), location: 1.0),
-                ]),
-                center: .center,
-                startRadiusFraction: 0,
-                endRadiusFraction: 1.2
-            )
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
+        .frame(minHeight: minimumHeight, alignment: .top)
+        .contentShape(Rectangle())
+        .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 12))
+        .overlay {
             RoundedRectangle(cornerRadius: 12)
-                .stroke(accentTheme?.primaryText ?? accentColor ?? Color.separatorColor, lineWidth: 1.5)
-        )
+                .strokeBorder(
+                    isTargeted ? sectionAccent : Color.separatorColor.opacity(0.35),
+                    lineWidth: isTargeted ? 2 : 1
+                )
+                .allowsHitTesting(false)
+        }
         .dropDestination(for: String.self) { items, location in
             guard let id = items.first, let drop = onDrop else { return false }
             return drop(id)
@@ -80,52 +91,72 @@ struct TaskListView: View {
         }
     }
 
+    private var sectionAccent: Color {
+        accentTheme?.background ?? accentColor ?? .accentColor
+    }
+
     private var header: some View {
         HStack(spacing: 8) {
+            Circle()
+                .fill(sectionAccent)
+                .frame(width: 7, height: 7)
+                .accessibilityHidden(true)
+
             Text(title)
-                .appFont(.body, weight: .bold)
-                .foregroundStyle(accentTheme?.primaryText ?? .primary)
+                .appFont(.headline)
+                .accessibilityAddTraits(.isHeader)
+                .layoutPriority(1)
 
             Text("\(todos.count)")
-                .appFont(.callout, weight: .semibold)
-                .foregroundStyle(accentTheme?.onBackground ?? .primary)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(accentTheme?.background ?? accentColor ?? Color.chipBackground)
-                .clipShape(Capsule())
-
-            Spacer()
-
-            Menu {
-                ForEach(TaskGrouping.allCases, id: \.self) { option in
-                    Button {
-                        grouping = option
-                    } label: {
-                        HStack {
-                            Text(option.rawValue)
-                            if grouping == option {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                    }
-                }
-            } label: {
-                HStack(spacing: 3) {
-                    Image(systemName: "arrow.up.arrow.down")
-                        .appFont(.caption2)
-                    Text(grouping.rawValue)
-                        .appFont(.caption2)
-                }
+                .appFont(.caption, weight: .semibold)
+                .monospacedDigit()
                 .foregroundStyle(Color.labelSecondary)
-                .padding(.horizontal, 6)
+                .padding(.horizontal, 7)
                 .padding(.vertical, 3)
-                .background(Color.chipBackground)
-                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .background(Color.chipBackground, in: Capsule())
+                .accessibilityLabel("共 \(todos.count) 项任务")
+
+            Spacer(minLength: 0)
+
+            if !todos.isEmpty {
+                groupingMenu
             }
-            .menuStyle(.borderlessButton)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
+    }
+
+    private var groupingMenu: some View {
+        Menu {
+            ForEach(TaskGrouping.allCases, id: \.self) { option in
+                Button {
+                    grouping = option
+                } label: {
+                    HStack {
+                        Text(option.rawValue)
+                        if grouping == option {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 3) {
+                Image(systemName: "arrow.up.arrow.down")
+                    .appFont(.caption2)
+                Text(grouping.rawValue)
+                    .appFont(.caption2)
+                    .lineLimit(1)
+            }
+            .foregroundStyle(Color.labelSecondary)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(Color.chipBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+        }
+        .menuStyle(.borderlessButton)
+        .accessibilityLabel("任务分组")
+        .accessibilityValue(grouping.rawValue)
     }
 
     private var content: some View {
@@ -135,20 +166,21 @@ struct TaskListView: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 10)
             } else {
-                LazyVStack(spacing: 12) {
+                LazyVStack(spacing: 8) {
                     ForEach(groupedTodos) { group in
                         if grouping != .none {
                             HStack(spacing: 4) {
                                 Text(group.title)
-                                    .appFont(.callout, weight: .semibold)
-                                    .foregroundStyle(accentTheme?.secondaryText ?? Color.accentColor)
+                                    .appFont(.caption, weight: .semibold)
+                                    .foregroundStyle(Color.labelSecondary)
+                                    .accessibilityAddTraits(.isHeader)
                                 Spacer()
                             }
                             .padding(.horizontal, 4)
                         }
 
                         ForEach(group.todos) { todo in
-                            TodoListCard(todo: todo, isDraggable: isDraggable)
+                            TodoListCard(todo: todo, isDraggable: isDraggable, showsProject: grouping != .byProject, todayActions: todayActions)
                         }
                     }
                 }
@@ -158,23 +190,22 @@ struct TaskListView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(isTargeted ? (accentTheme?.softBackground ?? Color.accentColor.opacity(0.06)) : Color.clear)
+                .fill(isTargeted ? (sectionAccent.opacity(0.10)) : Color.clear)
         )
     }
 
     private func emptyView(_ text: String) -> some View {
-        RoundedRectangle(cornerRadius: 8)
-            .stroke(Color.separatorColor.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [6, 4]))
-            .frame(maxWidth: .infinity, minHeight: 48)
-            .overlay(
-                Text(text)
-                    .appFont(.callout)
-                    .foregroundStyle(Color.labelSecondary)
-            )
+        Text(text)
+            .appFont(.callout)
+            .foregroundStyle(Color.labelSecondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
     }
 
     private var groupedTodos: [TaskGroup] {
-        grouping.apply(to: todos, projects: store.projects)
+        let visibleTodos = showsAll ? todos : Array(todos.prefix(previewLimit ?? todos.count))
+        return grouping.apply(to: visibleTodos, projects: store.projects)
     }
 }
 

@@ -6,6 +6,60 @@ import SQLite3
 
 final class TodoLiteTests: XCTestCase {
 
+    // MARK: - AI task review
+
+    func testAIWrapUpDecodesFencedResponseAndKeepsAmbiguousTaskUnselected() throws {
+        let candidates = [TodoItem(title: "接口"), TodoItem(title: "接口")]
+        let response = """
+        ```json
+        [{"kind":"complete","candidates":[0,1],"note":"已确认"},{"kind":"followUp","title":"跟进证书","date":"2026-11-10"}]
+        ```
+        """
+        let formatter = aiReviewDateFormatter()
+        let review = try TodayAIPlannerView.decodeReview(response, candidates: candidates, mode: .wrapUp, dateFormat: formatter)
+
+        XCTAssertEqual(review.count, 2)
+        XCTAssertEqual(review[0].candidates.map(\.id), candidates.map(\.id))
+        XCTAssertNil(review[0].selectedID)
+        XCTAssertEqual(review[0].note, "已确认")
+        XCTAssertEqual(review[1].title, "跟进证书")
+        XCTAssertEqual(review[1].date, formatter.date(from: "2026-11-10"))
+    }
+
+    func testAIReviewRejectsInvalidDateAndUnknownCandidate() throws {
+        let candidates = [TodoItem(title: "接口")]
+        let formatter = aiReviewDateFormatter()
+        for response in [
+            #"[{"candidates":[0],"date":"2026-02-30"}]"#,
+            #"[{"candidates":[1],"date":"2026-11-10"}]"#
+        ] {
+            XCTAssertThrowsError(try TodayAIPlannerView.decodeReview(response, candidates: candidates, mode: .reschedule, dateFormat: formatter))
+        }
+    }
+
+    func testAIPriorityPreservesOrderAndRejectsDatesAndRepeatedTasks() throws {
+        let candidates = [TodoItem(title: "文档"), TodoItem(title: "接口")]
+        let formatter = aiReviewDateFormatter()
+        let response = #"[{"candidates":[1],"note":"先确认接口"},{"candidates":[0],"note":"再补文档"}]"#
+        let review = try TodayAIPlannerView.decodeReview(response, candidates: candidates, mode: .priority, dateFormat: formatter)
+        XCTAssertEqual(review.compactMap(\.selectedID), [candidates[1].id, candidates[0].id])
+        for invalid in [
+            #"[{"candidates":[0],"note":"改期","date":"2026-11-10"}]"#,
+            #"[{"candidates":[0],"note":"先做"},{"candidates":[0],"note":"重复"}]"#
+        ] {
+            XCTAssertThrowsError(try TodayAIPlannerView.decodeReview(invalid, candidates: candidates, mode: .priority, dateFormat: formatter))
+        }
+    }
+
+    private func aiReviewDateFormatter() -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = TimeZone(secondsFromGMT: 8 * 3600)
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }
+
     // MARK: - Models
 
     func testTodoItemCodable() throws {

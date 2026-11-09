@@ -2,6 +2,8 @@ import SwiftUI
 
 struct TodoRowView: View {
     let todo: TodoItem
+    let showsProject: Bool
+    var showsDate = true
     @State private var store = TodoStore.shared
 
     var body: some View {
@@ -21,7 +23,6 @@ struct TodoRowView: View {
     private var titleText: some View {
         Text(todo.title)
             .appFont(.body, weight: .semibold)
-            .strikethrough(todo.status == .done)
             .foregroundStyle(todo.status == .done ? Color.labelSecondary : .primary)
             .lineLimit(2)
     }
@@ -35,11 +36,13 @@ struct TodoRowView: View {
                 projectChip
                 tagChips
             }
-            .layoutPriority(1)
+            .lineLimit(1)
 
             Spacer(minLength: 8)
 
-            dateChip
+            if showsDate {
+                dateChip.fixedSize(horizontal: true, vertical: false)
+            }
         }
     }
 
@@ -62,7 +65,7 @@ struct TodoRowView: View {
 
     @ViewBuilder
     private var projectChip: some View {
-        if let project = store.projects.first(where: { $0.id == todo.projectId }) {
+        if showsProject, let project = store.projects.first(where: { $0.id == todo.projectId }) {
             HStack(spacing: 3) {
                 Image(systemName: "folder")
                     .imageScale(.small)
@@ -93,7 +96,7 @@ struct TodoRowView: View {
             HStack(spacing: 3) {
                 Image(systemName: "checkmark.circle")
                     .imageScale(.small)
-                Text(completedAt.formatted(.dateTime.month().day()))
+                Text(shortDate(completedAt))
             }
             .appFont(.caption)
             .foregroundStyle(SectionTheme.done.secondaryText)
@@ -121,7 +124,8 @@ struct TodoRowView: View {
     }
 
     private var hasMetadata: Bool {
-        isInFocus || todo.projectId != nil || !todo.tagIds.isEmpty || todo.dueAt != nil
+        isInFocus || (showsProject && todo.projectId != nil) || !todo.tagIds.isEmpty
+            || (showsDate && (todo.dueAt != nil || (todo.status == .done && todo.completedAt != nil)))
     }
 
     private var isInFocus: Bool {
@@ -134,32 +138,19 @@ struct TodoRowView: View {
         let target = calendar.startOfDay(for: date)
 
         guard let daysDiff = calendar.dateComponents([.day], from: today, to: target).day else {
-            return date.formatted(.dateTime.month().day())
+            return shortDate(date)
         }
-
-        let weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
-        let weekday = calendar.component(.weekday, from: target) - 1
 
         switch daysDiff {
         case 0: return "今天"
         case 1: return "明天"
         case 2: return "后天"
-        case 3...6:
-            let todayWeek = calendar.component(.weekOfYear, from: today)
-            let targetWeek = calendar.component(.weekOfYear, from: target)
-            return todayWeek == targetWeek ? weekdays[weekday] : "下周\(weekdays[weekday])"
-        case 7...13:
-            return "下周\(weekdays[weekday])"
-        case -1: return "昨天"
-        case -2: return "前天"
-        case -6...(-3):
-            let todayWeek = calendar.component(.weekOfYear, from: today)
-            let targetWeek = calendar.component(.weekOfYear, from: target)
-            return todayWeek == targetWeek ? "本周\(weekdays[weekday])" : "上周\(weekdays[weekday])"
-        case -13...(-7):
-            return "上周\(weekdays[weekday])"
         default:
-            return date.formatted(.dateTime.month().day())
+            return shortDate(date)
         }
+    }
+
+    private func shortDate(_ date: Date) -> String {
+        date.formatted(.dateTime.month().day().locale(Locale(identifier: "zh_CN")))
     }
 }

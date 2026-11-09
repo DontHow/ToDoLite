@@ -10,6 +10,43 @@ final class ConsistencyTests: XCTestCase {
         return (fs, root.appendingPathComponent("TodoLite"))
     }
 
+    @MainActor
+    func testTodayUpdateReturnsSavedVersionForUndoAndProtectsNewerChanges() async throws {
+        let (fs, _) = try await filesystem()
+        let store = TodoStore(fs: fs)
+        let repo = TodoRepository(fs: fs)
+        try await store.createTodo(title: "快速收集")
+        let captured = try XCTUnwrap(store.inboxTodos.first)
+        XCTAssertNil(captured.dueAt)
+
+        var rescheduled = captured
+        rescheduled.dueAt = Calendar.current.startOfDay(for: Date())
+        let saved = try await store.updateTodo(rescheduled)
+        XCTAssertEqual(saved.version, captured.version + 1)
+        XCTAssertEqual(store.suggestedTodos.map(\.id), [captured.id])
+
+        let completed = try await store.updateTodo(saved.changingStatus(to: .done))
+        var undoCompletion = saved
+        undoCompletion.version = completed.version
+        let restored = try await store.updateTodo(undoCompletion)
+        XCTAssertEqual(restored.status, .inbox)
+        XCTAssertNil(restored.completedAt)
+        XCTAssertEqual(restored.dueAt, saved.dueAt)
+
+        var undoDate = captured
+        undoDate.version = restored.version
+        var external = restored
+        external.title = "其他设备的编辑"
+        _ = try await repo.save(external)
+        do {
+            try await store.updateTodo(undoDate)
+            XCTFail("撤销不能覆盖其他设备的新版本")
+        } catch FileSystemError.conflictDetected {}
+        let current = try await repo.read(id: captured.id)
+        XCTAssertEqual(current.title, external.title)
+        XCTAssertEqual(current.dueAt, saved.dueAt)
+    }
+
     func testConcurrentFocusAddsAcrossIndependentFileActorsKeepAllIDs() async throws {
         let (fs, root) = try await filesystem()
         let first = FocusRepository(fs: fs)

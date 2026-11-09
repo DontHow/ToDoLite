@@ -94,17 +94,24 @@ struct BoardColumnView: View {
             ScrollView(.vertical, showsIndicators: true) {
                 TaskListView(
                     title: status.displayName,
-                    todos: todos,
+                    todos: orderedTodos,
                     emptyPlaceholder: allowsDragging ? "拖拽任务到此处" : "暂无任务",
                     accentTheme: status.theme,
-                    defaultGrouping: status == .done ? .byProject : .dueDate,
+                    defaultGrouping: status == .done ? .none : .dueDate,
                     onDrop: dropHandler,
-                    isDraggable: allowsDragging
+                    isDraggable: allowsDragging,
+                    previewLimit: status == .done ? 8 : nil,
+                    minimumHeight: allowsDragging ? geo.size.height : nil
                 )
             }
             .frame(height: geo.size.height)
         }
         .frame(width: columnWidth)
+    }
+
+    private var orderedTodos: [TodoItem] {
+        guard status == .done else { return todos }
+        return todos.sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
     }
 
     private var dropHandler: ((String) -> Bool)? {

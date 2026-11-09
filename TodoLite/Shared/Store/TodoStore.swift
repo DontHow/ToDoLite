@@ -187,9 +187,11 @@ final class TodoStore {
         return result.todo
     }
 
-    func updateTodo(_ todo: TodoItem) async throws {
-        _ = try await todoRepo.save(todo)
+    @discardableResult
+    func updateTodo(_ todo: TodoItem) async throws -> TodoItem {
+        let saved = try await todoRepo.save(todo)
         await refreshRecordFromDisk(id: todo.id, directory: "tasks")
+        return saved
     }
 
     func deleteTodo(id: String) async throws {
