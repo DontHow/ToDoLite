@@ -1307,6 +1307,37 @@ final class TodoLiteTests: XCTestCase {
         }
     }
 
+    func testLLMDraftRejectsInvalidExplicitDeadline() throws {
+        let calendar = try shanghaiCalendar()
+        for rawDate in ["2026-02-30", "2026-02-29", "2026-13-01", "2026-1-02", "tomorrow", ""] {
+            let parsed = LLMJSONDraft(title: "提交报告", description: nil, projectName: nil,
+                                      tagNames: nil, dueAt: rawDate)
+            XCTAssertThrowsError(try LLMParser.draft(from: parsed, calendar: calendar), rawDate) { error in
+                guard case LLMParserError.invalidResponse = error else {
+                    return XCTFail("Unexpected error: \(error)")
+                }
+            }
+        }
+    }
+
+    func testLLMDraftPreservesValidDeadlineAndAllowsNoDeadline() throws {
+        let calendar = try shanghaiCalendar()
+        for rawDate in ["2026-11-16", "2028-02-29"] {
+            let parsed = LLMJSONDraft(title: "提交报告", description: "附上测试结果", projectName: "工作",
+                                      tagNames: ["iOS"], dueAt: rawDate)
+            let draft = try LLMParser.draft(from: parsed, calendar: calendar)
+            XCTAssertEqual(draft.dueAt, DateResolver.resolve(rawDate, calendar: calendar))
+            XCTAssertNotNil(draft.dueAt)
+            XCTAssertEqual(draft.title, parsed.title)
+            XCTAssertEqual(draft.description, parsed.description)
+            XCTAssertEqual(draft.projectName, parsed.projectName)
+            XCTAssertEqual(draft.tagNames, parsed.tagNames)
+        }
+        let undated = LLMJSONDraft(title: "想法", description: nil, projectName: nil,
+                                   tagNames: nil, dueAt: nil)
+        XCTAssertNil(try LLMParser.draft(from: undated, calendar: calendar).dueAt)
+    }
+
     func testLLMParsingPromptCarriesLocalDateAndTimeZone() throws {
         let calendar = try shanghaiCalendar()
         let date = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 10, day: 22, hour: 1)))

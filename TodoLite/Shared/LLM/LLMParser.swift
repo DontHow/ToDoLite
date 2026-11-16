@@ -18,7 +18,7 @@ actor LLMParser {
 
         let parsed = try JSONDecoder().decode(LLMJSONDraft.self, from: data)
 
-        return draft(from: parsed, calendar: calendar)
+        return try Self.draft(from: parsed, calendar: calendar)
     }
 
     func organize(_ input: String, projects: [Project], tags: [TagItem], config: LLMConfig, calendar: Calendar = .current) async throws -> [TodoDraft] {
@@ -36,16 +36,22 @@ actor LLMParser {
               result.allSatisfy({ !$0.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else {
             throw LLMParserError.invalidResponse
         }
-        return result.map { draft(from: $0, calendar: calendar) }
+        return try result.map { try Self.draft(from: $0, calendar: calendar) }
     }
 
-    private func draft(from parsed: LLMJSONDraft, calendar: Calendar) -> TodoDraft {
+    nonisolated static func draft(from parsed: LLMJSONDraft, calendar: Calendar) throws -> TodoDraft {
         var draft = TodoDraft()
         draft.title = parsed.title
         draft.description = parsed.description ?? ""
         draft.projectName = parsed.projectName
         draft.tagNames = parsed.tagNames ?? []
-        draft.dueAt = parsed.dueAt.flatMap { dateFromString($0, calendar: calendar) }
+        // null 表示没有截止日期；显式但无效的日期不能静默丢弃。
+        if let rawDate = parsed.dueAt {
+            guard let date = dateFromString(rawDate, calendar: calendar) else {
+                throw LLMParserError.invalidResponse
+            }
+            draft.dueAt = date
+        }
 
         return draft
     }
@@ -104,7 +110,7 @@ actor LLMParser {
         return trimmed
     }
 
-    private func dateFromString(_ string: String, calendar: Calendar) -> Date? {
+    nonisolated private static func dateFromString(_ string: String, calendar: Calendar) -> Date? {
         guard string.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil else { return nil }
         return DateResolver.resolve(string, calendar: calendar)
     }
