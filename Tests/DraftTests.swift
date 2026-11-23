@@ -26,6 +26,52 @@ final class DraftTests: XCTestCase {
         XCTAssertNotNil(retry.completedAt)
     }
 
+    @MainActor
+    func testProjectDraftSavesWithSelectedProjectAndSurvivesProjectDeletion() async throws {
+        let (fs, _) = try await filesystem()
+        let projects = ProjectRepository(fs: fs)
+        let project = try await projects.create(Project(name: "项目"))
+        let store = TodoStore(fs: fs)
+        let draft = TodoItem(title: "项目内新建", projectId: project.id)
+
+        let saved = try await store.saveDraft(draft, creating: true)
+        XCTAssertEqual(saved.projectId, project.id)
+        XCTAssertEqual(saved.status, .inbox)
+
+        try await store.deleteProject(id: project.id)
+        var edited = saved
+        edited.title = "仍可编辑"
+        let updated = try await store.saveDraft(edited, creating: false)
+        XCTAssertEqual(updated.id, saved.id)
+        XCTAssertEqual(updated.title, "仍可编辑")
+    }
+
+    @MainActor
+    func testNewDraftRejectsProjectDeletedFromAnotherStoreBeforeSaving() async throws {
+        let (fs, root) = try await filesystem()
+        let project = try await ProjectRepository(fs: fs).create(Project(name: "即将删除"))
+        let store = TodoStore(fs: fs)
+        let draft = TodoItem(title: "不应保存", projectId: project.id)
+
+        let otherFS = FileSystemManager(documentsURL: root.deletingLastPathComponent())
+        try await ProjectRepository(fs: otherFS).delete(id: project.id)
+        do {
+            _ = try await store.saveDraft(draft, creating: true, tagNames: ["不应创建"])
+            XCTFail("new draft must not persist a missing project reference")
+        } catch {
+            XCTAssertTrue(error.localizedDescription.contains("所选项目已不存在"))
+        }
+        let tasks = try await TodoRepository(fs: fs).listAll()
+        let tags = try await TagRepository(fs: fs).listAll()
+        XCTAssertTrue(tasks.isEmpty)
+        XCTAssertTrue(tags.isEmpty)
+
+        var unassigned = draft
+        unassigned.projectId = nil
+        let saved = try await store.saveDraft(unassigned, creating: true)
+        XCTAssertNil(saved.projectId)
+    }
+
     func testStaleDraftDoesNotCreatePendingMetadata() async throws {
         let (fs, _) = try await filesystem()
         let todos = TodoRepository(fs: fs)

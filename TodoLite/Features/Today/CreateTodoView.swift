@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CreateTodoView: View {
     let todo: TodoItem?
+    private let initialProjectID: String?
 
     @State var store = TodoStore.shared
     @State var edited: TodoItem
@@ -19,12 +20,13 @@ struct CreateTodoView: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @FocusState var detailTitleFocused: Bool
 
-    init(todo: TodoItem? = nil) {
+    init(todo: TodoItem? = nil, initialProjectID: String? = nil) {
         self.todo = todo
+        self.initialProjectID = initialProjectID
         if let todo = todo {
             _edited = State(initialValue: todo)
         } else {
-            var newTodo = TodoItem(title: "")
+            var newTodo = TodoItem(title: "", projectId: initialProjectID)
             newTodo.dueAt = defaultDueDate()
             _edited = State(initialValue: newTodo)
         }
@@ -76,7 +78,7 @@ struct CreateTodoView: View {
             #endif
             .toolbar {
                 #if os(macOS)
-                if todo != nil {
+                if todo != nil || initialProjectID != nil {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("取消") { dismiss() }.disabled(isSaving)
                     }

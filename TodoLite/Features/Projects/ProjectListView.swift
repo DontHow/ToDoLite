@@ -9,11 +9,26 @@ struct ProjectListView: View {
         ScrollView {
             LazyVStack(spacing: 12) {
                 ForEach(store.projects) { project in
-                    ProjectCard(
-                        project: project,
-                        taskCount: store.todos.filter { $0.projectId == project.id }.count,
-                        onEdit: { editingProject = project }
-                    )
+                    HStack(spacing: 12) {
+                        NavigationLink {
+                            ProjectDetailView(projectID: project.id)
+                        } label: {
+                            ProjectCard(
+                                project: project,
+                                taskCount: store.todos.filter { $0.projectId == project.id }.count
+                            )
+                        }
+                        .buttonStyle(.plain)
+
+                        Button {
+                            editingProject = project
+                        } label: {
+                            Image(systemName: "pencil")
+                                .frame(minWidth: 44, minHeight: 44)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("编辑项目：\(project.name)")
+                    }
                     .contextMenu {
                         Button {
                             editingProject = project
@@ -74,7 +89,6 @@ struct ProjectListView: View {
 private struct ProjectCard: View {
     let project: Project
     let taskCount: Int
-    let onEdit: () -> Void
 
     var body: some View {
         HStack(spacing: 14) {
@@ -99,25 +113,9 @@ private struct ProjectCard: View {
 
             Spacer()
 
-            Button {
-                Task {
-                    do { try await TodoStore.shared.deleteProject(id: project.id) }
-                    catch { TodoStore.shared.operationError = error.localizedDescription }
-                }
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "trash.fill")
-                        .appFont(.body)
-                    Text("删除")
-                        .appFont(.caption, weight: .medium)
-                }
-                .foregroundStyle(.white)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(.red)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
-            .buttonStyle(.plain)
+            Image(systemName: "chevron.forward")
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -131,7 +129,42 @@ private struct ProjectCard: View {
                 .stroke(Color.separatorColor.opacity(0.5), lineWidth: 0.5)
         )
         .contentShape(Rectangle())
-        .onTapGesture(perform: onEdit)
+    }
+}
+
+private struct ProjectDetailView: View {
+    let projectID: String
+    @State private var store = TodoStore.shared
+    @State private var showingCreate = false
+
+    private var project: Project? { store.projects.first { $0.id == projectID } }
+
+    var body: some View {
+        ScrollView {
+            if project != nil {
+                TaskListView(
+                    title: "任务",
+                    todos: store.todos.filter { $0.projectId == projectID },
+                    emptyPlaceholder: "暂无任务，点击右上角 + 新建"
+                )
+                .padding(16)
+            } else {
+                EmptyStateView(icon: "folder", title: "项目已不存在", subtitle: "已有任务仍可在原有任务页面查看")
+                    .padding(16)
+            }
+        }
+        .navigationTitle(project?.name ?? "项目")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button { showingCreate = true } label: {
+                    Label("新建任务", systemImage: "plus")
+                }
+                .disabled(project == nil)
+            }
+        }
+        .sheet(isPresented: $showingCreate) {
+            CreateTodoView(initialProjectID: projectID)
+        }
     }
 }
 

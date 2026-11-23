@@ -21,7 +21,7 @@ struct ContentView: View {
             case .settings: SettingsView()
             case .done: NavigationStack { DoneView() }
             case .archive: NavigationStack { ArchiveView() }
-            case .projects: ProjectListView()
+            case .projects: NavigationStack { ProjectListView() }
             case .tags: TagListView()
             }
         }
