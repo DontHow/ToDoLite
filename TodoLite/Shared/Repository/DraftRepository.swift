@@ -46,6 +46,15 @@ actor DraftRepository {
         // 在首次写入之前验证文件名和版本范围。
         try TodoBackup(todos: [resolved], projects: [], tags: [], focusSets: [], deletedTodos: []).validate()
         try await todoRepo.validateDraft(resolved, creating: creating)
+        if creating, plannedProject == nil, let id = resolved.projectId {
+            // Do not trust the in-memory picker: another window or iCloud may have removed this project.
+            do {
+                let project = try await projectRepo.read(id: id)
+                guard project.id == id else { throw DraftMetadataError.changed }
+            } catch FileSystemError.fileNotFound {
+                throw DraftMetadataError.projectMissing
+            }
+        }
         var projects: [Project] = []
         var tags: [TagItem] = []
         var createdProjects: [Project] = []
@@ -90,5 +99,12 @@ actor DraftRepository {
 
 private enum DraftMetadataError: LocalizedError {
     case changed
-    var errorDescription: String? { "项目或标签已被其他操作修改，请重新选择后再试。" }
+    case projectMissing
+
+    var errorDescription: String? {
+        switch self {
+        case .changed: "项目或标签已被其他操作修改，请重新选择后再试。"
+        case .projectMissing: "所选项目已不存在。请选择其他项目或取消项目归属后再保存。"
+        }
+    }
 }
